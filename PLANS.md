@@ -27,17 +27,18 @@ The plan may repeat enough feature behavior to be self-contained. Permanent beha
 
 ## Roadmap
 
-**Phase 0: Trusted foundation.** Scaffold the application, Chrome Manifest V3 extension, local development workflow, authentication, single-organization tenancy, continuous integration, and minimum observability. Plan: `docs/plans/000-execplan.md`.
+**Phase 0: Trusted foundation.** Scaffold the application, Chrome Manifest V3 extension, local development workflow, authentication, single-organization tenancy, continuous integration, and minimum observability. Owning specifications: `accounts-and-organizations.md` and `browser-extension.md`. Plan: `docs/plans/000-execplan.md`.
 
-**Phase 1: Page-aware discussion.** Open SideWire in the Chrome side panel, identify the active page using a conservative normalized URL, and allow organization members to exchange page-scoped messages in near real time.
+**Phase 1: Page-aware discussion.** Open SideWire in the Chrome side panel, identify the active page using a conservative normalized URL, and allow organization members to exchange page-scoped messages in near real time. Owning specifications: `page-contexts.md` and `page-conversations.md`.
 
-**Phase 2: Cross-tool source of truth.** Add a global inbox, unread state, mentions, search, and links back to the originating web page so users can follow communication across all of their tools.
+**Phase 2: Cross-tool source of truth.** Add team conversations, direct messages, a global inbox, unread state, mentions, search, and source-page return links. Owning specifications: `team-conversations.md`, `direct-messages.md`, `inbox-and-unread.md`, `mentions-and-notifications.md`, and `search.md`. Split this phase into separately approved ExecPlans rather than implementing it as one large change.
 
-**Phase 3: Lightweight tasks.** Create, assign, complete, and discuss tasks tied to a page context without attempting to replace full project-management systems.
+**Phase 3: Lightweight tasks.** Create, assign, complete, and recover tasks tied to a page context without attempting to replace full project-management systems. Owning specification: `tasks.md`.
 
-**Phase 4: Team onboarding and billing.** Add invitations, roles, production billing, trials, and seat rules only after pricing and access behavior are approved.
+**Phase 4: Team onboarding and billing.** Complete invitations and roles, then add production billing, trials, and seat rules only after pricing and access behavior are approved. Owning specifications: `accounts-and-organizations.md` and `billing-and-product-access.md`.
 
-**Phase 5: Pilot readiness.** Validate privacy, organization isolation, extension-store requirements, onboarding, browser compatibility, operations, retention, support, and product analytics before paid acquisition.
+**Phase 5: Pilot readiness and acquisition.** Validate privacy, organization isolation, extension-store requirements, onboarding, browser compatibility, operations, retention, support, and product analytics. Publish truthful horizontal and use-case marketing pages. Owning specification: `marketing-site.md`.
 
-Native integrations, page annotations, screenshots, content extraction, mobile applications, Firefox/Safari support, AI summaries, public sharing, referrals, and partner commissions are possible future initiatives, not MVP requirements.
+**Phase 6: Proven growth extensions.** Add prioritized native integrations, customer referrals, or software-service partnerships only after core activation and retention are demonstrated. Owning specifications: `integrations.md` and `referrals-and-partnerships.md`.
 
+Page annotations, screenshots, content extraction, mobile applications, Firefox/Safari support, AI summaries, public sharing, workflow automation, and enterprise controls remain possible future initiatives, not MVP requirements.

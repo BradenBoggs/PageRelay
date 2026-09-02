@@ -2,7 +2,7 @@
 
 Use one living execution plan, called an ExecPlan, for a substantial feature, sensitive migration, extension-permission change, security change, or significant refactor. Save it as `docs/plans/<number>-<feature>.md`. The number identifies the initiative. Update that same document as the work progresses instead of creating a new plan for every revision.
 
-Before writing code, inspect the repository and read the relevant feature specification. Present the plan for approval. A request to create or revise documentation does not authorize implementation. After implementation is approved, complete and verify one milestone at a time. Stop when a new product decision, sensitive browser permission, unsafe data operation, or out-of-scope action requires user input.
+Before writing code, inspect the repository and read the relevant feature specification and `docs/DOCUMENTATION.md`. Present the plan for approval. A request to create or revise documentation does not authorize implementation. After implementation is approved, complete and verify one milestone at a time. Stop when a new product decision, sensitive browser permission, unsafe data operation, or out-of-scope action requires user input.
 
 An ExecPlan must be understandable without prior conversation. Include behavior, affected paths, implementation order, exact commands, observable acceptance criteria, security and extension-permission checks, and recovery strategy. Use checkboxes only in `Progress`. Keep `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` current.
 
@@ -23,7 +23,9 @@ Every new ExecPlan uses these headings in this order:
 11. `Artifacts and Notes`
 12. `Interfaces and Dependencies`
 
-The plan may repeat enough feature behavior to be self-contained. Permanent behavior belongs in the relevant feature document. Implementation details, progress, and evidence belong in the plan.
+The plan may repeat enough feature behavior to be self-contained. Permanent behavior belongs in the relevant feature document. Implementation details, progress, exact affected paths, and evidence belong in the plan. `Context and Orientation` must identify current relevant files, entry points, neighboring features, and tests. `Plan of Work` must name expected changed paths when known.
+
+When implementation begins, add a concise `Implementation map` to the owning feature document following `docs/DOCUMENTATION.md`. The permanent map lists stable current entry points, not every changed file. The ExecPlan retains the detailed and historical file-level record.
 
 ## Roadmap
 

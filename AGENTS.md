@@ -12,7 +12,7 @@ Do not reference, import assumptions from, integrate with, or couple SideWire to
 
 `README.md` owns local setup and repository entry points. `docs/PRODUCT.md` owns the product purpose, audience, boundaries, vocabulary, and approved MVP. `docs/ARCHITECTURE.md` owns the technology choices and application-wide engineering, privacy, and security rules. `docs/UI.md` owns shared user-interface and extension interaction rules. Each file under `docs/features/` owns the complete approved behavior of one feature. `PLANS.md` owns the roadmap and execution-plan standard. Each file under `docs/plans/` owns one initiative's implementation sequence, decisions, progress, and verification.
 
-Update the one document that owns changed behavior. Do not duplicate a feature specification across product, architecture, UI, and plan documents. The user's latest explicit direction overrides repository guidance.
+Update the one document that owns changed behavior. Do not duplicate a feature specification across product, architecture, UI, and plan documents. When work spans features, read only the directly affected feature files and name which document owns each resulting behavior. The user's latest explicit direction overrides repository guidance.
 
 ## How to work
 
@@ -27,4 +27,3 @@ Every organization-owned record must be isolated and authorized on the server. N
 For UI work, reuse shared components and layouts before introducing a new pattern. The extension side panel is narrow and persistent; test it at realistic panel widths as well as in the full web application. Do not make the extension a cramped copy of a desktop dashboard.
 
 Do not claim that a command, provider, browser behavior, migration, or test was verified unless it was actually run. If the repository has not yet established a command, update the active plan when the command is chosen rather than inventing a result.
-

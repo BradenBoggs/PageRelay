@@ -11,6 +11,7 @@ This initiative establishes the application, extension, tenancy, authentication,
 ## Progress
 
 - [x] 2026-09-02: Create repository-level contributor guidance and product, architecture, UI, feature, roadmap, and execution-plan documents.
+- [x] 2026-09-02: Establish selective class documentation, feature implementation maps, code-to-specification references, and ExecPlan file-orientation rules in `docs/DOCUMENTATION.md`.
 - [ ] Confirm the recommended stack, framework versions, repository layout, authentication flow, and organization-membership rules.
 - [ ] Scaffold the server and responsive web application with secure authentication.
 - [ ] Implement and test the single-organization tenancy boundary selected for the MVP.
@@ -51,6 +52,7 @@ The repository currently contains documentation only:
 - `docs/PRODUCT.md` defines SideWire's purpose, audience, vocabulary, boundaries, and MVP direction.
 - `docs/ARCHITECTURE.md` defines the proposed system shape and mandatory trust, privacy, extension, and page-identity constraints.
 - `docs/UI.md` defines shared web and side-panel interaction rules.
+- `docs/DOCUMENTATION.md` defines code-documentation, implementation-map, and code-to-specification reference rules.
 - `docs/features/accounts-and-organizations.md` and `docs/features/browser-extension.md` define the foundation behavior implemented by this plan.
 - `docs/features/page-contexts.md` and `docs/features/page-conversations.md` define the first product workflow that follows this foundation.
 - `PLANS.md` defines how execution plans work and the phased roadmap.
@@ -122,6 +124,8 @@ Create CI that installs locked dependencies, builds the web application and exte
 
 Update `README.md` with actual setup commands and `AGENTS.md` only if repository commands or source-of-truth rules change. Record actual command output and CI links or run identifiers in this plan.
 
+Add an `Implementation map` to each foundation feature document once its code exists. The map must identify stable entry points, authorization boundaries, persistence, extension surfaces, and tests without listing every participating file. Add selective class-level documentation only where responsibilities or invariants are not obvious from code and types.
+
 Acceptance: the clean repository setup and CI workflow both pass; the extension artifact is buildable but is not represented as Chrome Web Store approved or production deployed.
 
 ## Concrete Steps
@@ -159,7 +163,10 @@ The initiative is complete only when all of the following are observed and recor
 - extension credentials expire, revoke, and sign out as designed without appearing in logs or host-page contexts;
 - clean test, static-analysis, type-check, lint, audit, web build, and extension build commands pass;
 - CI passes from the committed lockfiles;
-- no documentation claims realtime messaging, billing, Chrome Web Store approval, or deployment is complete.
+- no documentation claims realtime messaging, billing, Chrome Web Store approval, or deployment is complete;
+- implemented foundation feature documents contain accurate, concise implementation maps;
+- complex boundary classes document meaningful invariants and link selectively to their owning feature specification;
+- documentation contains no stale paths or generic docblocks that merely restate code.
 
 ## Idempotence and Recovery
 

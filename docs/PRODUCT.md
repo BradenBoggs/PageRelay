@@ -77,5 +77,23 @@ The following remain intentionally open:
 
 Do not convert an idea in this list into an approved requirement without updating the owning feature document.
 
-Detailed core collaboration behavior is defined in `docs/features/core-collaboration.md`.
+## Feature specifications
 
+Permanent behavior is divided by feature so implementation agents can work from one clear source of truth:
+
+- Accounts, organizations, roles, and invitations: `docs/features/accounts-and-organizations.md`
+- Chrome extension and side-panel shell: `docs/features/browser-extension.md`
+- Universal URL and page identity: `docs/features/page-contexts.md`
+- Conversations tied to source pages: `docs/features/page-conversations.md`
+- General organization chat: `docs/features/team-conversations.md`
+- Private member communication: `docs/features/direct-messages.md`
+- Cross-tool activity and read state: `docs/features/inbox-and-unread.md`
+- Mentions and notification delivery: `docs/features/mentions-and-notifications.md`
+- Lightweight actions tied to work pages: `docs/features/tasks.md`
+- Search across authorized SideWire content: `docs/features/search.md`
+- Native adapters and third-party services: `docs/features/integrations.md`
+- Pricing, subscriptions, and paid access: `docs/features/billing-and-product-access.md`
+- Customer referrals and software partnerships: `docs/features/referrals-and-partnerships.md`
+- Public positioning and use-case pages: `docs/features/marketing-site.md`
+
+These documents include proposed behavior and open decisions. A documented idea is not automatically authorized for implementation. Approval is recorded in the relevant living ExecPlan.

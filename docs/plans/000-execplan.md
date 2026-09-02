@@ -51,7 +51,8 @@ The repository currently contains documentation only:
 - `docs/PRODUCT.md` defines SideWire's purpose, audience, vocabulary, boundaries, and MVP direction.
 - `docs/ARCHITECTURE.md` defines the proposed system shape and mandatory trust, privacy, extension, and page-identity constraints.
 - `docs/UI.md` defines shared web and side-panel interaction rules.
-- `docs/features/core-collaboration.md` defines the first product workflow.
+- `docs/features/accounts-and-organizations.md` and `docs/features/browser-extension.md` define the foundation behavior implemented by this plan.
+- `docs/features/page-contexts.md` and `docs/features/page-conversations.md` define the first product workflow that follows this foundation.
 - `PLANS.md` defines how execution plans work and the phased roadmap.
 
 The planned system has one server/database trust boundary, one responsive web application, and one Chrome extension. The extension displays the side panel and requests limited active-tab metadata. The server will later resolve organization-private page contexts and own durable collaboration data.
@@ -202,4 +203,3 @@ Exact names are provisional until Milestone 1. The foundation should result in i
 - repository-owned commands for setup, development, checks, tests, and builds.
 
 Likely dependencies include the selected Laravel starter/authentication facilities, PostgreSQL driver, React, TypeScript, a maintained extension build tool, and test runners already compatible with those choices. Broadcasting, billing, object storage, analytics, AI providers, and native third-party integrations are not Phase 0 dependencies.
-

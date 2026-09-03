@@ -1,0 +1,328 @@
+# Laravel service package compatibility diagnostics
+
+Generated at 2026-09-03T04:08:04Z using PHP 8.4.25 and Composer Composer version 2.10.3 2026-08-27 13:34:23.
+
+## Cashier
+```text
+./composer.json has been updated
+Running composer update laravel/cashier --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 4 installs, 0 updates, 0 removals
+  - Locking laravel/cashier (v16.8.0)
+  - Locking moneyphp/money (v4.9.0)
+  - Locking stripe/stripe-php (v21.3.1)
+  - Locking symfony/polyfill-intl-icu (v1.38.0)
+Installing dependencies from lock file (including require-dev)
+Package operations: 4 installs, 0 updates, 0 removals
+  - Installing symfony/polyfill-intl-icu (v1.38.0)
+  - Installing stripe/stripe-php (v21.3.1)
+  - Installing moneyphp/money (v4.9.0)
+  - Installing laravel/cashier (v16.8.0)
+5 package suggestions were added by new dependencies, use `composer suggest` to see details.
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+Using version ^16.8 for laravel/cashier
+exit_code=0
+```
+
+## Sanctum
+```text
+./composer.json has been updated
+Running composer update laravel/sanctum --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 1 install, 0 updates, 0 removals
+  - Locking laravel/sanctum (v4.3.3)
+Installing dependencies from lock file (including require-dev)
+Package operations: 1 install, 0 updates, 0 removals
+  - Installing laravel/sanctum (v4.3.3)
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+Using version ^4.3 for laravel/sanctum
+exit_code=0
+```
+
+## Reverb
+```text
+./composer.json has been updated
+Running composer update laravel/reverb --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 14 installs, 3 updates, 1 removal
+  - Removing symfony/polyfill-php82 (v1.38.1)
+  - Locking clue/redis-protocol (v0.3.2)
+  - Locking clue/redis-react (v2.8.0)
+  - Locking evenement/evenement (v3.0.2)
+  - Downgrading guzzlehttp/guzzle (8.1.0 => 7.15.5)
+  - Downgrading guzzlehttp/promises (3.0.2 => 2.5.3)
+  - Downgrading guzzlehttp/psr7 (3.1.0 => 2.13.1)
+  - Locking laravel/reverb (v1.11.1)
+  - Locking pusher/pusher-php-server (7.3.0)
+  - Locking ralouphie/getallheaders (3.0.3)
+  - Locking ratchet/rfc6455 (v0.4.1)
+  - Locking react/cache (v1.2.0)
+  - Locking react/dns (v1.14.0)
+  - Locking react/event-loop (v1.6.0)
+  - Locking react/promise (v3.3.0)
+  - Locking react/promise-timer (v1.11.0)
+  - Locking react/socket (v1.17.0)
+  - Locking react/stream (v1.4.0)
+Installing dependencies from lock file (including require-dev)
+Package operations: 14 installs, 3 updates, 1 removal
+  - Removing symfony/polyfill-php82 (v1.38.1)
+  - Installing clue/redis-protocol (v0.3.2)
+  - Installing ralouphie/getallheaders (3.0.3)
+  - Downgrading guzzlehttp/psr7 (3.1.0 => 2.13.1)
+  - Downgrading guzzlehttp/promises (3.0.2 => 2.5.3)
+  - Downgrading guzzlehttp/guzzle (8.1.0 => 7.15.5)
+  - Installing react/event-loop (v1.6.0)
+  - Installing evenement/evenement (v3.0.2)
+  - Installing react/stream (v1.4.0)
+  - Installing react/promise (v3.3.0)
+  - Installing react/cache (v1.2.0)
+  - Installing react/dns (v1.14.0)
+  - Installing react/socket (v1.17.0)
+  - Installing react/promise-timer (v1.11.0)
+  - Installing ratchet/rfc6455 (v0.4.1)
+  - Installing pusher/pusher-php-server (7.3.0)
+  - Installing clue/redis-react (v2.8.0)
+  - Installing laravel/reverb (v1.11.1)
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+Using version ^1.11 for laravel/reverb
+exit_code=0
+```
+
+## Horizon
+```text
+./composer.json has been updated
+Running composer update laravel/horizon --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 3 installs, 0 updates, 0 removals
+  - Locking laravel/horizon (v5.48.3)
+  - Locking laravel/sentinel (v1.1.0)
+  - Locking symfony/polyfill-php83 (v1.41.0)
+Installing dependencies from lock file (including require-dev)
+Package operations: 3 installs, 0 updates, 0 removals
+  - Installing symfony/polyfill-php83 (v1.41.0)
+  - Installing laravel/sentinel (v1.1.0)
+  - Installing laravel/horizon (v5.48.3)
+1 package suggestions were added by new dependencies, use `composer suggest` to see details.
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+Using version ^5.48 for laravel/horizon
+exit_code=0
+```
+
+## Filament 5
+```text
+./composer.json has been updated
+Running composer update filament/filament --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 31 installs, 0 updates, 0 removals
+  - Locking anourvalar/eloquent-serialize (1.3.11)
+  - Locking blade-ui-kit/blade-heroicons (2.7.0)
+  - Locking blade-ui-kit/blade-icons (1.10.1)
+  - Locking chillerlan/php-qrcode (5.0.5)
+  - Locking chillerlan/php-settings-container (3.3.0)
+  - Locking danharrin/date-format-converter (v0.3.1)
+  - Locking danharrin/livewire-rate-limiting (v2.2.1)
+  - Locking filament/actions (v5.7.8)
+  - Locking filament/filament (v5.7.8)
+  - Locking filament/forms (v5.7.8)
+  - Locking filament/infolists (v5.7.8)
+  - Locking filament/notifications (v5.7.8)
+  - Locking filament/query-builder (v5.7.8)
+  - Locking filament/schemas (v5.7.8)
+  - Locking filament/support (v5.7.8)
+  - Locking filament/tables (v5.7.8)
+  - Locking filament/widgets (v5.7.8)
+  - Locking kirschbaum-development/eloquent-power-joins (4.3.3)
+  - Locking league/csv (9.28.0)
+  - Locking league/uri-components (7.8.1)
+  - Locking livewire/livewire (v4.4.3)
+  - Locking nette/php-generator (v4.2.2)
+  - Locking openspout/openspout (v4.32.0)
+  - Locking pragmarx/google2fa-qrcode (v4.0.0)
+  - Locking ryangjchandler/blade-capture-directive (v1.1.1)
+  - Locking scrivo/highlight.php (v9.18.1.10)
+  - Locking spatie/invade (2.1.1)
+  - Locking spatie/laravel-package-tools (1.93.2)
+  - Locking spatie/shiki-php (2.4.0)
+  - Locking symfony/html-sanitizer (v8.1.6)
+  - Locking ueberdosis/tiptap-php (2.2.0)
+Installing dependencies from lock file (including require-dev)
+Package operations: 31 installs, 0 updates, 0 removals
+  - Installing anourvalar/eloquent-serialize (1.3.11)
+  - Installing blade-ui-kit/blade-icons (1.10.1)
+  - Installing blade-ui-kit/blade-heroicons (2.7.0)
+  - Installing chillerlan/php-settings-container (3.3.0)
+  - Installing danharrin/date-format-converter (v0.3.1)
+  - Installing danharrin/livewire-rate-limiting (v2.2.1)
+  - Installing pragmarx/google2fa-qrcode (v4.0.0)
+  - Installing symfony/html-sanitizer (v8.1.6)
+  - Installing spatie/laravel-package-tools (1.93.2)
+  - Installing spatie/invade (2.1.1)
+  - Installing ryangjchandler/blade-capture-directive (v1.1.1)
+  - Installing nette/php-generator (v4.2.2)
+  - Installing livewire/livewire (v4.4.3)
+  - Installing league/uri-components (7.8.1)
+  - Installing kirschbaum-development/eloquent-power-joins (4.3.3)
+  - Installing filament/support (v5.7.8)
+  - Installing openspout/openspout (v4.32.0)
+  - Installing league/csv (9.28.0)
+  - Installing filament/actions (v5.7.8)
+  - Installing filament/notifications (v5.7.8)
+  - Installing filament/schemas (v5.7.8)
+  - Installing filament/infolists (v5.7.8)
+  - Installing spatie/shiki-php (2.4.0)
+  - Installing scrivo/highlight.php (v9.18.1.10)
+  - Installing ueberdosis/tiptap-php (2.2.0)
+  - Installing filament/forms (v5.7.8)
+  - Installing filament/widgets (v5.7.8)
+  - Installing filament/query-builder (v5.7.8)
+  - Installing filament/tables (v5.7.8)
+  - Installing chillerlan/php-qrcode (5.0.5)
+  - Installing filament/filament (v5.7.8)
+6 package suggestions were added by new dependencies, use `composer suggest` to see details.
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+exit_code=0
+```
+
+## Combined requested set
+```text
+./composer.json has been updated
+Running composer update laravel/cashier laravel/sanctum laravel/reverb laravel/horizon filament/filament --with-all-dependencies
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 53 installs, 3 updates, 1 removal
+  - Removing symfony/polyfill-php82 (v1.38.1)
+  - Locking anourvalar/eloquent-serialize (1.3.11)
+  - Locking blade-ui-kit/blade-heroicons (2.7.0)
+  - Locking blade-ui-kit/blade-icons (1.10.1)
+  - Locking chillerlan/php-qrcode (5.0.5)
+  - Locking chillerlan/php-settings-container (3.3.0)
+  - Locking clue/redis-protocol (v0.3.2)
+  - Locking clue/redis-react (v2.8.0)
+  - Locking danharrin/date-format-converter (v0.3.1)
+  - Locking danharrin/livewire-rate-limiting (v2.2.1)
+  - Locking evenement/evenement (v3.0.2)
+  - Locking filament/actions (v5.7.8)
+  - Locking filament/filament (v5.7.8)
+  - Locking filament/forms (v5.7.8)
+  - Locking filament/infolists (v5.7.8)
+  - Locking filament/notifications (v5.7.8)
+  - Locking filament/query-builder (v5.7.8)
+  - Locking filament/schemas (v5.7.8)
+  - Locking filament/support (v5.7.8)
+  - Locking filament/tables (v5.7.8)
+  - Locking filament/widgets (v5.7.8)
+  - Downgrading guzzlehttp/guzzle (8.1.0 => 7.15.5)
+  - Downgrading guzzlehttp/promises (3.0.2 => 2.5.3)
+  - Downgrading guzzlehttp/psr7 (3.1.0 => 2.13.1)
+  - Locking kirschbaum-development/eloquent-power-joins (4.3.3)
+  - Locking laravel/cashier (v16.8.0)
+  - Locking laravel/horizon (v5.48.3)
+  - Locking laravel/reverb (v1.11.1)
+  - Locking laravel/sanctum (v4.3.3)
+  - Locking laravel/sentinel (v1.1.0)
+  - Locking league/csv (9.28.0)
+  - Locking league/uri-components (7.8.1)
+  - Locking livewire/livewire (v4.4.3)
+  - Locking moneyphp/money (v4.9.0)
+  - Locking nette/php-generator (v4.2.2)
+  - Locking openspout/openspout (v4.32.0)
+  - Locking pragmarx/google2fa-qrcode (v4.0.0)
+  - Locking pusher/pusher-php-server (7.3.0)
+  - Locking ralouphie/getallheaders (3.0.3)
+  - Locking ratchet/rfc6455 (v0.4.1)
+  - Locking react/cache (v1.2.0)
+  - Locking react/dns (v1.14.0)
+  - Locking react/event-loop (v1.6.0)
+  - Locking react/promise (v3.3.0)
+  - Locking react/promise-timer (v1.11.0)
+  - Locking react/socket (v1.17.0)
+  - Locking react/stream (v1.4.0)
+  - Locking ryangjchandler/blade-capture-directive (v1.1.1)
+  - Locking scrivo/highlight.php (v9.18.1.10)
+  - Locking spatie/invade (2.1.1)
+  - Locking spatie/laravel-package-tools (1.93.2)
+  - Locking spatie/shiki-php (2.4.0)
+  - Locking stripe/stripe-php (v21.3.1)
+  - Locking symfony/html-sanitizer (v8.1.6)
+  - Locking symfony/polyfill-intl-icu (v1.38.0)
+  - Locking symfony/polyfill-php83 (v1.41.0)
+  - Locking ueberdosis/tiptap-php (2.2.0)
+Installing dependencies from lock file (including require-dev)
+Package operations: 53 installs, 3 updates, 1 removal
+  - Removing symfony/polyfill-php82 (v1.38.1)
+  - Installing ralouphie/getallheaders (3.0.3)
+  - Downgrading guzzlehttp/psr7 (3.1.0 => 2.13.1)
+  - Downgrading guzzlehttp/promises (3.0.2 => 2.5.3)
+  - Downgrading guzzlehttp/guzzle (8.1.0 => 7.15.5)
+  - Installing anourvalar/eloquent-serialize (1.3.11)
+  - Installing blade-ui-kit/blade-icons (1.10.1)
+  - Installing blade-ui-kit/blade-heroicons (2.7.0)
+  - Installing chillerlan/php-settings-container (3.3.0)
+  - Installing clue/redis-protocol (v0.3.2)
+  - Installing danharrin/date-format-converter (v0.3.1)
+  - Installing danharrin/livewire-rate-limiting (v2.2.1)
+  - Installing pragmarx/google2fa-qrcode (v4.0.0)
+  - Installing symfony/html-sanitizer (v8.1.6)
+  - Installing spatie/laravel-package-tools (1.93.2)
+  - Installing spatie/invade (2.1.1)
+  - Installing ryangjchandler/blade-capture-directive (v1.1.1)
+  - Installing nette/php-generator (v4.2.2)
+  - Installing livewire/livewire (v4.4.3)
+  - Installing league/uri-components (7.8.1)
+  - Installing kirschbaum-development/eloquent-power-joins (4.3.3)
+  - Installing filament/support (v5.7.8)
+  - Installing openspout/openspout (v4.32.0)
+  - Installing league/csv (9.28.0)
+  - Installing filament/actions (v5.7.8)
+  - Installing filament/notifications (v5.7.8)
+  - Installing filament/schemas (v5.7.8)
+  - Installing filament/infolists (v5.7.8)
+  - Installing spatie/shiki-php (2.4.0)
+  - Installing scrivo/highlight.php (v9.18.1.10)
+  - Installing ueberdosis/tiptap-php (2.2.0)
+  - Installing filament/forms (v5.7.8)
+  - Installing filament/widgets (v5.7.8)
+  - Installing filament/query-builder (v5.7.8)
+  - Installing filament/tables (v5.7.8)
+  - Installing chillerlan/php-qrcode (5.0.5)
+  - Installing filament/filament (v5.7.8)
+  - Installing symfony/polyfill-intl-icu (v1.38.0)
+  - Installing stripe/stripe-php (v21.3.1)
+  - Installing moneyphp/money (v4.9.0)
+  - Installing laravel/cashier (v16.8.0)
+  - Installing symfony/polyfill-php83 (v1.41.0)
+  - Installing laravel/sentinel (v1.1.0)
+  - Installing laravel/horizon (v5.48.3)
+  - Installing react/event-loop (v1.6.0)
+  - Installing evenement/evenement (v3.0.2)
+  - Installing react/stream (v1.4.0)
+  - Installing react/promise (v3.3.0)
+  - Installing react/cache (v1.2.0)
+  - Installing react/dns (v1.14.0)
+  - Installing react/socket (v1.17.0)
+  - Installing react/promise-timer (v1.11.0)
+  - Installing ratchet/rfc6455 (v0.4.1)
+  - Installing pusher/pusher-php-server (7.3.0)
+  - Installing clue/redis-react (v2.8.0)
+  - Installing laravel/reverb (v1.11.1)
+  - Installing laravel/sanctum (v4.3.3)
+12 package suggestions were added by new dependencies, use `composer suggest` to see details.
+90 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+Using version ^16.8 for laravel/cashier
+Using version ^4.3 for laravel/sanctum
+Using version ^1.11 for laravel/reverb
+Using version ^5.48 for laravel/horizon
+exit_code=0
+```
+

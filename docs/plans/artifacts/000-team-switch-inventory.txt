@@ -1,0 +1,128 @@
+# Upstream team-switching and personal-team inventory
+
+Generated from Laravel React starter commit 0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8 before any Team-to-Organization rename.
+
+./app/Concerns/HasTeams.php:64:    public function currentTeam(): BelongsTo
+./app/Concerns/HasTeams.php:66:        return $this->belongsTo(Team::class, 'current_team_id');
+./app/Concerns/HasTeams.php:70:     * Get the user's personal team.
+./app/Concerns/HasTeams.php:72:    public function personalTeam(): ?Team
+./app/Concerns/HasTeams.php:75:            ->where('teams.is_personal', true)
+./app/Concerns/HasTeams.php:82:    public function switchTeam(Team $team): bool
+./app/Concerns/HasTeams.php:88:        $this->update(['current_team_id' => $team->id]);
+./app/Concerns/HasTeams.php:89:        $this->setRelation('currentTeam', $team);
+./app/Concerns/HasTeams.php:91:        URL::defaults(['current_team' => $team->slug]);
+./app/Concerns/HasTeams.php:107:    public function isCurrentTeam(Team $team): bool
+./app/Concerns/HasTeams.php:109:        return $this->current_team_id === $team->id;
+./app/Concerns/HasTeams.php:140:            ->map(fn (Team $team) => ! $includeCurrent && $this->isCurrentTeam($team) ? null : $this->toUserTeam($team))
+./app/Concerns/HasTeams.php:156:            isPersonal: $team->is_personal,
+./app/Concerns/HasTeams.php:159:            isCurrent: $this->isCurrentTeam($team),
+./app/Concerns/HasTeams.php:181:    public function fallbackTeam(?Team $excluding = null): ?Team
+./app/Http/Responses/Concerns/RedirectsToCurrentTeam.php:13:        $team = $this->currentTeam($request);
+./app/Http/Responses/Concerns/RedirectsToCurrentTeam.php:15:        URL::defaults(['current_team' => $team->slug]);
+./app/Http/Responses/Concerns/RedirectsToCurrentTeam.php:20:    protected function currentTeam(Request $request): Team
+./app/Http/Responses/Concerns/RedirectsToCurrentTeam.php:26:        $team = $user->currentTeam ?? $user->personalTeam();
+./app/Http/Controllers/Teams/TeamMemberController.php:48:        if ($user->isCurrentTeam($team)) {
+./app/Http/Controllers/Teams/TeamMemberController.php:49:            $user->switchTeam($user->personalTeam());
+./app/Http/Controllers/Teams/TeamInvitationController.php:75:            $user->switchTeam($team);
+./app/Http/Controllers/Teams/TeamController.php:58:                'isPersonal' => $team->is_personal,
+./app/Http/Controllers/Teams/TeamController.php:115:        $request->user()->switchTeam($team);
+./app/Http/Controllers/Teams/TeamController.php:129:        $fallbackTeam = $user->isCurrentTeam($team)
+./app/Http/Controllers/Teams/TeamController.php:130:            ? $user->fallbackTeam($team)
+./app/Http/Controllers/Teams/TeamController.php:137:        if ($fallbackTeam) {
+./app/Http/Controllers/Teams/TeamController.php:138:            $user->switchTeam($fallbackTeam);
+./app/Http/Controllers/Teams/TeamController.php:152:        $fallbackTeam = $user->isCurrentTeam($team)
+./app/Http/Controllers/Teams/TeamController.php:153:            ? $user->fallbackTeam($team)
+./app/Http/Controllers/Teams/TeamController.php:157:            User::where('current_team_id', $team->id)
+./app/Http/Controllers/Teams/TeamController.php:159:                ->each(fn (User $affectedUser) => $affectedUser->switchTeam($affectedUser->personalTeam()));
+./app/Http/Controllers/Teams/TeamController.php:166:        if ($fallbackTeam) {
+./app/Http/Controllers/Teams/TeamController.php:167:            $user->switchTeam($fallbackTeam);
+./app/Http/Middleware/SetTeamUrlDefaults.php:19:        if ($currentTeam = $request->user()?->currentTeam) {
+./app/Http/Middleware/SetTeamUrlDefaults.php:21:                'current_team' => $currentTeam->slug,
+./app/Http/Middleware/SetTeamUrlDefaults.php:22:                'team' => $currentTeam->slug,
+./app/Http/Middleware/EnsureTeamMembership.php:27:        if ($request->route('current_team') && ! $user->isCurrentTeam($team)) {
+./app/Http/Middleware/EnsureTeamMembership.php:28:            $user->switchTeam($team);
+./app/Http/Middleware/EnsureTeamMembership.php:60:        $team = $request->route('current_team') ?? $request->route('team');
+./app/Http/Middleware/HandleInertiaRequests.php:47:            'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
+./app/Actions/Teams/CreateTeam.php:20:                'is_personal' => $isPersonal,
+./app/Actions/Teams/CreateTeam.php:28:            $user->switchTeam($team);
+./app/Models/User.php:29: * @property int|null $current_team_id
+./app/Models/User.php:32: * @property-read Team|null $currentTeam
+./app/Models/User.php:37:#[Fillable(['name', 'email', 'password', 'current_team_id'])]
+./app/Models/Team.php:21: * @property bool $is_personal
+./app/Models/Team.php:29:#[Fillable(['name', 'slug', 'is_personal'])]
+./app/Models/Team.php:106:            'is_personal' => 'boolean',
+./app/Policies/TeamPolicy.php:48:        return ! $team->is_personal
+./app/Policies/TeamPolicy.php:98:        return ! $team->is_personal && $user->hasTeamPermission($team, TeamPermission::DeleteTeam);
+./tests/Feature/Teams/TeamTest.php:41:            'is_personal' => false,
+./tests/Feature/Teams/TeamTest.php:51:        $otherUser->personalTeam()->members()->attach($user, [
+./tests/Feature/Teams/TeamTest.php:55:        $personalTeam = Team::factory()->personal()->create();
+./tests/Feature/Teams/TeamTest.php:56:        $personalTeam->members()->attach($user, [
+./tests/Feature/Teams/TeamTest.php:60:        $this->assertTrue($personalTeam->is($user->personalTeam()));
+./tests/Feature/Teams/TeamTest.php:183:    public function test_deleting_current_team_switches_to_alphabetically_first_remaining_team()
+./tests/Feature/Teams/TeamTest.php:196:        $user->update(['current_team_id' => $zuluTeam->id]);
+./tests/Feature/Teams/TeamTest.php:210:        $this->assertEquals($alphaTeam->id, $user->fresh()->current_team_id);
+./tests/Feature/Teams/TeamTest.php:213:    public function test_deleting_current_team_falls_back_to_personal_team_when_alphabetically_first()
+./tests/Feature/Teams/TeamTest.php:216:        $personalTeam = $user->personalTeam();
+./tests/Feature/Teams/TeamTest.php:220:        $user->update(['current_team_id' => $team->id]);
+./tests/Feature/Teams/TeamTest.php:234:        $this->assertEquals($personalTeam->id, $user->fresh()->current_team_id);
+./tests/Feature/Teams/TeamTest.php:237:    public function test_deleting_non_current_team_leaves_current_team_unchanged()
+./tests/Feature/Teams/TeamTest.php:240:        $personalTeam = $user->personalTeam();
+./tests/Feature/Teams/TeamTest.php:244:        $user->update(['current_team_id' => $personalTeam->id]);
+./tests/Feature/Teams/TeamTest.php:258:        $this->assertEquals($personalTeam->id, $user->fresh()->current_team_id);
+./tests/Feature/Teams/TeamTest.php:280:    public function test_leaving_current_team_switches_to_alphabetically_first_remaining_team()
+./tests/Feature/Teams/TeamTest.php:295:        $member->update(['current_team_id' => $zuluTeam->id]);
+./tests/Feature/Teams/TeamTest.php:304:        $this->assertEquals($alphaTeam->id, $member->fresh()->current_team_id);
+./tests/Feature/Teams/TeamTest.php:310:        $personalTeam = $user->personalTeam();
+./tests/Feature/Teams/TeamTest.php:314:            ->delete(route('teams.leave', $personalTeam));
+./tests/Feature/Teams/TeamTest.php:318:        $this->assertTrue($user->fresh()->belongsToTeam($personalTeam));
+./tests/Feature/Teams/TeamTest.php:358:        $owner->update(['current_team_id' => $team->id]);
+./tests/Feature/Teams/TeamTest.php:359:        $member->update(['current_team_id' => $team->id]);
+./tests/Feature/Teams/TeamTest.php:369:        $this->assertEquals($member->personalTeam()->id, $member->fresh()->current_team_id);
+./tests/Feature/Teams/TeamTest.php:376:        $personalTeam = $user->personalTeam();
+./tests/Feature/Teams/TeamTest.php:380:            ->delete(route('teams.destroy', $personalTeam), [
+./tests/Feature/Teams/TeamTest.php:381:                'name' => $personalTeam->name,
+./tests/Feature/Teams/TeamTest.php:387:            'id' => $personalTeam->id,
+./tests/Feature/Teams/TeamTest.php:423:        $this->assertEquals($team->id, $user->fresh()->current_team_id);
+./tests/Feature/Teams/TeamMemberTest.php:133:    public function test_removed_member_current_team_is_set_to_personal_team()
+./tests/Feature/Teams/TeamMemberTest.php:137:        $personalTeam = $member->personalTeam();
+./tests/Feature/Teams/TeamMemberTest.php:143:        $member->update(['current_team_id' => $team->id]);
+./tests/Feature/Teams/TeamMemberTest.php:149:        $this->assertEquals($personalTeam->id, $member->fresh()->current_team_id);
+./tests/Feature/Auth/EmailVerificationTest.php:28:        $team = $user->personalTeam();
+./tests/Feature/Auth/EmailVerificationTest.php:96:        $team = $user->personalTeam();
+./tests/Feature/Auth/AuthenticationTest.php:66:    public function test_passkey_login_response_redirects_to_the_current_team_dashboard(): void
+./tests/Feature/Auth/AuthenticationTest.php:79:            route('dashboard', ['current_team' => $user->personalTeam()->slug]),
+./tests/Feature/DashboardTest.php:20:        $team = $user->currentTeam;
+./tests/Feature/DashboardTest.php:29:        $team = $user->currentTeam;
+./resources/js/pages/welcome.tsx:8:    const { auth, currentTeam } = usePage().props;
+./resources/js/pages/welcome.tsx:9:    const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
+./resources/js/pages/dashboard.tsx:45:Dashboard.layout = (props: { currentTeam?: { slug: string } | null }) => ({
+./resources/js/pages/dashboard.tsx:49:            href: props.currentTeam ? dashboard(props.currentTeam.slug) : '/',
+./resources/js/types/global.d.ts:16:            currentTeam: Team | null;
+./resources/js/components/app-sidebar.tsx:22:    const dashboardUrl = page.props.currentTeam
+./resources/js/components/app-sidebar.tsx:23:        ? dashboard(page.props.currentTeam.slug)
+./resources/js/components/app-header.tsx:62:    const { auth, currentTeam } = page.props;
+./resources/js/components/app-header.tsx:65:    const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
+./resources/js/components/team-switcher.tsx:24:    const currentTeam = page.props.currentTeam;
+./resources/js/components/team-switcher.tsx:27:    const switchTeam = (team: Team) => {
+./resources/js/components/team-switcher.tsx:28:        const previousTeamSlug = currentTeam?.slug;
+./resources/js/components/team-switcher.tsx:87:                            {currentTeam?.name ?? 'Select team'}
+./resources/js/components/team-switcher.tsx:121:                        onSelect={() => switchTeam(team)}
+./resources/js/components/team-switcher.tsx:124:                        {currentTeam?.id === team.id && (
+./resources/js/components/nav-user.tsx:19:    const { auth, currentTeam } = usePage().props;
+./resources/js/components/nav-user.tsx:33:                            <UserInfo user={auth.user} team={currentTeam} />
+./.github/workflows/scaffold-sidewire-foundation.yml:98:              'current_team|currentTeam|switchTeam|isCurrentTeam|fallbackTeam|is_personal|personalTeam|personal team|Personal team' \
+./docs/plans/000-execplan.md:31:- The official starter's Teams variant includes `current_team_id`, URL-scoped current-team routing, switching methods, a team selector, fallback behavior, and personal teams. Renaming those pieces would create exactly the wrong Organization model, so removal is an explicit pre-rename milestone.
+./docs/plans/000-execplan.md:41:- Decision: Use the upstream Teams feature as source material, but remove current-team switching, personal teams, fallback selection, and selector UI before renaming the tenant concept. Reason: Organization is the company tenant, not a selectable collaboration workspace. Date: 2026-09-02.
+./docs/plans/000-execplan.md:104:- the `current_team_id` migration and model property;
+./docs/plans/000-execplan.md:201:- no `current_team_id`, `current_organization_id`, switch route, organization selector, personal team/organization, or fallback tenant survives;
+./docs/features/accounts-and-organizations.md:34:- `current_team_id` and all equivalent current-tenant columns or properties;
+./docs/features/accounts-and-organizations.md:36:- `switchTeam`, `currentTeam`, `isCurrentTeam`, `fallbackTeam`, and equivalent state helpers;
+./docs/features/accounts-and-organizations.md:37:- personal-team creation and `is_personal` behavior;
+./database/factories/UserFactory.php:55:            $user->switchTeam($team);
+./database/factories/TeamFactory.php:26:            'is_personal' => false,
+./database/factories/TeamFactory.php:31:     * Indicate that the team is a personal team.
+./database/factories/TeamFactory.php:36:            'is_personal' => true,
+./database/migrations/2026_01_27_000001_create_teams_table.php:18:            $table->boolean('is_personal')->default(false);
+./database/migrations/2026_01_27_000002_add_current_team_id_to_users_table.php:15:            $table->foreignId('current_team_id')
+./database/migrations/2026_01_27_000002_add_current_team_id_to_users_table.php:29:            $table->dropConstrainedForeignId('current_team_id');
+./routes/web.php:10:Route::prefix('{current_team}')

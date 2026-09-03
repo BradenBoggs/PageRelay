@@ -1,55 +1,60 @@
 # SideWire product overview
 
-SideWire adds a shared collaboration layer to the web applications and websites a team already uses. It runs primarily in a Chrome side panel. When a teammate opens SideWire while viewing a supported page, the team can see the conversation and work associated with that page without requiring the underlying website to build or expose collaboration features.
+SideWire adds a shared collaboration layer to the web applications and websites a team already uses. It runs primarily in a Chrome side panel. When a teammate opens SideWire while viewing a supported page, the company can see the conversation and work associated with that page without requiring the underlying website to build or expose collaboration features.
 
-The larger product promise is one source of truth for communication across a team's tools. Instead of communication being fragmented among a CRM, design tool, project manager, shared document, and private messages, SideWire gives the team a consistent place to discuss the current page and later review communication across every page and tool.
+The larger product promise is one source of truth for communication across a company's tools. Instead of communication being fragmented among a CRM, design tool, project manager, shared document, and private messages, SideWire gives the company a consistent place to discuss the current page and later review communication across every page and tool.
 
 ## Intended users
 
-The initial users are small and midsize teams that coordinate work in several browser-based tools, especially when one or more of those tools has weak, fragmented, or expensive team communication.
+The initial users are small and midsize companies and teams that coordinate work in several browser-based tools, especially when one or more tools has weak, fragmented, or expensive team communication.
 
 Examples include office and operations teams working in CRMs, service-business platforms, project portals, design tools, internal dashboards, vendor sites, and other browser applications. Industry-specific landing pages may explain these uses, but the product remains horizontal.
 
-The initial account model is one organization containing an owner and members. Exact administrative roles, invitation behavior, billable-seat rules, and multi-organization membership are not yet approved.
+The approved foundation account model is one organization per user. The organization is the company/customer account and billing tenant. It may contain workspaces and teams, which remain separate concepts.
 
 ## Core product loop
 
-1. A user installs SideWire and signs in.
-2. The user opens a work page in Chrome and opens the SideWire panel.
-3. SideWire resolves the current page to an organization-private page context.
-4. The user reads or adds messages associated with that context.
-5. Teammates can return to the same page context, follow a link back to the source page, or find the conversation from SideWire's cross-tool inbox.
-6. In a later milestone, the team can create and complete lightweight page-related tasks.
+1. A user creates or joins the company's SideWire organization and signs in.
+2. A default workspace gives the company a collaboration environment without pretending the workspace is the company account.
+3. The user installs SideWire, opens a work page in Chrome, and opens the side panel.
+4. SideWire resolves the current page to an organization-private and workspace-owned page context.
+5. The user reads or adds messages associated with that context.
+6. Teammates can return to the same page context, follow a link back to the source page, or find the conversation from SideWire's cross-tool inbox.
+7. In a later milestone, the team can create and complete lightweight page-related tasks.
 
 The first useful release needs to make this loop dependable. It does not need to mirror every feature of Slack, Microsoft Teams, or a full project-management platform.
 
 ## Product vocabulary
 
-- **Organization:** The private team boundary that owns SideWire data.
-- **Member:** An authenticated user belonging to an organization.
-- **Page context:** SideWire's organization-private identity for a web page or stable application record.
-- **Conversation:** The message history attached to a page context.
-- **Inbox:** A cross-tool view of relevant activity, unread conversations, and mentions.
-- **Task:** A lightweight action item tied to a page context. Tasks are planned after the core conversation workflow.
-- **Source page:** The external website or web-application page represented by a page context.
+- **Organization:** the private tenant, customer account, and billing boundary. It normally represents a company.
+- **Workspace:** a collaboration environment owned by an organization. A workspace is not the company account.
+- **Team:** a named group of organization members such as Sales or Operations. A team is not the tenant and does not own the Stripe subscription.
+- **Member:** an authenticated user with an active organization membership.
+- **Seat:** one active billable organization membership, regardless of how many teams or workspaces that member uses.
+- **Page context:** SideWire's organization-private, workspace-owned identity for a web page or stable application record.
+- **Conversation:** the message history attached to a page context or another approved communication scope.
+- **Inbox:** a cross-tool view of relevant activity, unread conversations, and mentions.
+- **Task:** a lightweight action item tied to a page context. Tasks are planned after the core conversation workflow.
+- **Source page:** the external website or web-application page represented by a page context.
 
-Use these terms consistently. Do not call a page context a project, channel, ticket, deal, job, or customer because the underlying website may represent any of those things.
+Use these terms consistently. Do not call an organization or team a workspace. Do not call a page context a project, channel, ticket, deal, job, or customer because the underlying website may represent any of those things.
 
 ## Approved MVP direction
 
 The MVP direction includes:
 
 - a Chrome Manifest V3 extension using the native side-panel experience;
-- a companion web application for sign-in, onboarding, account settings, and cross-tool views that do not fit the panel;
-- one private organization boundary;
+- a companion React web application for sign-in, onboarding, organization settings, inbox/search, billing, and other full-page workflows;
+- one private organization per user with no organization switching;
+- one default workspace while preserving the Organization, Workspace, and Team distinction;
+- organization members and optional organization-owned teams;
 - conservative page-context identification based on the current page URL and limited display metadata;
 - page-scoped team messages;
 - clear links back to the source page;
 - near-real-time updates or a deliberately documented MVP fallback;
 - basic unread state and a simple cross-tool inbox after page-scoped discussion works;
-- responsive, accessible behavior at narrow side-panel widths.
-
-This is product direction, not approval of unreviewed technical implementation details.
+- responsive, accessible behavior at narrow side-panel widths;
+- organization-owned per-seat Stripe billing using active organization memberships.
 
 ## Product boundaries
 
@@ -63,16 +68,17 @@ The MVP does not promise native synchronization with every external tool. Its un
 
 The following remain intentionally open:
 
-- final product name and domain;
-- exact pricing, trial, seat, cancellation, and complimentary-access rules;
-- invitation and organization-role behavior;
+- final domain and any future product rename;
+- exact price, trial, proration, cancellation, and complimentary-access rules;
+- whether organization administrators may manage billing;
 - URL normalization rules for specific applications and user-controlled context merging;
 - message editing/deletion and retention policy;
 - attachments, screenshots, reactions, threads, and rich formatting;
 - notification channels and preferences;
 - task behavior beyond the later lightweight-task direction;
 - supported Chrome versions and extension-store distribution timing;
-- whether a user may belong to multiple organizations;
+- future multi-organization membership and switching;
+- workspace access restrictions and team-driven access;
 - analytics, referrals, partner commissions, and native integrations.
 
 Do not convert an idea in this list into an approved requirement without updating the owning feature document.
@@ -82,6 +88,7 @@ Do not convert an idea in this list into an approved requirement without updatin
 Permanent behavior is divided by feature so implementation agents can work from one clear source of truth:
 
 - Accounts, organizations, roles, and invitations: `docs/features/accounts-and-organizations.md`
+- Workspaces and organization-owned teams: `docs/features/workspaces-and-teams.md`
 - Chrome extension and side-panel shell: `docs/features/browser-extension.md`
 - Universal URL and page identity: `docs/features/page-contexts.md`
 - Conversations tied to source pages: `docs/features/page-conversations.md`
@@ -96,4 +103,4 @@ Permanent behavior is divided by feature so implementation agents can work from 
 - Customer referrals and software partnerships: `docs/features/referrals-and-partnerships.md`
 - Public positioning and use-case pages: `docs/features/marketing-site.md`
 
-These documents include proposed behavior and open decisions. A documented idea is not automatically authorized for implementation. Approval is recorded in the relevant living ExecPlan.
+These documents may include proposed behavior and open decisions. A documented idea is not automatically authorized for implementation. Approval is recorded in the relevant living ExecPlan.

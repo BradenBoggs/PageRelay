@@ -6,6 +6,8 @@ use App\Enums\OrganizationRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organizations\SaveOrganizationRequest;
 use App\Models\Organization;
+use App\Models\OrganizationInvitation;
+use App\Models\OrganizationMembership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -33,7 +35,7 @@ class OrganizationController extends Controller
                 ->active()
                 ->with('user')
                 ->get()
-                ->map(fn ($member) => [
+                ->map(fn (OrganizationMembership $member): array => [
                     'id' => $member->user->id,
                     'name' => $member->user->name,
                     'email' => $member->user->email,
@@ -47,12 +49,12 @@ class OrganizationController extends Controller
                     ->orWhere('expires_at', '>=', now()))
                 ->latest()
                 ->get()
-                ->map(fn ($invitation) => [
+                ->map(fn (OrganizationInvitation $invitation): array => [
                     'code' => $invitation->code,
                     'email' => $invitation->email,
                     'role' => $invitation->role->value,
                     'roleLabel' => $invitation->role->label(),
-                    'createdAt' => $invitation->created_at->toISOString(),
+                    'createdAt' => $invitation->created_at?->toISOString(),
                 ]),
             'permissions' => $request->user()->toOrganizationPermissions(),
             'availableRoles' => OrganizationRole::assignable(),

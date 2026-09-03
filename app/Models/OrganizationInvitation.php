@@ -6,8 +6,21 @@ use App\Enums\OrganizationRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $code
+ * @property int $organization_id
+ * @property string $email
+ * @property OrganizationRole $role
+ * @property int|null $invited_by
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $accepted_at
+ * @property-read Organization $organization
+ * @property-read User|null $inviter
+ */
 #[Fillable(['organization_id', 'email', 'role', 'invited_by', 'expires_at', 'accepted_at'])]
 class OrganizationInvitation extends Model
 {

@@ -9,7 +9,6 @@ use App\Enums\OrganizationRole;
 use App\Enums\TeamRole;
 use App\Models\OrganizationMembership;
 use App\Models\Team;
-use App\Models\TeamMembership;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -84,8 +83,7 @@ class WorkspacesAndTeamsFoundationTest extends TestCase
 
         $this->expectException(QueryException::class);
 
-        TeamMembership::create([
-            'team_id' => $team->id,
+        $team->memberships()->create([
             'organization_id' => $organization->id,
             'user_id' => $outsider->id,
             'role' => TeamRole::Member,

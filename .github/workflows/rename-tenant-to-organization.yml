@@ -1,0 +1,94 @@
+name: Rename stripped tenant to Organization
+
+on:
+  push:
+    branches:
+      - feature/sidewire-foundation
+    paths:
+      - scripts/foundation/rename_tenant_to_organization.py
+      - .github/workflows/rename-tenant-to-organization.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sidewire-rename-tenant-to-organization
+  cancel-in-progress: false
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the implementation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard the required pre-rename checkpoint
+        shell: bash
+        run: |
+          test -f app/Models/Team.php
+          test ! -f app/Models/Organization.php
+          test ! -f database/migrations/2026_01_27_000002_add_current_team_id_to_users_table.php
+          test ! -f resources/js/components/team-switcher.tsx
+          test ! -f app/Http/Middleware/SetTeamUrlDefaults.php
+
+          if grep -RInE \
+            --exclude-dir=.git \
+            --exclude-dir=docs \
+            --exclude-dir=scripts \
+            --exclude-dir=.github \
+            'current_team|currentTeam|switchTeam|isCurrentTeam|fallbackTeam|is_personal|personalTeam' \
+            app bootstrap database resources/js routes tests; then
+            echo 'Tenant switching or personal-team state remains before rename.' >&2
+            exit 1
+          fi
+
+      - name: Rename the stripped tenant to Organization
+        run: python3 scripts/foundation/rename_tenant_to_organization.py
+
+      - name: Verify the organization boundary
+        shell: bash
+        run: |
+          test -f app/Models/Organization.php
+          test -f app/Models/OrganizationMembership.php
+          test -f app/Models/OrganizationInvitation.php
+          test -f app/Http/Middleware/EnsureOrganizationMembership.php
+          test -f database/migrations/2026_01_27_000001_create_organizations_table.php
+          test -f resources/js/pages/organizations/edit.tsx
+          test ! -f app/Models/Team.php
+          test ! -d resources/js/pages/teams
+
+          if grep -RInE \
+            --exclude-dir=.git \
+            --exclude-dir=docs \
+            --exclude-dir=scripts \
+            --exclude-dir=.github \
+            'current_organization|currentOrganization|switchOrganization|personalOrganization|App\\Models\\Team|TeamRole|TeamPermission|team_members|team_invitations' \
+            app bootstrap database resources/js routes tests; then
+            echo 'Old tenant names or new organization-switching state remain.' >&2
+            exit 1
+          fi
+
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          find app bootstrap config database routes tests -type f -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Commit the organization rename checkpoint
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+
+          if git diff --cached --quiet; then
+            echo 'No organization rename changes to commit.'
+            exit 0
+          fi
+
+          git commit -m 'refactor: rename stripped tenant to organization'
+          git push origin HEAD:feature/sidewire-foundation

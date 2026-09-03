@@ -1,0 +1,75 @@
+name: Diagnose Laravel service package constraints
+
+on:
+  push:
+    branches:
+      - feature/sidewire-foundation
+    paths:
+      - .github/workflows/diagnose-laravel-services.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite, intl
+          coverage: none
+
+      - name: Install the locked foundation
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Diagnose package compatibility
+        shell: bash
+        run: |
+          mkdir -p docs/plans/artifacts
+          log=docs/plans/artifacts/000-laravel-service-package-diagnostics.txt
+          : > "$log"
+
+          {
+            echo '# Laravel service package compatibility diagnostics'
+            echo
+            echo "Generated at $(date -u +'%Y-%m-%dT%H:%M:%SZ') using PHP $(php -r 'echo PHP_VERSION;') and Composer $(composer --version --no-ansi | head -n 1)."
+            echo
+          } >> "$log"
+
+          diagnose() {
+            label="$1"
+            shift
+            echo "## $label" >> "$log"
+            echo '```text' >> "$log"
+            set +e
+            composer require "$@" --with-all-dependencies --dry-run --no-interaction --prefer-dist --no-progress >> "$log" 2>&1
+            status=$?
+            set -e
+            echo "exit_code=$status" >> "$log"
+            echo '```' >> "$log"
+            echo >> "$log"
+            git checkout -- composer.json composer.lock
+          }
+
+          diagnose 'Cashier' laravel/cashier
+          diagnose 'Sanctum' laravel/sanctum
+          diagnose 'Reverb' laravel/reverb
+          diagnose 'Horizon' laravel/horizon
+          diagnose 'Filament 5' 'filament/filament:^5.0'
+          diagnose 'Combined requested set' laravel/cashier laravel/sanctum laravel/reverb laravel/horizon 'filament/filament:^5.0'
+
+      - name: Commit diagnostics
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/plans/artifacts/000-laravel-service-package-diagnostics.txt
+          git commit -m 'docs: record Laravel service package diagnostics'
+          git push origin HEAD:feature/sidewire-foundation

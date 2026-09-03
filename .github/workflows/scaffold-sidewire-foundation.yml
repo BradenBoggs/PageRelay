@@ -1,0 +1,119 @@
+name: Scaffold SideWire Laravel foundation
+
+on:
+  push:
+    branches:
+      - feature/sidewire-foundation
+    paths:
+      - .github/workflows/scaffold-sidewire-foundation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sidewire-foundation-scaffold
+  cancel-in-progress: false
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the implementation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard against rerunning over an initialized application
+        id: guard
+        shell: bash
+        run: |
+          if [[ -f composer.json ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "composer.json already exists; refusing to overwrite the application."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch the pinned official Laravel React teams starter
+        if: steps.guard.outputs.skip == 'false'
+        shell: bash
+        run: |
+          git clone --filter=blob:none https://github.com/laravel/react-starter-kit.git /tmp/laravel-react-starter
+          git -C /tmp/laravel-react-starter checkout 0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8
+          test "$(git -C /tmp/laravel-react-starter rev-parse HEAD)" = "0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8"
+
+      - name: Merge framework files without overwriting SideWire documentation
+        if: steps.guard.outputs.skip == 'false'
+        shell: bash
+        run: |
+          rsync -a /tmp/laravel-react-starter/ ./ \
+            --exclude=.git/ \
+            --exclude=.github/ \
+            --exclude=README.md \
+            --exclude=AGENTS.md \
+            --exclude=PLANS.md \
+            --exclude=docs/
+
+          mkdir -p .github/workflows
+          cp /tmp/laravel-react-starter/.github/workflows/tests.yml .github/workflows/ci.yml
+
+      - name: Apply SideWire package identity and safe development defaults
+        if: steps.guard.outputs.skip == 'false'
+        shell: bash
+        run: |
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+
+          composer_path = Path('composer.json')
+          composer = json.loads(composer_path.read_text())
+          composer['name'] = 'sidewire/app'
+          composer['description'] = 'SideWire browser side-panel collaboration application.'
+          composer_path.write_text(json.dumps(composer, indent=4) + '\n')
+
+          package_path = Path('package.json')
+          package = json.loads(package_path.read_text())
+          package['name'] = 'sidewire'
+          package['private'] = True
+          package_path.write_text(json.dumps(package, indent=4) + '\n')
+
+          env_path = Path('.env.example')
+          env = env_path.read_text()
+          env = env.replace('APP_NAME=Laravel', 'APP_NAME=SideWire')
+          env_path.write_text(env)
+          PY
+
+      - name: Record the generated team-switching inventory before any rename
+        if: steps.guard.outputs.skip == 'false'
+        shell: bash
+        run: |
+          mkdir -p docs/plans/artifacts
+          {
+            echo "# Upstream team-switching and personal-team inventory"
+            echo
+            echo "Generated from Laravel React starter commit 0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8 before any Team-to-Organization rename."
+            echo
+            rg -n --hidden \
+              --glob '!.git/**' \
+              --glob '!docs/plans/artifacts/000-team-switch-inventory.txt' \
+              -e 'current_team|currentTeam|switchTeam|isCurrentTeam|fallbackTeam|is_personal|personalTeam|personal team|Personal team' \
+              . || true
+          } > docs/plans/artifacts/000-team-switch-inventory.txt
+
+      - name: Commit the pinned framework scaffold
+        if: steps.guard.outputs.skip == 'false'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+
+          if git diff --cached --quiet; then
+            echo "No scaffold changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: import pinned Laravel React teams starter"
+          git push origin HEAD:feature/sidewire-foundation

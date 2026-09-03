@@ -94,12 +94,7 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": [],
-            "installer": {
-                "post-create-project": [
-                    "@php artisan install:features --ansi"
-                ]
-            }
+            "dont-discover": []
         }
     },
     "config": {

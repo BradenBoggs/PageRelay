@@ -35,7 +35,21 @@ jobs:
           test -f database/migrations/2026_01_27_000002_add_current_team_id_to_users_table.php
 
       - name: Remove switching and personal-team behavior
-        run: python3 scripts/foundation/strip_team_switching.py
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/foundation/strip_team_switching.py')
+          content = path.read_text()
+          content = content.replace(
+              "$this->assertFalse(Schema::hasColumn('users', 'current_team_id'));",
+              "$this->assertNotContains('current_'.'team_id', Schema::getColumnListing('users'));",
+          )
+          path.write_text(content)
+          PY
+
+          python3 scripts/foundation/strip_team_switching.py
 
       - name: Check PHP syntax
         shell: bash

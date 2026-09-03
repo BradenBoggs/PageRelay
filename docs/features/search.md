@@ -38,4 +38,3 @@ Do not send private URLs, titles, messages, or tasks to a third-party search or 
 ## Acceptance behavior
 
 An authorized user can find a known SideWire context or message and open the correct destination. Unauthorized direct messages, other organizations, removed destinations, and unimplemented external page content never appear through results, suggestions, counts, or excerpts.
-

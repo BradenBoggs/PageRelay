@@ -5,12 +5,18 @@ type Props = {
     action: 'Log in' | 'Register';
 };
 
-export default function OrganizationInvitationAlert({ invitation, action }: Props) {
+export default function OrganizationInvitationAlert({
+    invitation,
+    action,
+}: Props) {
     return (
-        <div className="rounded-lg border bg-muted/40 p-4 text-sm">
-            <p className="font-medium">Invitation to {invitation.organizationName}</p>
-            <p className="mt-1 text-muted-foreground">
-                {action} with the invited email address to join this SideWire organization.
+        <div className="bg-muted/40 rounded-lg border p-4 text-sm">
+            <p className="font-medium">
+                Invitation to {invitation.organizationName}
+            </p>
+            <p className="text-muted-foreground mt-1">
+                {action} with the invited email address to join this SideWire
+                organization.
             </p>
         </div>
     );

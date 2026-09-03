@@ -35,4 +35,3 @@ The initial preference direction is mentions and direct messages by default, wit
 ## Acceptance behavior
 
 An authorized mention creates one durable recipient notification, updates the recipient's relevant unread state, navigates to authorized content, and does not alert unrelated members. Retries, edits if later allowed, deletion, and access removal cannot create duplicate or leaking notifications.
-

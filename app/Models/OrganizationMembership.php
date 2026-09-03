@@ -50,7 +50,7 @@ class OrganizationMembership extends Pivot
     }
 
     /**
-     * @param Builder<OrganizationMembership> $query
+     * @param  Builder<OrganizationMembership>  $query
      * @return Builder<OrganizationMembership>
      */
     public function scopeActive(Builder $query): Builder

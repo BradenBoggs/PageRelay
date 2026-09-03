@@ -35,4 +35,3 @@ Owners and administrators do not automatically receive access to employee direct
 ## Out of scope
 
 Messages between different organizations, public usernames, consumer messaging, guest DMs, anonymous chat, voice/video calling, and hidden administrator access are not approved.
-

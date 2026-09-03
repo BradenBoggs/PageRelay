@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class OrganizationFoundationTest extends TestCase
@@ -49,7 +50,7 @@ class OrganizationFoundationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         app(CreateOrganization::class)->handle($user, 'Another Organization');
     }

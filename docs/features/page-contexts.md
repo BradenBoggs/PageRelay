@@ -48,4 +48,3 @@ URLs and titles may contain customer or workplace information. Treat them as pri
 ## Acceptance behavior
 
 Two members of one organization resolving the same supported page reach the same context. Different pages remain distinct unless an approved normalization rule proves equivalence. Another organization can neither discover nor access that context, even with the URL or opaque identifier.
-

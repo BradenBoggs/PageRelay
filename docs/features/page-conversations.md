@@ -43,4 +43,3 @@ Automatic retention, legal hold, export, message reporting, administrator modera
 ## Acceptance behavior
 
 Two authorized members can resolve the same page, exchange durable messages, see updates, reconnect without losing history, return to the source page, and safely recover failed sends. Cross-organization access fails for history, posting, realtime channels, counts, and existence checks.
-

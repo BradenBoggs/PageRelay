@@ -48,4 +48,3 @@ Firefox, Safari, Edge-specific packaging, native mobile apps, and install-free e
 ## Acceptance behavior
 
 The panel opens reliably, works at narrow and resized widths, survives browser and extension restarts as designed, handles active-tab changes, authenticates safely, identifies unsupported pages, and never requires host-page modification for the MVP workflow.
-

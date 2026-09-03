@@ -48,18 +48,24 @@ export default function OrganizationSettings({
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="organization-name">Organization name</Label>
+                                <Label htmlFor="organization-name">
+                                    Organization name
+                                </Label>
                                 <Input
                                     id="organization-name"
                                     name="name"
                                     defaultValue={organization.name}
-                                    disabled={!permissions.canUpdateOrganization}
+                                    disabled={
+                                        !permissions.canUpdateOrganization
+                                    }
                                     required
                                 />
                                 <InputError message={errors.name} />
                             </div>
                             {permissions.canUpdateOrganization && (
-                                <Button disabled={processing}>Save organization</Button>
+                                <Button disabled={processing}>
+                                    Save organization
+                                </Button>
                             )}
                         </>
                     )}
@@ -75,55 +81,77 @@ export default function OrganizationSettings({
 
                 <div className="divide-y rounded-lg border">
                     {members.map((member) => (
-                        <div key={member.id} className="flex items-center gap-3 p-4">
+                        <div
+                            key={member.id}
+                            className="flex items-center gap-3 p-4"
+                        >
                             <div className="min-w-0 flex-1">
-                                <p className="truncate font-medium">{member.name}</p>
-                                <p className="truncate text-sm text-muted-foreground">
+                                <p className="truncate font-medium">
+                                    {member.name}
+                                </p>
+                                <p className="text-muted-foreground truncate text-sm">
                                     {member.email} · {member.roleLabel}
                                 </p>
                             </div>
 
-                            {member.role !== 'owner' && permissions.canUpdateMember && (
-                                <Form
-                                    action={`/settings/organization/members/${member.id}`}
-                                    method="patch"
-                                    options={{ preserveScroll: true }}
-                                    className="flex items-center gap-2"
-                                >
-                                    {({ processing }) => (
-                                        <>
-                                            <select
-                                                name="role"
-                                                defaultValue={member.role}
-                                                className="h-9 rounded-md border bg-background px-3 text-sm"
-                                            >
-                                                {availableRoles.map((role) => (
-                                                    <option key={role.value} value={role.value}>
-                                                        {role.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <Button size="sm" variant="outline" disabled={processing}>
-                                                Update
-                                            </Button>
-                                        </>
-                                    )}
-                                </Form>
-                            )}
+                            {member.role !== 'owner' &&
+                                permissions.canUpdateMember && (
+                                    <Form
+                                        action={`/settings/organization/members/${member.id}`}
+                                        method="patch"
+                                        options={{ preserveScroll: true }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        {({ processing }) => (
+                                            <>
+                                                <select
+                                                    name="role"
+                                                    defaultValue={member.role}
+                                                    className="bg-background h-9 rounded-md border px-3 text-sm"
+                                                >
+                                                    {availableRoles.map(
+                                                        (role) => (
+                                                            <option
+                                                                key={role.value}
+                                                                value={
+                                                                    role.value
+                                                                }
+                                                            >
+                                                                {role.label}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={processing}
+                                                >
+                                                    Update
+                                                </Button>
+                                            </>
+                                        )}
+                                    </Form>
+                                )}
 
-                            {member.role !== 'owner' && permissions.canRemoveMember && (
-                                <Form
-                                    action={`/settings/organization/members/${member.id}`}
-                                    method="delete"
-                                    options={{ preserveScroll: true }}
-                                >
-                                    {({ processing }) => (
-                                        <Button size="sm" variant="destructive" disabled={processing}>
-                                            Remove
-                                        </Button>
-                                    )}
-                                </Form>
-                            )}
+                            {member.role !== 'owner' &&
+                                permissions.canRemoveMember && (
+                                    <Form
+                                        action={`/settings/organization/members/${member.id}`}
+                                        method="delete"
+                                        options={{ preserveScroll: true }}
+                                    >
+                                        {({ processing }) => (
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                disabled={processing}
+                                            >
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </Form>
+                                )}
                         </div>
                     ))}
                 </div>
@@ -147,7 +175,9 @@ export default function OrganizationSettings({
                         {({ processing, errors }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="invite-email">Email address</Label>
+                                    <Label htmlFor="invite-email">
+                                        Email address
+                                    </Label>
                                     <Input
                                         id="invite-email"
                                         name="email"
@@ -158,22 +188,29 @@ export default function OrganizationSettings({
                                     <InputError message={errors.email} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="invite-role">Organization role</Label>
+                                    <Label htmlFor="invite-role">
+                                        Organization role
+                                    </Label>
                                     <select
                                         id="invite-role"
                                         name="role"
                                         defaultValue="member"
-                                        className="h-10 rounded-md border bg-background px-3 text-sm"
+                                        className="bg-background h-10 rounded-md border px-3 text-sm"
                                     >
                                         {availableRoles.map((role) => (
-                                            <option key={role.value} value={role.value}>
+                                            <option
+                                                key={role.value}
+                                                value={role.value}
+                                            >
                                                 {role.label}
                                             </option>
                                         ))}
                                     </select>
                                     <InputError message={errors.role} />
                                 </div>
-                                <Button disabled={processing}>Send invitation</Button>
+                                <Button disabled={processing}>
+                                    Send invitation
+                                </Button>
                             </>
                         )}
                     </Form>
@@ -189,10 +226,15 @@ export default function OrganizationSettings({
                     />
                     <div className="divide-y rounded-lg border">
                         {invitations.map((invitation) => (
-                            <div key={invitation.code} className="flex items-center gap-3 p-4">
+                            <div
+                                key={invitation.code}
+                                className="flex items-center gap-3 p-4"
+                            >
                                 <div className="min-w-0 flex-1">
-                                    <p className="truncate font-medium">{invitation.email}</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="truncate font-medium">
+                                        {invitation.email}
+                                    </p>
+                                    <p className="text-muted-foreground text-sm">
                                         {invitation.roleLabel}
                                     </p>
                                 </div>
@@ -203,7 +245,11 @@ export default function OrganizationSettings({
                                         options={{ preserveScroll: true }}
                                     >
                                         {({ processing }) => (
-                                            <Button size="sm" variant="outline" disabled={processing}>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={processing}
+                                            >
                                                 Cancel
                                             </Button>
                                         )}

@@ -45,4 +45,3 @@ When an integration fails, the universal page context should remain usable where
 ## Out of scope
 
 A public developer platform, arbitrary automation builder, unofficial scraping, credential sharing, and maintaining one-off customer integrations without a product decision are not approved.
-

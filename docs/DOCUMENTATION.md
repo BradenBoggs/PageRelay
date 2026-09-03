@@ -146,4 +146,3 @@ Before completing an implementation plan or feature change, verify:
 - code-to-specification references are selective and valid;
 - renamed or removed paths are not left in documentation;
 - no verification result is claimed without being run.
-

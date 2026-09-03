@@ -39,4 +39,3 @@ Do not model every page as a channel or place thousands of automatically created
 ## Out of scope
 
 Cross-organization communities, customer channels, federated chat, voice/video meetings, Slack import, bots, apps inside channels, and enterprise compliance are not currently planned.
-

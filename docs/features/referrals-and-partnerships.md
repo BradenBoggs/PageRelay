@@ -36,4 +36,3 @@ Disclose referral relationships where required. Cash commissions need approved t
 ## Out of scope
 
 Multi-level programs, open affiliate marketplaces, lifetime commissions without limits, rewards for raw leads, crypto payouts, and automated partner contracting are not approved.
-

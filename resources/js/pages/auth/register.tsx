@@ -16,7 +16,10 @@ type Props = {
     organizationInvitation?: OrganizationInvitationContext | null;
 };
 
-export default function Register({ passwordRules, organizationInvitation }: Props) {
+export default function Register({
+    passwordRules,
+    organizationInvitation,
+}: Props) {
     return (
         <>
             <Head title="Register" />
@@ -30,9 +33,13 @@ export default function Register({ passwordRules, organizationInvitation }: Prop
                     <>
                         {organizationInvitation && (
                             <>
-                                <input type="hidden" name="invitation" value={organizationInvitation.code} />
+                                <input
+                                    type="hidden"
+                                    name="invitation"
+                                    value={organizationInvitation.code}
+                                />
                                 <OrganizationInvitationAlert
-                                invitation={organizationInvitation}
+                                    invitation={organizationInvitation}
                                     action="Register"
                                 />
                             </>

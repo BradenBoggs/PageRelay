@@ -14,4 +14,3 @@ This repository is currently documentation-first. Before implementing applicatio
 - the active plan under `docs/plans/`
 
 The first implementation initiative is `docs/plans/000-execplan.md`. It is a proposed plan and does not authorize application implementation until explicitly approved.
-

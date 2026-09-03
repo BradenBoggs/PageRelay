@@ -49,4 +49,3 @@ The current page shows its tasks in the panel. A later My Tasks view combines as
 ## Out of scope
 
 Gantt charts, kanban boards, workload planning, time tracking, approvals, forms, automations, custom fields, dependencies, portfolios, and bidirectional sync with every external task system are not part of the lightweight feature.
-

@@ -41,4 +41,3 @@ Selecting a page item opens its SideWire conversation and offers a safe return l
 ## Acceptance behavior
 
 A member can navigate away from a page, receive authorized activity, find it in one inbox, open the correct destination, mark it read consistently across extension and web, and return to the originating page. Another member's read state and another organization's activity remain private.
-

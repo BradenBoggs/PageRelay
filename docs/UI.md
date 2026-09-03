@@ -81,4 +81,3 @@ Every implemented workflow must account for the relevant states:
 - unexpected request failure.
 
 Do not leave a blank panel where the user needs an explanation or recovery action.
-

@@ -28,7 +28,10 @@ export function NavUser() {
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} organization={organization} />
+                            <UserInfo
+                                user={auth.user}
+                                organization={organization}
+                            />
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>

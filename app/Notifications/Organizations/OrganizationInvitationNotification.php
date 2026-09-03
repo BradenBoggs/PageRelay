@@ -25,13 +25,16 @@ class OrganizationInvitationNotification extends Notification implements ShouldQ
 
     public function toMail(object $notifiable): MailMessage
     {
+        $organizationName = $this->invitation->organization->name;
+        $inviterName = $this->invitation->inviter?->name ?? __('A SideWire administrator');
+
         return (new MailMessage)
             ->subject(__("You've been invited to join :organization", [
-                'organization' => $this->invitation->organization->name,
+                'organization' => $organizationName,
             ]))
             ->line(__(':inviter invited you to join :organization on SideWire.', [
-                'inviter' => $this->invitation->inviter->name,
-                'organization' => $this->invitation->organization->name,
+                'inviter' => $inviterName,
+                'organization' => $organizationName,
             ]))
             ->action(
                 __('Create your SideWire account'),

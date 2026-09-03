@@ -28,15 +28,12 @@ class AddMemberToTeam
             OrganizationMembership::query()
                 ->where('organization_id', $team->organization_id)
                 ->where('user_id', $user->id)
-                ->where('status', OrganizationMembershipStatus::Active)
+                ->where('status', OrganizationMembershipStatus::Active->value)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            return TeamMembership::query()->updateOrCreate(
-                [
-                    'team_id' => $team->id,
-                    'user_id' => $user->id,
-                ],
+            return $team->memberships()->updateOrCreate(
+                ['user_id' => $user->id],
                 [
                     'organization_id' => $team->organization_id,
                     'role' => $role,

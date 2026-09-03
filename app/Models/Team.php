@@ -24,7 +24,7 @@ class Team extends Model
 
         static::creating(function (Team $team): void {
             if (empty($team->slug)) {
-                $team->slug = static::generateUniqueSlug(
+                $team->slug = self::generateUniqueSlug(
                     $team->organization_id,
                     $team->name,
                 );
@@ -33,7 +33,7 @@ class Team extends Model
 
         static::updating(function (Team $team): void {
             if ($team->isDirty('name')) {
-                $team->slug = static::generateUniqueSlug(
+                $team->slug = self::generateUniqueSlug(
                     $team->organization_id,
                     $team->name,
                     $team->id,

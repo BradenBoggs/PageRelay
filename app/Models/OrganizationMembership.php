@@ -4,9 +4,21 @@ namespace App\Models;
 
 use App\Enums\OrganizationMembershipStatus;
 use App\Enums\OrganizationRole;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $organization_id
+ * @property int $user_id
+ * @property OrganizationRole $role
+ * @property OrganizationMembershipStatus $status
+ * @property bool $is_billable
+ * @property Carbon|null $joined_at
+ * @property Carbon|null $removed_at
+ */
 class OrganizationMembership extends Pivot
 {
     protected $table = 'organization_memberships';
@@ -35,7 +47,11 @@ class OrganizationMembership extends Pivot
         return $this->belongsTo(User::class);
     }
 
-    public function scopeActive($query)
+    /**
+     * @param Builder<OrganizationMembership> $query
+     * @return Builder<OrganizationMembership>
+     */
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', OrganizationMembershipStatus::Active->value);
     }

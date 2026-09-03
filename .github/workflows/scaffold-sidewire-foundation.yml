@@ -56,9 +56,6 @@ jobs:
             --exclude=PLANS.md \
             --exclude=docs/
 
-          mkdir -p .github/workflows
-          cp /tmp/laravel-react-starter/.github/workflows/tests.yml .github/workflows/ci.yml
-
       - name: Apply SideWire package identity and safe development defaults
         if: steps.guard.outputs.skip == 'false'
         shell: bash
@@ -95,10 +92,10 @@ jobs:
             echo
             echo "Generated from Laravel React starter commit 0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8 before any Team-to-Organization rename."
             echo
-            rg -n --hidden \
-              --glob '!.git/**' \
-              --glob '!docs/plans/artifacts/000-team-switch-inventory.txt' \
-              -e 'current_team|currentTeam|switchTeam|isCurrentTeam|fallbackTeam|is_personal|personalTeam|personal team|Personal team' \
+            grep -RInE \
+              --exclude-dir=.git \
+              --exclude=000-team-switch-inventory.txt \
+              'current_team|currentTeam|switchTeam|isCurrentTeam|fallbackTeam|is_personal|personalTeam|personal team|Personal team' \
               . || true
           } > docs/plans/artifacts/000-team-switch-inventory.txt
 

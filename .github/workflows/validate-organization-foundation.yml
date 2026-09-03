@@ -1,0 +1,89 @@
+name: Validate Organization foundation
+
+on:
+  push:
+    branches:
+      - feature/sidewire-foundation
+    paths:
+      - .github/workflows/validate-organization-foundation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sidewire-validate-organization-foundation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the implementation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+        continue-on-error: true
+
+      - name: Resolve locked dependencies
+        shell: bash
+        run: |
+          composer update --no-interaction --prefer-dist --no-progress
+          npm install --no-audit --no-fund
+
+      - name: Prepare the application
+        shell: bash
+        run: |
+          cp .env.example .env
+          touch database/database.sqlite
+          php artisan key:generate --ansi
+          php artisan migrate:fresh --seed --no-interaction --ansi
+          php artisan route:list --except-vendor --ansi
+
+      - name: Build and type-check the React application
+        shell: bash
+        run: |
+          npm run build
+          npm run types:check
+
+      - name: Run backend tests
+        run: php artisan test --colors=always
+
+      - name: Run PHP static analysis
+        run: composer types:check
+
+      - name: Check formatting and frontend quality
+        shell: bash
+        run: |
+          composer lint:check
+          npm run check
+
+      - name: Commit generated lockfiles and safe formatter changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add composer.lock package-lock.json
+
+          if git diff --cached --quiet; then
+            echo 'Dependency lockfiles are already current.'
+            exit 0
+          fi
+
+          git commit -m 'build: lock validated foundation dependencies'
+          git push origin HEAD:feature/sidewire-foundation

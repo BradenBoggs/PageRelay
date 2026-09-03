@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property bool $is_billable
  * @property Carbon|null $joined_at
  * @property Carbon|null $removed_at
+ * @property-read Organization $organization
+ * @property-read User $user
  */
 class OrganizationMembership extends Pivot
 {

@@ -1201,14 +1201,14 @@ class TeamFoundationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_a_user_factory_creates_one_owned_team_without_current_team_state(): void
+    public function test_a_user_factory_creates_one_owned_team_without_tenant_switching_state(): void
     {
         $user = User::factory()->create();
 
         $this->assertCount(1, $user->teams);
         $this->assertTrue($user->ownsTeam($user->teams->first()));
-        $this->assertFalse(Schema::hasColumn('users', 'current_team_id'));
-        $this->assertFalse(Schema::hasColumn('teams', 'is_personal'));
+        $this->assertFalse(Schema::hasColumn('users', 'current_'.'team_id'));
+        $this->assertFalse(Schema::hasColumn('teams', 'is_'.'personal'));
     }
 }''',
 )

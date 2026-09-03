@@ -320,7 +320,7 @@ export default function TeamEdit({
                     </div>
                 ) : null}
 
-                {permissions.canDeleteTeam && !team.isPersonal ? (
+                {permissions.canDeleteTeam ? (
                     <div className="space-y-6">
                         <Heading
                             variant="small"
@@ -370,7 +370,7 @@ export default function TeamEdit({
                 onOpenChange={setCancelInvitationDialogOpen}
             />
 
-            {permissions.canDeleteTeam && !team.isPersonal ? (
+            {permissions.canDeleteTeam ? (
                 <DeleteTeamModal
                     team={team}
                     open={deleteDialogOpen}

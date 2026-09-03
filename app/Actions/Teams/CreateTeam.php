@@ -9,23 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 class CreateTeam
 {
-    /**
-     * Create a new team and add the user as owner.
-     */
-    public function handle(User $user, string $name, bool $isPersonal = false): Team
+    public function handle(User $user, string $name): Team
     {
-        return DB::transaction(function () use ($user, $name, $isPersonal) {
-            $team = Team::create([
-                'name' => $name,
-                'is_personal' => $isPersonal,
-            ]);
+        return DB::transaction(function () use ($user, $name) {
+            $team = Team::create(['name' => $name]);
 
-            $membership = $team->memberships()->create([
+            $team->memberships()->create([
                 'user_id' => $user->id,
                 'role' => TeamRole::Owner,
             ]);
-
-            $user->switchTeam($team);
 
             return $team;
         });

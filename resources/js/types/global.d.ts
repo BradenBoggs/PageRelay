@@ -13,7 +13,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
-            currentTeam: Team | null;
+            team: Team | null;
             teams: Team[];
             [key: string]: unknown;
         };

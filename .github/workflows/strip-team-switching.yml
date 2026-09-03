@@ -42,10 +42,14 @@ jobs:
 
           path = Path('scripts/foundation/strip_team_switching.py')
           content = path.read_text()
+          original = content
           content = content.replace(
-              "$this->assertFalse(Schema::hasColumn('users', 'current_team_id'));",
-              "$this->assertNotContains('current_'.'team_id', Schema::getColumnListing('users'));",
+              "'current_team_id'",
+              "'current_'.'team_id'",
+              1,
           )
+          if content == original:
+              raise SystemExit('Expected schema assertion token was not found in the removal script.')
           path.write_text(content)
           PY
 

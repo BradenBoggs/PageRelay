@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
+      SIDEWIRE_FOUNDATION_CHECKPOINT: workspaces-and-teams
 
     steps:
       - name: Check out the implementation branch

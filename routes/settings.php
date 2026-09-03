@@ -1,14 +1,12 @@
 <?php
 
+use App\Http\Controllers\Organizations\OrganizationController;
+use App\Http\Controllers\Organizations\OrganizationInvitationController;
+use App\Http\Controllers\Organizations\OrganizationMemberController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
-use App\Http\Controllers\Teams\TeamController;
-use App\Http\Controllers\Teams\TeamInvitationController;
-use App\Http\Controllers\Teams\TeamMemberController;
-use App\Http\Middleware\EnsureTeamMembership;
-/* @chisel-password-confirmation */
+use App\Http\Middleware\EnsureOrganizationMembership;
 use Illuminate\Auth\Middleware\RequirePassword;
-/* @end-chisel-password-confirmation */
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -19,12 +17,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::get('settings/security', [SecurityController::class, 'edit'])
-        /* @chisel-password-confirmation */
         ->middleware(RequirePassword::class)
-        /* @end-chisel-password-confirmation */
         ->name('security.edit');
 
     Route::put('settings/password', [SecurityController::class, 'update'])
@@ -33,28 +27,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 
-    Route::get('settings/teams', [TeamController::class, 'index'])->name('teams.index');
-    Route::post('settings/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::middleware(EnsureOrganizationMembership::class)->group(function () {
+        Route::get('settings/organization', [OrganizationController::class, 'edit'])
+            ->name('organization.edit');
+        Route::patch('settings/organization', [OrganizationController::class, 'update'])
+            ->name('organization.update');
 
-    Route::middleware(EnsureTeamMembership::class)->group(function () {
-        Route::get('settings/teams/{team}', [TeamController::class, 'edit'])->name('teams.edit');
-        Route::patch('settings/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
-        Route::delete('settings/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
-        Route::delete('settings/teams/{team}/leave', [TeamController::class, 'leave'])->name('teams.leave');
+        Route::patch('settings/organization/members/{user}', [OrganizationMemberController::class, 'update'])
+            ->name('organization.members.update');
+        Route::delete('settings/organization/members/{user}', [OrganizationMemberController::class, 'destroy'])
+            ->name('organization.members.destroy');
 
-        Route::patch('settings/teams/{team}/members/{user}', [TeamMemberController::class, 'update'])->name('teams.members.update');
-        Route::delete('settings/teams/{team}/members/{user}', [TeamMemberController::class, 'destroy'])->name('teams.members.destroy');
-
-        Route::post('settings/teams/{team}/invitations', [TeamInvitationController::class, 'store'])->name('teams.invitations.store');
-        Route::delete('settings/teams/{team}/invitations/{invitation}', [TeamInvitationController::class, 'destroy'])->name('teams.invitations.destroy');
+        Route::post('settings/organization/invitations', [OrganizationInvitationController::class, 'store'])
+            ->name('organization.invitations.store');
+        Route::delete('settings/organization/invitations/{invitation}', [OrganizationInvitationController::class, 'destroy'])
+            ->name('organization.invitations.destroy');
     });
 });
 
-/* @chisel-passkeys */
 Route::get('.well-known/passkey-endpoints', function () {
     return response()->json([
         'enroll' => route('security.edit'),
         'manage' => route('security.edit'),
     ]);
 })->name('well-known.passkeys');
-/* @end-chisel-passkeys */

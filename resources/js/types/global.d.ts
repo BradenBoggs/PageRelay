@@ -1,5 +1,5 @@
 import type { Auth } from '@/types/auth';
-import type { Team } from '@/types/teams';
+import type { Organization } from '@/types/organizations';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -12,9 +12,8 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            organization: Organization | null;
             sidebarOpen: boolean;
-            team: Team | null;
-            teams: Team[];
             [key: string]: unknown;
         };
     }

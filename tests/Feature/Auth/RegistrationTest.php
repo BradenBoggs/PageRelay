@@ -2,9 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Enums\TeamRole;
-use App\Models\Team;
-use App\Models\TeamInvitation;
+use App\Enums\OrganizationRole;
+use App\Models\OrganizationInvitation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -14,36 +13,32 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered()
+    public function test_registration_screen_can_be_rendered(): void
     {
-        $response = $this->get(route('register'));
-
-        $response->assertOk();
+        $this->get(route('register'))->assertOk();
     }
 
-    public function test_registration_screen_includes_team_invitation_context()
+    public function test_registration_screen_includes_organization_invitation_context(): void
     {
         $owner = User::factory()->create();
-        $team = Team::factory()->create(['name' => 'Laravel Team']);
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
-
-        $invitation = TeamInvitation::factory()->create([
-            'team_id' => $team->id,
+        $organization = $owner->organization()->firstOrFail();
+        $invitation = OrganizationInvitation::create([
+            'organization_id' => $organization->id,
             'email' => 'invited@example.com',
+            'role' => OrganizationRole::Member,
             'invited_by' => $owner->id,
+            'expires_at' => now()->addDays(3),
         ]);
 
-        $response = $this->get(route('register', ['invitation' => $invitation->code]));
-
-        $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('auth/register')
-            ->where('teamInvitation.code', $invitation->code)
-            ->where('teamInvitation.teamName', 'Laravel Team'),
-        );
+        $this->get(route('register', ['invitation' => $invitation->code]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/register')
+                ->where('organizationInvitation.code', $invitation->code)
+                ->where('organizationInvitation.organizationName', $organization->name));
     }
 
-    public function test_new_users_can_register()
+    public function test_new_users_register_with_one_owned_organization(): void
     {
         $response = $this->post(route('register.store'), [
             'name' => 'Test User',
@@ -53,8 +48,37 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-
-        $user = User::where('email', 'test@example.com')->first();
         $response->assertRedirect(route('dashboard'));
+
+        $user = User::where('email', 'test@example.com')->firstOrFail();
+        $this->assertSame(OrganizationRole::Owner, $user->organizationRole());
+        $this->assertNotNull($user->organization()->first());
+    }
+
+    public function test_invited_user_joins_the_inviting_organization_without_creating_another(): void
+    {
+        $owner = User::factory()->create();
+        $organization = $owner->organization()->firstOrFail();
+        $invitation = OrganizationInvitation::create([
+            'organization_id' => $organization->id,
+            'email' => 'invited@example.com',
+            'role' => OrganizationRole::Member,
+            'invited_by' => $owner->id,
+            'expires_at' => now()->addDays(3),
+        ]);
+
+        $this->post(route('register.store'), [
+            'name' => 'Invited User',
+            'email' => 'invited@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'invitation' => $invitation->code,
+        ])->assertRedirect(route('dashboard'));
+
+        $user = User::where('email', 'invited@example.com')->firstOrFail();
+        $this->assertTrue($user->belongsToOrganization($organization));
+        $this->assertSame(OrganizationRole::Member, $user->organizationRole());
+        $this->assertDatabaseCount('organizations', 1);
+        $this->assertNotNull($invitation->fresh()->accepted_at);
     }
 }

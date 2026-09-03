@@ -1,5 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { ChevronsUpDown } from 'lucide-react';
+import { UserMenuContent } from '@/components/user-menu-content';
+import { UserInfo } from '@/components/user-info';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,14 +13,10 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
-import { UserInfo } from '@/components/user-info';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 export function NavUser() {
-    const { auth, team } = usePage().props;
-    const { state } = useSidebar();
-    const isMobile = useIsMobile();
+    const { isMobile } = useSidebar();
+    const { auth, organization } = usePage().props;
 
     return (
         <SidebarMenu>
@@ -27,23 +25,18 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
+                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} team={team} />
+                            <UserInfo user={auth.user} organization={organization} />
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                        side={isMobile ? 'bottom' : 'right'}
                         align="end"
-                        side={
-                            isMobile
-                                ? 'bottom'
-                                : state === 'collapsed'
-                                  ? 'left'
-                                  : 'bottom'
-                        }
+                        sideOffset={4}
                     >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>

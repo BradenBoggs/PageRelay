@@ -48,8 +48,13 @@ jobs:
               "'current_'.'team_id'",
               1,
           )
+          content = content.replace(
+              'without_current_team_state',
+              'without_tenant_switching_state',
+              1,
+          )
           if content == original:
-              raise SystemExit('Expected schema assertion token was not found in the removal script.')
+              raise SystemExit('Expected switching-test tokens were not found in the removal script.')
           path.write_text(content)
           PY
 

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Organizations;
 
+use App\Domain\Workspaces\EnsureDefaultWorkspace;
 use App\Enums\OrganizationMembershipStatus;
 use App\Enums\OrganizationRole;
 use App\Models\Organization;
@@ -12,6 +13,12 @@ use Illuminate\Validation\ValidationException;
 
 class CreateOrganization
 {
+    public function __construct(
+        private EnsureDefaultWorkspace $ensureDefaultWorkspace,
+    ) {
+        //
+    }
+
     public function handle(User $user, string $name): Organization
     {
         return DB::transaction(function () use ($user, $name) {
@@ -30,6 +37,8 @@ class CreateOrganization
                 'is_billable' => true,
                 'joined_at' => now(),
             ]);
+
+            $this->ensureDefaultWorkspace->handle($organization);
 
             return $organization;
         });

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['name', 'slug'])]
@@ -59,6 +60,24 @@ class Organization extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(OrganizationInvitation::class);
+    }
+
+    /** @return HasMany<Workspace, $this> */
+    public function workspaces(): HasMany
+    {
+        return $this->hasMany(Workspace::class);
+    }
+
+    /** @return HasOne<Workspace, $this> */
+    public function defaultWorkspace(): HasOne
+    {
+        return $this->hasOne(Workspace::class)->where('is_default', true);
+    }
+
+    /** @return HasMany<Team, $this> */
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
     }
 
     public function owner(): ?User

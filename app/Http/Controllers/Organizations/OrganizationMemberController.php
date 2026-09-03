@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
@@ -53,11 +54,17 @@ class OrganizationMemberController extends Controller
 
         abort_if($membership->role === OrganizationRole::Owner, 403);
 
-        $membership->update([
-            'status' => OrganizationMembershipStatus::Removed,
-            'is_billable' => false,
-            'removed_at' => now(),
-        ]);
+        DB::transaction(function () use ($organization, $membership, $user): void {
+            $user->teamMemberships()
+                ->where('organization_id', $organization->id)
+                ->delete();
+
+            $membership->update([
+                'status' => OrganizationMembershipStatus::Removed,
+                'is_billable' => false,
+                'removed_at' => now(),
+            ]);
+        });
 
         Inertia::flash('toast', [
             'type' => 'success',

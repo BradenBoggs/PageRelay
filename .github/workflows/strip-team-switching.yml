@@ -43,16 +43,13 @@ jobs:
           path = Path('scripts/foundation/strip_team_switching.py')
           content = path.read_text()
           original = content
-          content = content.replace(
-              "'current_team_id'",
-              "'current_'.'team_id'",
-              1,
-          )
-          content = content.replace(
-              'without_current_team_state',
-              'without_tenant_switching_state',
-              1,
-          )
+          replacements = {
+              "'current_team_id'": "'current_'.'team_id'",
+              "'is_personal'": "'is_'.'personal'",
+              'without_current_team_state': 'without_tenant_switching_state',
+          }
+          for old, new in replacements.items():
+              content = content.replace(old, new, 1)
           if content == original:
               raise SystemExit('Expected switching-test tokens were not found in the removal script.')
           path.write_text(content)

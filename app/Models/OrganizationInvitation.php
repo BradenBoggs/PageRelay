@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
  * @property int|null $invited_by
  * @property Carbon|null $expires_at
  * @property Carbon|null $accepted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Organization $organization
  * @property-read User|null $inviter
  */

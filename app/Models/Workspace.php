@@ -22,7 +22,7 @@ class Workspace extends Model
 
         static::creating(function (Workspace $workspace): void {
             if (empty($workspace->slug)) {
-                $workspace->slug = static::generateUniqueSlug(
+                $workspace->slug = self::generateUniqueSlug(
                     $workspace->organization_id,
                     $workspace->name,
                 );
@@ -31,7 +31,7 @@ class Workspace extends Model
 
         static::updating(function (Workspace $workspace): void {
             if ($workspace->isDirty('name')) {
-                $workspace->slug = static::generateUniqueSlug(
+                $workspace->slug = self::generateUniqueSlug(
                     $workspace->organization_id,
                     $workspace->name,
                     $workspace->id,

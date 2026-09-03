@@ -5,6 +5,20 @@ on:
     branches:
       - feature/sidewire-foundation
     paths:
+      - app/**
+      - bootstrap/**
+      - config/**
+      - database/**
+      - resources/**
+      - routes/**
+      - tests/**
+      - composer.json
+      - composer.lock
+      - package.json
+      - package-lock.json
+      - phpstan.neon
+      - vite.config.ts
+      - tsconfig.json
       - .github/workflows/validate-organization-foundation.yml
   workflow_dispatch:
 

@@ -36,9 +36,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-        continue-on-error: true
 
       - name: Resolve locked dependencies
         shell: bash
@@ -61,29 +58,31 @@ jobs:
           npm run build
           npm run types:check
 
-      - name: Run backend tests
-        run: php artisan test --colors=always
-
-      - name: Run PHP static analysis
-        run: composer types:check
-
-      - name: Check formatting and frontend quality
+      - name: Run backend tests and PHP static analysis
         shell: bash
         run: |
+          php artisan test --colors=always
+          composer types:check
+
+      - name: Apply and verify repository formatting
+        shell: bash
+        run: |
+          composer lint
+          npm run check:fix
           composer lint:check
           npm run check
 
-      - name: Commit generated lockfiles and safe formatter changes
+      - name: Commit validated lockfiles and formatter output
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add composer.lock package-lock.json
+          git add --all
 
           if git diff --cached --quiet; then
-            echo 'Dependency lockfiles are already current.'
+            echo 'The validated foundation is already clean.'
             exit 0
           fi
 
-          git commit -m 'build: lock validated foundation dependencies'
+          git commit -m 'build: lock and format validated foundation'
           git push origin HEAD:feature/sidewire-foundation

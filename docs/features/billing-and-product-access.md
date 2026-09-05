@@ -72,4 +72,15 @@ Usage-based AI credits, marketplace revenue sharing, custom enterprise contracts
 
 ## Implementation map
 
-Add this section after stable billing code exists. It should identify the Organization Cashier model, membership seat-count method, quantity synchronization job/service, checkout and portal routes, webhook boundary, Filament billing resources, and billing tests.
+Primary entry points:
+
+- Cashier customer and seat count: `app/Models/Organization.php`
+- Membership change boundary: `app/Observers/OrganizationMembershipObserver.php`
+- Quantity reconciliation: `app/Domain/Billing/SyncOrganizationSeatQuantity.php`
+- Stripe adapter contract and implementation: `app/Contracts/Billing/UpdatesOrganizationSeatQuantity.php` and `app/Domain/Billing/CashierOrganizationSeatQuantityUpdater.php`
+- Retryable queue job: `app/Jobs/Billing/SyncOrganizationSeatQuantity.php`
+- Cashier configuration: `app/Providers/AppServiceProvider.php` and `config/cashier.php`
+- Internal observability: `app/Filament/Resources/Subscriptions/` and `app/Filament/Resources/FailedJobs/`
+- Tests: `tests/Feature/Billing/OrganizationBillingFoundationTest.php`
+
+Important tables are `organizations`, `organization_memberships`, `subscriptions`, and `subscription_items`. Cashier owns the signed `POST /stripe/webhook` boundary. Customer checkout and billing-portal routes are intentionally absent until the open commercial decisions in this document are approved.

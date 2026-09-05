@@ -59,4 +59,16 @@ class OrganizationFoundationTest extends TestCase
     {
         $this->get(route('organization.edit'))->assertRedirect(route('login'));
     }
+
+    public function test_cross_organization_member_targets_are_not_revealed(): void
+    {
+        $owner = User::factory()->create();
+        $outsider = User::factory()->create();
+
+        $this->actingAs($owner)
+            ->delete(route('organization.members.destroy', $outsider))
+            ->assertNotFound();
+
+        $this->assertTrue($outsider->organizationMembership()->exists());
+    }
 }

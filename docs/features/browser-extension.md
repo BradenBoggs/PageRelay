@@ -1,6 +1,6 @@
 # Chrome browser extension
 
-Status: foundation shell is tracked in `docs/plans/000-execplan.md`. Page-chat and linking behavior is planned in `docs/plans/001-page-chats-and-linking.md`; this documentation revision does not implement it.
+Status: the extension shell and secure authentication handoff are implemented by `docs/plans/000-execplan.md`. Page-chat and linking behavior is planned in `docs/plans/001-page-chats-and-linking.md`; it is not implemented by the foundation.
 
 This document owns the extension shell, side-panel lifecycle, permissions, authentication surface, active-tab awareness, and navigation between extension views. Page identity and Apps grouping belong to `page-contexts.md`; shared chats belong to `page-conversations.md`.
 
@@ -41,7 +41,9 @@ A message composed from Activity or another non-page view has no inferred source
 
 ## Authentication
 
-Use the approved browser-to-web authentication handoff. Keep minimum session material in extension-owned storage and support expiry, rotation, sign-out, removal, and server-side revocation. Never expose tokens to the host page, URLs, analytics, or logs.
+The implemented browser-to-web handoff uses a short-lived, one-time request bound to a PKCE verifier. The extension creates the verifier and keeps the handoff secret; the browser confirmation URL contains only an opaque public identifier. A signed-in, verified user with an active organization membership must explicitly approve the connection before the extension can exchange the secret and verifier for a scoped, expiring Sanctum token.
+
+The extension stores only that token, expiry, and minimum user and organization display identity in `chrome.storage.local`. Disconnect revokes the current token on the server before clearing local state. Expired, revoked, unverified, or removed accounts fail closed on the next authenticated request. Never expose tokens or handoff secrets to the host page, browser URLs, analytics, or logs.
 
 ## Distribution and compatibility
 
@@ -52,3 +54,30 @@ Firefox, Safari, Edge-specific packaging, native mobile apps, and install-free e
 ## Acceptance behavior
 
 The panel opens reliably at narrow/resized widths, survives browser and extension restarts as designed, handles active-tab and shared-chat transitions, authenticates safely, identifies unsupported or unsafe pages, protects draft attribution, and never requires host-page modification for the MVP workflow.
+
+## Implementation map
+
+Primary entry points:
+
+- Extension workspace: `apps/extension/`
+- Manifest: `apps/extension/public/manifest.json`
+- Side-panel entry: `apps/extension/src/sidepanel/main.tsx`
+- Authentication client: `apps/extension/src/auth/session.ts`
+- Extension UI boundary: `apps/extension/src/components/ui/`
+- Background service worker: `apps/extension/src/background/service-worker.ts`
+- Extension styles: `apps/extension/src/styles/app.css`
+- Build configuration: `apps/extension/vite.config.ts`
+- Handoff API: `POST` and `PUT /api/v1/extension/handoffs`
+- Scoped session API: `GET` and `DELETE /api/v1/extension/session`
+- Browser confirmation: `app/Http/Controllers/ExtensionConnectionController.php` and `resources/js/pages/extension/connect.tsx`
+- Authentication domain: `app/Domain/Extension/`
+- Handoff model/table: `app/Models/ExtensionHandoff.php` and `extension_handoffs`
+- Token boundary: `app/Http/Middleware/EnsureExtensionAccessToken.php`
+- Tests: `tests/Feature/Api/ExtensionHandoffTest.php`, `tests/Feature/Api/ExtensionConnectionPageTest.php`, `tests/Feature/Api/ExtensionSessionTest.php`, and `tests/Feature/Broadcasting/OrganizationChannelAuthorizationTest.php`
+
+The development manifest adds only the exact `http://localhost:8000/*` host permission needed to call the local SideWire API. A production API origin and its disclosure require distribution approval; no broad host permission or content script is present.
+
+Related specifications:
+
+- `docs/features/page-contexts.md`
+- `docs/features/page-conversations.md`

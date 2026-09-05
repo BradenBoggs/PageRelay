@@ -1,5 +1,6 @@
 /.phpunit.cache
 /bootstrap/ssr
+/apps/extension/dist
 /node_modules
 /public/build
 /public/fonts-manifest.dev.json
@@ -25,5 +26,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.nova
-/.vscode
+/.vscode/*
+!/.vscode/mcp.json
 /.zed

@@ -13,12 +13,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Cashier\Billable;
 
 #[Fillable(['name', 'slug'])]
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
-    use GeneratesUniqueOrganizationSlugs, HasFactory, SoftDeletes;
+    use Billable, GeneratesUniqueOrganizationSlugs, HasFactory, SoftDeletes;
 
     protected static function boot(): void
     {
@@ -98,6 +99,11 @@ class Organization extends Model
             ->active()
             ->where('is_billable', true)
             ->count();
+    }
+
+    public function stripeEmail(): ?string
+    {
+        return $this->owner()?->email;
     }
 
     public function getRouteKeyName(): string

@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "SideWire",
+    "description": "Team collaboration beside the work already open in Chrome.",
+    "version": "0.1.0",
+    "action": {
+        "default_title": "Open SideWire"
+    },
+    "background": {
+        "service_worker": "service-worker.js",
+        "type": "module"
+    },
+    "host_permissions": ["http://localhost:8000/*"],
+    "permissions": ["sidePanel", "activeTab", "storage"],
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    }
+}

@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react';
+import '@/echo';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -15,6 +16,7 @@ void createInertiaApp({
             case name === 'welcome':
                 return null;
             case name.startsWith('auth/'):
+            case name.startsWith('extension/'):
                 return AuthLayout;
             case name.startsWith('settings/'):
             case name.startsWith('organizations/'):

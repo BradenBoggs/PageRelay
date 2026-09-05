@@ -1,6 +1,6 @@
 # Execution plan 000: trusted SideWire foundation
 
-Status: approved and implementation started on September 2, 2026.
+Status: implementation complete locally on September 5, 2026. The first GitHub Actions run remains pending until these changes are committed and pushed.
 
 ## Purpose / Big Picture
 
@@ -15,23 +15,31 @@ The foundation installs and correctly owns Cashier per-seat billing data, Sanctu
 - [x] 2026-09-02: Approve the Laravel/Inertia React foundation and supporting package stack.
 - [x] 2026-09-02: Approve Organization as the tenant and Stripe customer, Workspace as a collaboration container, and Team as an organization-owned member group.
 - [x] 2026-09-02: Approve removal of all upstream team-switching and personal-team behavior before the tenant concept is renamed to Organization.
-- [ ] Scaffold the pinned official Laravel React starter on the implementation branch without overwriting repository documentation.
-- [ ] Remove team switching and personal-team behavior while the generated tenant concept is still named Team.
-- [ ] Rename the stripped tenant concept to Organization and verify no current-tenant state remains.
-- [ ] Add the real Workspace, Team, and TeamMembership foundation under Organization.
-- [ ] Install and wire Cashier, Sanctum, Reverb, Horizon, Filament, PostgreSQL defaults, and Redis defaults.
-- [ ] Implement and test one-organization-per-user isolation, default workspace creation, and active-seat calculation.
-- [ ] Scaffold the Chrome Manifest V3 extension with a native side panel and minimal permissions.
-- [ ] Add automated checks, continuous integration, secure seed behavior, and contributor setup instructions.
-- [ ] Run all approved verification commands and record actual evidence here.
+- [x] 2026-09-03: Scaffold the pinned official Laravel React starter without overwriting repository-owned documentation.
+- [x] 2026-09-03: Remove team switching and personal-team behavior while the generated tenant concept is still named Team.
+- [x] 2026-09-03: Rename the stripped tenant concept to Organization and verify that no current-tenant state remains.
+- [x] 2026-09-03: Add the real Workspace, Team, and TeamMembership foundation under Organization.
+- [x] 2026-09-05: Install and wire Cashier, Sanctum, Reverb, Horizon, Filament, PostgreSQL defaults, and Redis defaults.
+- [x] 2026-09-05: Implement and test one-organization-per-user isolation, default workspace creation, and active-seat calculation.
+- [x] 2026-09-04: Scaffold the Chrome Manifest V3 extension with React, Tailwind CSS, a native side panel, a build watcher, and only `sidePanel`, `activeTab`, and `storage` permissions.
+- [x] 2026-09-05: Add the PKCE authentication handoff, scoped Sanctum session, confirmation UI, and signed-in/signed-out side-panel states.
+- [x] 2026-09-05: Add automated checks, continuous integration, secure seed behavior, internal operator resources, and contributor setup instructions.
+- [x] 2026-09-05: Run all approved local verification commands and record actual evidence here.
+- [ ] Observe the first GitHub Actions run from committed lockfiles after this implementation is pushed.
 
 ## Surprises & Discoveries
 
 - The original repository contained documentation only, so the framework must be merged around those sources of truth rather than replacing them.
 - The official starter's Teams variant includes `current_team_id`, URL-scoped current-team routing, switching methods, a team selector, fallback behavior, and personal teams. Renaming those pieces would create exactly the wrong Organization model, so removal is an explicit pre-rename milestone.
 - SideWire can deliver the first context workflow without a content script. Keeping content scripts and broad host permissions out of Phase 0 materially reduces privacy and extension-review risk.
-
-Add implementation findings here with dates and evidence.
+- 2026-09-04: The merged starter uses npm with a committed `package-lock.json`; pnpm is not installed in the current development environment. The extension joins the repository through npm workspaces while `pnpm-workspace.yaml` remains aligned for a future deliberate package-manager decision.
+- 2026-09-04: The original shell had Node 18.19.1, but the resolved Vite toolchain requires a modern Node release and failed there while importing `node:util.styleText`. Local development now selects Node 24 LTS while retaining Node 22.18 as the lowest supported LTS runtime.
+- 2026-09-04: Adding the extension as a JavaScript workspace makes Vite+ require an explicit package target for app commands. Root web commands now use `vp -C .`; the Sail workflow runs the web watcher and extension watcher together without competing for the container's forwarded Vite port.
+- 2026-09-05: The locked Symfony 8.1 packages require PHP 8.4.1 or newer. The repository and CI now declare PHP 8.4.1+ and the verified Sail runtime is PHP 8.4.25.
+- 2026-09-05: The Reverb installer published the expected configuration and routes before stopping at an interactive prompt despite `--no-interaction`; the published boundary was inspected and verified directly.
+- 2026-09-05: shadcn 4.21 detects the retained `pnpm-workspace.yaml` and attempts pnpm even though this repository currently uses npm. Installing the CLI in the npm root and configuring both MCP clients to invoke it through Sail avoids that initializer mismatch and the host's obsolete Node 18 runtime.
+- 2026-09-05: The first forbidden-symbol check appeared to pass in Sail even though `rg` was unavailable. The script now deliberately falls back to recursive `grep` and treats search errors as failures; the corrected audit passed without command errors.
+- 2026-09-05: A live Chrome connection returned HTTP 403 after browser approval. The account had an active organization membership but no verified email; `User` inherited Laravel's verification methods without implementing `MustVerifyEmail`, so web `verified` middleware had been a no-op while the exchange correctly failed closed. Implementing the contract aligned both boundaries, and an unverified-handoff regression test now proves authorization cannot occur.
 
 ## Decision Log
 
@@ -44,18 +52,24 @@ Add implementation findings here with dates and evidence.
 - Decision: Use single-database row-level organization isolation instead of a database-switching tenancy package. Reason: explicit organization-scoped relationships and policies are sufficient and easier to audit for the MVP. Date: 2026-09-02.
 - Decision: Use Cashier, Sanctum, Reverb, Horizon, Redis, and Filament. Reason: these maintained Laravel packages cover subscription quantities, extension API sessions, realtime delivery, queues, and internal administration while keeping customer product UI in React. Date: 2026-09-02.
 - Decision: Begin with Chrome Manifest V3 and the native side panel without a content script or broad host permissions. Date: 2026-09-02.
-
-Record material implementation decisions and deviations here. Permanent behavior must also be updated in its owning document.
+- Decision: Use the repository's currently locked npm workflow for the first extension scaffold instead of introducing an unverified package-manager migration. Reason: npm and `package-lock.json` are already present, while pnpm is not installed locally. Date: 2026-09-04.
+- Decision: Run PHP and JavaScript development commands through Sail with PHP 8.4 and Node 24. Reason: the locked dependencies exceed the host PHP and Node versions, and one runtime prevents host/container watcher conflicts. Date: 2026-09-05.
+- Decision: Authenticate the extension with a short-lived, one-time, PKCE-bound web confirmation handoff that exchanges for an expiring `extension:access` Sanctum token. Reason: neither the bearer token nor handoff secret belongs in a browser URL or host page, and cookie sessions must not cross the extension API boundary. Date: 2026-09-05.
+- Decision: Add only the exact localhost API host permission to the development extension manifest. Reason: the side panel must call the local server, but no content script or broad website access is required. Production origin permissions remain part of distribution approval. Date: 2026-09-05.
+- Decision: Keep Filament operator resources read-only and require an explicit `is_sidewire_admin` grant on an existing account. Reason: foundation observability does not require cross-tenant mutation tools or a predictable seeded administrator. Date: 2026-09-05.
+- Decision: Use existing shadcn Button and Card patterns for the web confirmation, and a separate shadcn-compatible Button boundary inside the extension package. Reason: the web application and extension are separate UI surfaces and should not create an unsupported cross-bundle component dependency. Date: 2026-09-05.
 
 ## Outcomes & Retrospective
 
-Implementation is underway on `feature/sidewire-foundation`. No verification result is complete until a command or CI job is actually run and recorded below.
+The foundation now ships the Laravel/Inertia application, enforced Organization/Workspace/Team model, organization-owned Cashier records and seat reconciliation, Redis/Horizon queue operations, Reverb private-channel plumbing, explicit read-only Filament administration, and a loadable Chrome side panel with a secure web authentication handoff.
 
-When this plan completes, record what shipped, deviations from the plan, verification evidence, remaining risks, and lessons for the page-collaboration initiative.
+The implementation deliberately does not include a price, checkout or portal UI, failed-payment product behavior, page contexts, chats, tasks, Activity, third-party integrations, production deployment, or Chrome Web Store packaging. Those remain governed by their owning feature documents and later plans.
+
+Local migrations, rollback, tests, analysis, formatting, types, builds, route boundaries, extension permissions, and the combined development command all pass. The remaining external evidence is the first GitHub Actions run after commit and push; this plan must record that run rather than predicting its result.
 
 ## Context and Orientation
 
-Before implementation, the repository contains documentation and no application source. The implementation branch is created from the merged main documentation commit.
+Before implementation, the repository contained documentation and no application source. It now contains the merged Laravel/Inertia application, extension workspace, service configuration, CI workflow, and tests while retaining the repository-owned source documents.
 
 Primary source documents:
 
@@ -84,10 +98,22 @@ Expected stable application entry points after implementation include:
 - `app/Http/Middleware/EnsureOrganizationMembership.php`
 - `app/Domain/Billing/SyncOrganizationSeatQuantity.php`
 - `app/Jobs/Billing/SyncOrganizationSeatQuantity.php`
+- `app/Domain/Extension/`
+- `app/Models/ExtensionHandoff.php`
+- `app/Http/Middleware/EnsureExtensionAccessToken.php`
+- `app/Http/Controllers/ExtensionConnectionController.php`
 - `app/Providers/Filament/AdminPanelProvider.php`
+- `app/Filament/Resources/`
+- `routes/api.php`
+- `routes/channels.php`
+- `resources/js/pages/extension/connect.tsx`
 - `apps/extension/`
+- `.github/workflows/ci.yml`
+- `scripts/check-foundation-boundaries.sh`
 - `tests/Feature/Organizations/`
 - `tests/Feature/Billing/`
+- `tests/Feature/Api/`
+- `tests/Feature/Administration/`
 
 ## Plan of Work
 
@@ -135,6 +161,8 @@ Install and configure:
 
 Customer organization and billing screens remain in React. Filament is for internal operators only.
 
+Resolved foundation packages are Cashier 16.8.0, Sanctum 4.3.3, Reverb 1.11.1, Horizon 5.48.3, and Filament 5.7.8. Cashier customer columns live on `organizations`; Filament resources under `app/Filament/Resources/` expose only list and view behavior for users, organizations, memberships, subscriptions, and failed jobs.
+
 ### Milestone 6: Enforce and test organization isolation and seats
 
 Add database constraints, policies, scoped route binding, middleware, factories, and tests proving:
@@ -153,7 +181,13 @@ Add database constraints, policies, scoped route binding, middleware, factories,
 
 Create `apps/extension` using Manifest V3, React, and TypeScript. Add the native side-panel declaration and minimal permissions. Do not add a content script, scripting permission, history permission, tab monitoring, `<all_urls>` host permission, or source-page DOM access.
 
-Extension authentication and active-page metadata behavior may be completed in the remainder of this plan after the server foundation passes.
+The scaffold uses `apps/extension/public/manifest.json`,
+`apps/extension/src/sidepanel/main.tsx`,
+`apps/extension/src/background/service-worker.ts`, and
+`apps/extension/vite.config.ts`. Root npm workspace scripts build and watch the
+extension independently from the Laravel Vite application.
+
+Extension authentication is implemented in `app/Domain/Extension/`, `routes/api.php`, `app/Http/Controllers/ExtensionConnectionController.php`, `resources/js/pages/extension/connect.tsx`, and `apps/extension/src/auth/session.ts`. Active-page metadata remains part of the later page-context initiative.
 
 ### Milestone 8: Continuous integration and handoff
 
@@ -161,35 +195,43 @@ Create CI that installs locked dependencies, builds the web application and exte
 
 Update README with actual setup commands. Add concise implementation maps to implemented feature documents. Record actual verification evidence in this plan.
 
+The implemented paths are `.github/workflows/ci.yml`, `scripts/check-foundation-boundaries.sh`, `.nvmrc`, `README.md`, `docs/features/browser-extension.md`, `docs/features/billing-and-product-access.md`, and this plan. The workflow is ready for its first run after commit and push; no remote result is claimed here.
+
 ## Concrete Steps
 
-The planned repository commands are:
+The implemented local workflow is npm-based and runs application tooling through Sail. From a fresh WSL checkout, install Composer dependencies with the PHP 8.4 Sail Composer image as documented in `README.md`, copy `.env.example`, and then run:
 
 ```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate:fresh --seed
-pnpm install --frozen-lockfile
-pnpm build
-php artisan test
-composer types:check
-composer lint:check
-pnpm check
-pnpm types:check
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail npm ci
+./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail npm run dev:all
 ```
 
-Package installation commands used during scaffolding are expected to include:
+The foundation packages were installed and published with:
 
 ```bash
-composer require laravel/cashier laravel/sanctum laravel/reverb laravel/horizon filament/filament
-php artisan install:api --no-interaction
-php artisan install:broadcasting --no-interaction
-php artisan horizon:install
-php artisan filament:install --panels --no-interaction
+./vendor/bin/sail composer require laravel/cashier:^16.8 laravel/sanctum:^4.3 laravel/reverb:^1.11 laravel/horizon:^5.48 filament/filament:^5.7 --with-all-dependencies
+./vendor/bin/sail artisan install:api --no-interaction
+./vendor/bin/sail artisan horizon:install --no-interaction
+./vendor/bin/sail artisan filament:install --panels --no-interaction
 ```
 
-These commands are planned, not yet claimed as successful. Replace or annotate them with the exact verified commands and versions produced by implementation.
+Reverb configuration and routes were published by its installer before its interactive prompt stopped the command. The resulting files were inspected and verified; rerunning the installer is not a setup requirement.
+
+The verified local checks are:
+
+```bash
+./vendor/bin/sail composer validate --strict
+./vendor/bin/sail pint --test
+./vendor/bin/sail composer types:check
+./vendor/bin/sail artisan test
+./vendor/bin/sail npm run foundation:check
+./vendor/bin/sail npm run check
+./vendor/bin/sail npm run types:check
+./vendor/bin/sail npm run build
+```
 
 ## Validation and Acceptance
 
@@ -226,14 +268,21 @@ If an extension permission proves insufficient, stop and document the exact fail
 
 Preserve concise evidence here during implementation:
 
-- pinned upstream starter commit and resolved dependency versions;
-- final repository tree for application and extension workspaces;
-- forbidden-switch symbol scan;
-- migration and rollback results;
-- organization-isolation and billing test names and results;
-- sanitized extension manifest;
-- final verification command output;
-- CI run reference and job results.
+- 2026-09-04 extension scaffold verification: TypeScript completed without
+  errors using Node 22.18.0 and TypeScript 5.9.3. Vite 8.2.2 produced
+  `apps/extension/dist/manifest.json`, `sidepanel.html`, `service-worker.js`,
+  and locally bundled side-panel JavaScript and CSS. A manifest audit reported
+  only `sidePanel`, `activeTab`, and `storage`, with no `content_scripts` or
+  `host_permissions` entries. `git diff --check` passed.
+- 2026-09-05 dependency evidence: the application retains upstream starter commit `0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8`; Composer reports Cashier 16.8.0, Sanctum 4.3.3, Reverb 1.11.1, Horizon 5.48.3, and Filament 5.7.8. Sail reports PHP 8.4.25 and Node 24.20.0.
+- 2026-09-05 migration evidence: `migrate:fresh --seed --force` applied every migration through `2026_09_05_050322_add_subscription_item_foreign_key` in an isolated SQLite file, and `migrate:rollback --force` reversed every migration. The temporary database was then removed; the local PostgreSQL database was not reset.
+- 2026-09-05 extension and operator focused tests: 13 tests passed with 63 assertions for the PKCE handoff, confirmation page, and Filament access. The expanded admin-only resource test then passed separately with 4 tests and 19 assertions, including the read-only failed-job table.
+- 2026-09-05 static and frontend evidence: Pint passed, PHPStan passed with zero errors, Vite+ reported all checked files formatted with no lint warnings, web and extension TypeScript passed, and Vite 8.2.2 built both applications.
+- 2026-09-05 clean-install and full-suite evidence: `composer install --no-interaction --prefer-dist --optimize-autoloader` verified the Composer lock on PHP 8.4, and `npm ci` installed 543 packages from `package-lock.json` with zero reported vulnerabilities. After the live email-verification boundary fix, the final backend suite passed 73 tests with 266 assertions; frontend checks covered 111 formatted files and 74 linted files without warnings.
+- 2026-09-05 process evidence: `npm run dev:all` started the web Vite server, extension watcher, Horizon, and Reverb together; the SSR dependency graph warmed without the earlier `window is not defined` error. The process was then stopped intentionally with `Ctrl+C`.
+- 2026-09-05 boundary evidence: the corrected forbidden-switch audit ran inside Sail using its `grep` fallback and passed. The extension build contains `sidePanel`, `activeTab`, and `storage`, one exact localhost API host permission, and no content script. A real Chrome-origin preflight returned HTTP 204 with the required method and header allowances, and the behavior now has a regression test.
+- 2026-09-05 shadcn MCP evidence: Codex lists the `shadcn` stdio server enabled through Sail. A direct MCP session completed initialization, listed tools, returned the `@shadcn` registry, inspected Button and Card registry items and demos, and returned its component audit checklist. A new Codex session is required for normal tool exposure.
+- 2026-09-05 CI status: `.github/workflows/ci.yml` contains the locked install, boundary, format, analysis, test, type, and build stages. The same stages pass locally; the first remote run is still pending commit and push.
 
 Do not paste secrets, access tokens, complete environment files, or sensitive browsing URLs.
 
@@ -253,4 +302,4 @@ The foundation targets these interfaces:
 - a Filament Admin panel protected by explicit super-admin authorization;
 - repository-owned setup, development, check, test, and build commands.
 
-Expected dependencies are Laravel 13, PHP 8.3 or newer, PostgreSQL, Redis, Fortify, Inertia 3, React 19, TypeScript, Tailwind 4, Cashier, Sanctum, Reverb, Horizon, Filament, and the selected extension build tool. Exact resolved versions belong in lockfiles and implementation evidence.
+The implemented dependencies are Laravel 13, PHP 8.4.1 or newer, PostgreSQL 18, Redis, Fortify, Inertia 3, React 19, TypeScript, Tailwind 4, Vite 8, Cashier, Sanctum, Reverb, Horizon, and Filament. Node 24 LTS is the primary JavaScript runtime; Node 22.18 or newer remains allowed by `package.json`. Exact resolved versions remain locked in `composer.lock` and `package-lock.json`.

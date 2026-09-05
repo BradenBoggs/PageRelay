@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Filament\Resources\Users;
+
+use App\Filament\Resources\ReadOnlyResource;
+use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\Pages\ViewUser;
+use App\Filament\Resources\Users\Schemas\UserInfolist;
+use App\Filament\Resources\Users\Tables\UsersTable;
+use App\Models\User;
+use BackedEnum;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+
+class UserResource extends ReadOnlyResource
+{
+    protected static ?string $model = User::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return UserInfolist::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return UsersTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListUsers::route('/'),
+            'view' => ViewUser::route('/{record}'),
+        ];
+    }
+}

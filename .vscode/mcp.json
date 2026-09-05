@@ -1,0 +1,8 @@
+{
+    "servers": {
+        "shadcn": {
+            "command": "${workspaceFolder}/vendor/bin/sail",
+            "args": ["npx", "shadcn", "mcp"]
+        }
+    }
+}

@@ -59,9 +59,14 @@ export default defineConfig({
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
             '.github/**',
+            'apps/extension/dist/**',
             'composer.json',
+            'marketing/**',
+            'node_modules/**',
+            'public/**',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
+            'vendor/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

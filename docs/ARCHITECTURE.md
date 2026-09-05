@@ -1,6 +1,6 @@
 # SideWire architecture
 
-Status: approved foundation; implementation is tracked in `docs/plans/000-execplan.md`.
+Status: approved foundation; implementation is tracked in `docs/plans/000-execplan.md`. The page-chat and linking revision is planned separately in `docs/plans/001-page-chats-and-linking.md` and is not implemented by this documentation update.
 
 ## System shape
 
@@ -12,7 +12,7 @@ Keep SideWire in one repository with two client surfaces backed by one Laravel a
 - one PostgreSQL database as the durable source of truth;
 - Redis for queues, cache, sessions, Horizon, and later Reverb scaling.
 
-The approved application foundation is the official Laravel React starter kit at pinned upstream commit `0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8`, which currently provides Laravel 13, Fortify, Inertia 3, React 19, TypeScript, Tailwind 4, and the maintained Laravel starter UI. The upstream Teams feature is used only as source material for memberships, invitations, roles, and authorization. Its switching and personal-team behavior must be removed while the generated concept is still named `Team`; only then may that tenant concept be renamed to `Organization`.
+The approved application foundation is the official Laravel React starter kit at pinned upstream commit `0bc7a8d4538bed1d4ea8ef9469e2a6d915be2ec8`, which provides the selected Laravel 13, Fortify, Inertia 3, React 19, TypeScript, Tailwind 4, and maintained starter UI foundation. The upstream Teams feature is used only as source material for memberships, invitations, roles, and authorization. Its switching and personal-team behavior must be removed while the generated concept is still named `Team`; only then may that tenant concept be renamed to `Organization`.
 
 The approved supporting packages are:
 
@@ -27,17 +27,19 @@ Filament is Livewire-based and intentionally separate from the customer-facing R
 
 ## Account hierarchy and vocabulary
 
-These are separate domain concepts and must not be aliases:
+These are separate domain concepts:
 
-- **Organization:** the tenant, customer account, security boundary, and Stripe customer. An organization normally represents a company.
-- **Workspace:** a collaboration environment owned by an organization. The schema may support more than one workspace even when the first release creates only a default workspace.
-- **Team:** a group of organization members such as Sales, Operations, or Design. Team membership never creates a second paid seat for the same organization member.
+- **Organization:** tenant, customer account, security boundary, and Stripe customer.
+- **Workspace:** the existing organization-owned collaboration container. The MVP uses the default workspace, not a workspace per app or domain.
+- **Team:** a reusable group of organization members, not a channel or paying tenant.
 - **User:** an individually authenticated person.
 - **Seat:** one active billable organization membership.
 
-The MVP has no organization switching. A user belongs to one organization, and the server derives that organization from the authenticated active membership. Do not add `current_organization_id`, an organization selector, a switch endpoint, a personal organization, or fallback-organization behavior. Supporting multiple organizations later requires a separately approved migration and authorization review.
+The MVP has no organization switching. A user belongs to one organization, derived from authenticated active membership. Retain `organization_memberships` as the single authoritative relationship. Do not introduce a parallel `users.organization_id` authority, `current_organization_id`, a tenant selector, switch endpoint, personal organization, or fallback organization. Supporting multiple organizations requires a separately approved migration and authorization review.
 
-Organization, workspace, and team identifiers supplied by a browser are never proof of access. Every organization-owned query and mutation must derive or verify the organization through authenticated membership.
+Apps groups page contexts for browsing and does not define tenancy, ownership, billing, external-app permissions, or a new workspace. User-facing Chat maps to the internal conversation concept; Activity maps to the cross-tool view. Do not add duplicate domain entities or rename-only migrations for those labels.
+
+Organization, workspace, team, chat, and context identifiers supplied by a browser are never proof of access. Domain ownership and feature behavior remain in the relevant specifications.
 
 ## Tenancy approach
 
@@ -45,11 +47,11 @@ Use single-database row-level tenancy. Do not install a database-switching multi
 
 Every organization-owned aggregate must either contain `organization_id` or belong through an unambiguous organization-owned parent. Enforce isolation in route binding, policies, queries, jobs, notifications, broadcasts, search, admin actions, and provider callbacks. Prefer explicit organization-scoped relationships over unscoped model lookups.
 
-A user's organization relationship is singular in the foundation. A unique database constraint on active membership prevents the web and extension clients from manufacturing an unsupported multi-organization state.
+A user's organization relationship is singular in the foundation. Database constraints and tests enforce the approved one-organization membership boundary; neither a hidden selector nor a client preference can authorize another tenant.
 
 ## Billing boundary
 
-`Organization` uses Cashier's `Billable` concern and is configured as Cashier's customer model. Stripe subscription quantity equals the authoritative count of active billable organization memberships. The owner counts as one seat; pending invitations, removed members, teams, and workspace access do not add seats.
+`Organization` uses Cashier's `Billable` concern and is configured as Cashier's customer model. Stripe subscription quantity equals the authoritative count of active billable organization memberships. The owner counts as one seat; pending invitations, removed members, teams, workspace access, App groups, and chat links do not add seats.
 
 Seat synchronization recalculates the complete quantity and calls Cashier's quantity update method. Do not rely on blind increments or decrements because retried jobs and webhooks must remain idempotent. Stripe webhook signatures must be verified, and provider events must be safe to repeat.
 
@@ -59,62 +61,56 @@ Exact price, trial duration, proration policy, failed-payment behavior, and canc
 
 The web application uses Fortify-backed Laravel session authentication and CSRF protection. The extension uses a versioned Sanctum-protected API and an approved browser-to-web handoff. A normal source page must never receive SideWire credentials.
 
-Extension credentials stay in extension-owned storage, are scoped to the minimum abilities, expire, can be revoked, and are checked together with active organization membership on every request. Do not copy a normal web session cookie or password into the extension.
+Extension credentials stay in extension-owned storage, are scoped to minimum abilities, expire, can be revoked, and are checked together with active organization membership on every request. Do not copy a normal web session cookie or password into the extension.
 
 ## Trust boundaries
 
-The server is authoritative. The extension and web application are untrusted clients.
+The server is authoritative. The extension and web application are untrusted clients. Derive organization context from active membership and enforce it throughout reads, mutations, async work, and delivery.
 
-Every organization-owned query and mutation must derive the organization from the authenticated membership and enforce it in queries, policies, route binding, broadcasts, jobs, search, and provider callbacks. Never accept a browser-supplied organization ID, role, page-context identifier, URL, workspace ID, team ID, or extension state as proof of access.
+Use public opaque identifiers in client routes and payloads. Opaque identifiers are not authorization credentials. Validate the complete organization, workspace, chat, and context relationship rather than authorizing each identifier independently.
 
-Use public opaque identifiers in client routes and payloads. Opaque identifiers are not authorization credentials.
+The extension may report the active tab's URL, title, and favicon only after the user invokes SideWire and with minimum approved permissions. The server owns URL safety validation, normalization, and context resolution. Never use a client-generated normalized key as authorization or expose a raw URL as a database lookup boundary.
 
-The extension may report the active tab's URL, title, and favicon only after the user invokes SideWire and only with the minimum approved Chrome permissions. The server owns normalization and page-context resolution. Never use a client-generated normalized key as authorization or directly expose a raw URL as a database lookup boundary.
+Source-page access is not proof of SideWire access, and SideWire does not claim to mirror the external app's permissions. A message's source context is attributed client context validated against the chat association, not a trusted integration event.
 
 ## Extension constraints
 
 Use Manifest V3 and the native Chrome side-panel API. Request the least privilege possible. Prefer `sidePanel`, `activeTab`, and narrowly justified capabilities over broad host permissions.
 
-Do not inject content scripts, alter the source page, scrape page content, execute scripts in the host page, monitor browsing history, or request `<all_urls>` merely for convenience. If Chrome requires a broader permission to meet approved behavior, document why, what data becomes visible, the user-facing disclosure, and the rejected alternatives before implementation.
+Do not inject content scripts, alter the source page, scrape page content, execute scripts in the host page, monitor browsing history, or request `<all_urls>` for convenience. A broader permission requires documented necessity, user-facing disclosure, and rejected alternatives before implementation.
 
-Treat restricted pages, browser-internal pages, local files, extension pages, new-tab pages, and unavailable tab metadata as normal states. The panel should explain when SideWire cannot attach a context rather than failing or inventing one.
+Treat restricted pages, browser-internal pages, local files, extension pages, new-tab pages, and unavailable tab metadata as normal states. Explain when SideWire cannot attach a context rather than inventing one.
 
-Keep extension authentication tokens out of web-page JavaScript and content-script contexts. Store the minimum session material in extension-owned storage, use secure expiring credentials, rotate or revoke them safely, and never log tokens or secrets.
+Keep extension tokens out of web-page JavaScript and content-script contexts. Store minimum session material in extension-owned storage, use secure expiring credentials, rotate or revoke them safely, and never log tokens or secrets.
 
-## Page-context identity
+## Page identity and chat ownership
 
-A page context belongs to exactly one organization and one workspace. Store the original source URL separately from a normalized identity used for matching. Preserve enough display metadata to help humans recognize the page without collecting page content.
+`docs/features/page-contexts.md` owns safe URL handling, normalized identity, metadata, and App grouping. A context belongs to one organization and its default workspace. Preserve only safe source URLs and minimum display metadata; reject unsafe access/session links instead of persisting them or guessing a canonical resource.
 
-The default normalization direction is conservative:
+`docs/features/page-conversations.md` owns the chat as the durable message-history aggregate. Multiple distinct contexts may point to one page chat; a context has at most one current primary chat. The chat has its own organization/workspace ownership rather than deriving it from whichever context was linked first.
 
-- require an approved `http` or `https` URL;
-- normalize scheme and host consistently;
-- remove fragments because they usually represent in-page navigation;
-- remove known tracking parameters;
-- preserve path and unknown query parameters until a rule proves they are non-identifying;
-- never merge different URLs based only on title, favicon, or a browser-supplied guess;
-- version normalization behavior so later improvements do not silently corrupt existing context identity.
-
-Application-specific adapters may later produce more stable identities, but the universal URL-based path must remain functional. Context merging, aliases, canonical URLs, route-template recognition, and organization-defined rules are not foundation features.
+URL recognition, page-to-chat linking, and history merging are separate operations. Linking must not rewrite identities, copy messages, change the audience, or alter billing. Context aliases, canonical-link reading, context merges, and organization-defined normalization rules remain separate future approvals.
 
 ## Collaboration delivery
 
-Persist a message before presenting it as sent. Use server-generated timestamps and IDs. Make client retries idempotent so a network retry does not create duplicate messages or tasks.
+Persist messages before presenting them as sent. Use server-generated timestamps and IDs. Make retries idempotent so a network retry cannot create duplicate messages, links, or tasks.
 
-Realtime delivery is an optimization over durable server state. On reconnect or missed events, clients must refetch authoritative conversation and unread state. Authorize every private broadcast channel against active organization membership and the relevant workspace or conversation access.
+Guard message creation and link changes against stale mappings and concurrent first sends. Feature-specific eligibility, provenance, unlinking, and recovery are defined in `page-conversations.md`.
 
-Do not introduce end-to-end encryption claims. Use TLS in transit, appropriate encryption at rest from managed infrastructure, private access controls, and clear retention behavior once approved.
+Realtime, read markers, and message notification identities must follow the chat/message, not multiply by linked page. Authorize private broadcast subscriptions against active organization membership and relevant chat access. On reconnect or missed events, refetch authoritative history and read state. Activity and notification policy remain in their owning documents.
+
+Do not introduce end-to-end encryption claims. Use TLS in transit, appropriate managed-infrastructure encryption at rest, private access controls, and clear retention behavior once approved.
 
 ## Application-wide security and privacy rules
 
 - Require verified authentication for internal product access.
-- Rate-limit authentication, context resolution, messaging, invitations, and other abuse-prone endpoints.
-- Validate and safely render user-generated text. Never execute message content or external page metadata as HTML or script.
-- Prevent unsafe URL schemes and open redirects when linking back to source pages.
-- Protect against cross-site request forgery where cookie authentication is used and against token leakage where bearer credentials are used.
-- Redact secrets, tokens, full message bodies, and sensitive URLs from logs whenever practical.
-- Verify signatures on provider webhooks and make callbacks safe to repeat.
+- Rate-limit authentication, context resolution, messaging, link changes, invitations, and other abuse-prone endpoints.
+- Validate and safely render user text and external metadata; never execute it as HTML or script.
+- Prevent unsafe URL schemes and open redirects in source links.
+- Protect cookie-authenticated requests against CSRF and bearer credentials against leakage.
+- Keep secrets, tokens, sensitive URLs, and full message bodies out of routine logs.
+- Verify provider webhook signatures and make callbacks safe to repeat.
 - Keep production credentials out of the repository and generated client bundles.
 - Provide deliberate web-session and extension-session revocation paths before pilot use.
 
-Feature-specific behavior belongs in the relevant feature file and should not be duplicated here.
+Feature-specific behavior belongs in its owning feature file and should not be duplicated here.

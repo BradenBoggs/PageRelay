@@ -53,6 +53,8 @@ users
 
 `organization_memberships` is the authoritative connection between a user and the tenant. It records organization role, status, invitation or activation timestamps, removal state, and whether the active membership is billable.
 
+Retain this existing model. A single-organization foundation does not require removing the membership table, and eliminating one table does not justify moving its lifecycle and role fields onto users. Do not add `users.organization_id` as a second authority that must remain synchronized. This is a decision to keep the existing design, not approval of multiple organizations per user.
+
 Database constraints must prevent duplicate active membership and enforce the approved one-organization-per-user foundation. Do not use a nullable `current_organization_id` on `users` as a substitute for authorization.
 
 ## Authorization and isolation
@@ -61,7 +63,9 @@ The server derives organization context from authenticated active membership. Cl
 
 Users from another organization must not discover record existence, titles, URLs, people, counts, billing state, or timing information. Opaque public identifiers do not weaken this rule.
 
-A request may contain a workspace, team, conversation, or page-context identifier, but the server must resolve it through the authenticated user's organization. Do not first retrieve a global record and authorize it later when an organization-scoped relationship can perform both operations.
+A request may contain a workspace, team, chat/conversation, or page-context identifier, but the server must resolve it through the authenticated user's organization. Do not first retrieve a global record and authorize it later when an organization-scoped relationship can perform both operations.
+
+Apps grouping and page-to-chat linking do not change organization membership, grant access to another tenant, or create additional billable seats. Feature-specific linking permissions belong to `page-conversations.md`.
 
 ## Extension sessions
 
@@ -75,4 +79,6 @@ Deletion must account for organization-owned collaboration history. Do not casca
 
 ## Implementation map
 
-Add this section when implementation creates stable entry points. It must identify the organization model, membership model, policies, tenant middleware or resolver, routes, invitation workflow, billing seat synchronization boundary, and isolation tests without listing every generated file.
+Primary foundation entry points include `app/Models/Organization.php`, `app/Models/OrganizationMembership.php`, `app/Models/OrganizationInvitation.php`, `app/Concerns/HasOrganization.php`, `app/Policies/OrganizationPolicy.php`, `app/Http/Middleware/EnsureOrganizationMembership.php`, `app/Http/Controllers/Organizations/`, and `tests/Feature/Organizations/OrganizationFoundationTest.php`.
+
+Billing synchronization remains governed by `billing-and-product-access.md` and the foundation plan. This map identifies existing entry points; it does not certify complete implementation or test results.

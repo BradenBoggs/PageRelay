@@ -1,41 +1,39 @@
-# Team conversations
+# Organization chat and future channels
 
-Status: discussed product direction; not part of the first page-conversation milestone.
+Status: one organization-wide chat is part of the approved MVP direction after the core page workflow. Custom named channels are deferred. Implementation requires a separately approved ExecPlan.
 
-This document owns general organization conversations that are not attached to an external page. Direct one-to-one or group-private communication belongs to `direct-messages.md`.
+This document owns shared organization communication that is not attached to an external page. Private one-to-one communication belongs to `direct-messages.md`. The existing filename is retained; user-facing labels use Chat.
 
 ## Purpose
 
-SideWire should eventually let a team keep general communication in the same source of truth as page-aware discussion. This prevents users from needing a separate chat product for every message that does not naturally belong to a source page.
+Keep general communication alongside page-aware discussion without requiring users to find an external page for every message. This does not make named channels the organizational parent of page chats.
 
-## Proposed behavior
+## MVP boundary
 
-Organizations can have named team conversations, commonly understood as channels. A conversation has a name, optional description, organization membership scope, creator, archive state, messages, and timestamps.
+Provide one default organization-wide chat when this milestone ships. All active organization members may view and send its messages. It has no required source URL and is not the chat of a particular Team membership group.
 
-The smallest useful version should provide:
+Use the same durable plain-text messaging, idempotency, pagination, safe rendering, realtime recovery, and failed-send guarantees as page chats. Include it in Activity, unread state, mentions, notifications, and search as those features ship.
 
-- one default organization-wide conversation;
-- additional named conversations created by approved roles;
-- organization-member visibility for public team conversations;
-- plain-text durable messages using the same delivery guarantees as page messages;
-- archive and restore rather than immediate permanent deletion;
-- inclusion in inbox, unread, mentions, notifications, and search.
+The initial organization chat does not imply an admin-only announcements stream, custom channel creation, private channel memberships, archive management, or a configurable operating mode.
 
 ## Relationship to page contexts
 
-Team conversations are not page contexts and do not require a source URL. A page conversation should be linkable in a team message, but messages should not be silently copied between destinations.
+Page chats remain page-first. A message in the organization chat may contain a link to a page chat, but must not absorb or copy that chat's messages.
 
-Do not model every page as a channel or place thousands of automatically created page contexts in channel navigation.
+The MVP page-linking operation targets page chats only, not this organization chat or a DM. Do not place thousands of automatically generated page contexts in channel navigation.
 
-## Open decisions
+## Later custom channels
 
-- Whether channels are required for MVP or should follow page collaboration.
-- Who can create, rename, archive, and restore conversations.
-- Public organization channels only versus private membership.
-- Whether group conversations are channels or direct messages.
-- Message editing/deletion, reactions, threads, attachments, retention, and moderation.
-- Default conversations created during onboarding.
+Channels such as Sales and Announcements are a possible next expansion for ongoing topics that do not map to one external record. They can reuse messaging infrastructure but require separately approved behavior for creation, naming, membership, visibility, posting, archive/restore, and notifications.
+
+An Announcements name alone does not create restricted posting permissions. A Sales Team alone does not create a Sales channel or determine its audience.
+
+Custom channels are not required for the MVP and are not an alternative page/channel/hybrid setup selected during onboarding.
+
+## Open decisions for later work
+
+Channel creation and management roles, public versus private channels, archive/restore, announcement posting restrictions, and retention/moderation remain open. Message editing/deletion, reactions, threads, and attachments are not implicitly approved here.
 
 ## Out of scope
 
-Cross-organization communities, customer channels, federated chat, voice/video meetings, Slack import, bots, apps inside channels, and enterprise compliance are not currently planned.
+Cross-organization communities, customer channels, federated chat, voice/video meetings, Slack import, bots, apps inside channels, enterprise compliance, and mandatory channel-per-project workflows are not approved.

@@ -2,82 +2,76 @@
 
 ## Purpose
 
-SideWire has one design system expressed through two related surfaces: a narrow Chrome side panel used beside another website, and a responsive web application used for broader workflows. They should share visual language and components without pretending they have the same information density or navigation needs.
+SideWire has one design system expressed through a narrow Chrome side panel and a responsive web application. Share visual language and components without pretending these surfaces have the same information density or navigation needs.
 
-This document owns application-wide interface rules. Feature-specific screens and states belong in the relevant feature document.
+This document owns application-wide interface rules. Feature-specific screens and states belong in their owning feature documents.
 
 ## Experience principles
 
-SideWire should feel calm, lightweight, and native beside a team's existing tools. The source website remains the primary workspace; SideWire provides useful context without competing for attention.
+SideWire should feel calm, lightweight, and native beside a team's tools. The source website remains the primary work surface; SideWire provides context without competing for attention.
 
-- Prioritize the current page's conversation in the side panel.
-- Make the source site and current page context unmistakable.
-- Keep the most common actions reachable without deep navigation.
-- Preserve drafts and scroll position when the active tab changes whenever safe and practical.
-- Clearly distinguish changing tabs from changing SideWire contexts.
-- Prefer a clean light theme for the initial product. Dark mode may be added later but should not delay a coherent first release.
+- Prioritize This Page and its chat in the side panel.
+- Make the current source page and the shared chat distinct and recognizable.
+- Keep common actions reachable without deep navigation.
+- Preserve drafts and scroll position when safe, without silently changing a draft's chat or source attribution.
+- Distinguish browser-tab changes, page-context changes, and chat changes: two linked contexts can open the same chat.
+- Prefer a clean light theme for the initial product. Dark mode should not delay a coherent first release.
 - Avoid generic AI-product styling, excessive gradients, glowing effects, oversized marketing treatments, and decorative cards around every element.
+
+## Vocabulary and navigation
+
+Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. Thread is reserved for separately approved message replies.
+
+Activity is for catching up; Chats is for finding a discussion; Apps groups or filters existing contexts/chats. Do not create one workspace per domain, one mandatory channel per external record, an expanded tree of every CRM lead, or a page/channel/hybrid onboarding selector.
+
+Retain the existing default Workspace internally. Do not require its selection before the user can chat beside a page.
 
 ## Reuse before invention
 
-For UI changes, use this order:
+Reuse an existing shared component or layout first, then compose, extend, and only finally create a new component when no established pattern fits.
 
-1. Reuse an existing shared component or layout.
-2. Compose existing components.
-3. Extend an existing component with a reusable variant.
-4. Create a new shared component only when no established pattern fits.
-
-Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do not accumulate arbitrary Tailwind values or create a separate mini-design system for each feature.
+Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do not accumulate arbitrary Tailwind values or a separate design system for each feature.
 
 ## Side-panel shell
 
-The panel must work at realistic narrow widths and variable heights. It is not a desktop dashboard squeezed into a column.
+The panel must work at realistic narrow widths and variable heights; it is not a desktop dashboard squeezed into a column.
 
-The normal page-context view should contain:
+The normal This Page view has a compact current-page header, safe source-page action, the associated chat as the main scroll region, a reachable composer, and compact navigation to Activity, Chats, and account state as those features ship.
 
-- a compact header with the recognizable source site and current page title;
-- a safe action to open or copy the source-page link when appropriate;
-- the page-scoped conversation as the primary scroll region;
-- a persistent composer at the bottom;
-- a small navigation path to the cross-tool inbox and account state.
+For a shared page chat, show its recognizable title and linked-page list without implying that the current app owns the history. Show per-message source attribution when recorded. A message sent while viewing Docusign remains attributed to Docusign even when read beside Supermove.
 
-Long titles and URLs must truncate without hiding the source domain. Do not display a full raw URL as the primary label. When the active page is unsupported, signed out, offline, inaccessible, or unresolved, replace the conversation with a clear state and next action.
+Long titles and URLs truncate without hiding the source domain. Do not make full raw URLs primary labels. Unsupported, signed-out, offline, inaccessible, and unresolved states must explain what happened and offer a safe next action.
+
+No chat yet is an intentional state. Merely visiting a page should not create a visible empty discussion or notify the organization.
 
 Do not overlay SideWire UI into the host page during the MVP.
 
 ## Web-application shell
 
-Use the web application for authentication, onboarding, organization administration, inbox/search, billing, and workflows that need more width. Deep links from the extension may open the relevant SideWire web view without losing the originating page context.
+Use the web application for authentication, onboarding, organization administration, Activity, Chats/search, billing, and workflows needing more width. Use the same server chat and read state as the extension.
 
-The web app should remain responsive, but it does not need to reproduce the host-page-plus-panel arrangement.
+Deep links open the relevant authorized chat or message and preserve a source context when supplied. They must not depend on a page remaining linked forever. A web message without an explicitly selected source has no inferred external-page attribution.
 
 ## Interaction patterns
 
-Use a full page for primary destinations and substantial forms. Use dialogs for short decisions or destructive confirmations. Use sheets for contextual inspection that benefits from retaining the underlying view. Use popovers and dropdowns only for lightweight controls. Keep the primary action visible instead of hiding it in overflow menus.
+Use full pages for primary destinations and substantial forms, dialogs for short decisions or confirmations, sheets for contextual inspection, and popovers/dropdowns for lightweight controls.
 
-Messages should optimize for scanning. Show author, time, content, delivery failure, and relevant action state without excessive chrome. Do not add reactions, nested threads, rich-text toolbars, attachments, or AI actions before their behavior is approved.
+The page-linking dialog follows `docs/features/page-conversations.md`. It distinguishes sharing an entire chat from posting a related link and explains when an existing nonempty history prevents linking. Do not use the ambiguous term unused page. Unlink confirmation explains that existing messages remain in the shared chat.
 
-The message composer must keep a visible label or accessible name, support keyboard submission without making multiline entry confusing, prevent accidental duplicates, communicate sending/failure state, and preserve recoverable text after a failed request.
+Show linking controls only to eligible roles. Do not expose inaccessible chat titles or previews through the picker. Provide a reload/retry path for stale links without silently choosing another chat.
+
+Messages prioritize author, time, content, recorded source, and delivery state. Do not add reactions, nested threads, rich-text toolbars, attachments, or AI actions before approval.
+
+The composer needs an accessible name, clear multiline/submission behavior, duplicate prevention, sending/failure states, and recoverable draft text. Drafts remain bound to their intended chat and source context; navigating to another linked page must not silently relabel a draft.
 
 ## Responsive and accessible behavior
 
-Treat the narrow panel as a first-class layout. Test resizing, zoom, long words, long page titles, large font settings, keyboard navigation, screen-reader names, focus order, reduced motion, and high-contrast states.
+Test resizing, zoom, long words and titles, large font settings, keyboard navigation, screen-reader names, focus order, reduced motion, and high-contrast states at realistic panel widths.
 
-Icon-only controls require accessible names and tooltips when their meaning is not universally obvious. Do not rely on color alone for unread, error, presence, task, or completion state. New-message announcements must not overwhelm assistive technology.
+Icon-only controls need accessible names and meaningful tooltips. Do not rely only on color for unread, error, or task states. New-message announcements must not overwhelm assistive technology.
 
 ## Required states
 
-Every implemented workflow must account for the relevant states:
+Account for signed out, expired session, loading/sync, no context, no current chat, no messages, unsupported page, offline/reconnecting, sending/failure, permission denial, removed membership, linking conflict, empty Activity/search, and unexpected request failure.
 
-- signed out and session expired;
-- loading and initial sync;
-- no page context yet;
-- no messages yet;
-- unsupported or restricted page;
-- offline and reconnecting;
-- sending and send failure;
-- permission denied or removed membership;
-- empty inbox or search results;
-- unexpected request failure.
-
-Do not leave a blank panel where the user needs an explanation or recovery action.
+A historical chat with no current linked pages is not a missing-history error. Do not delete its messages or invent an external source. Feature-specific behavior follows its owning specification.

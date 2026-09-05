@@ -4,13 +4,15 @@ SideWire is a Chrome side-panel collaboration product that adds shared team comm
 
 The repository is named `PageRelay`; SideWire is the current product name. Treat PageRelay as a repository codename unless the product is renamed again.
 
-This repository is currently documentation-first. Before implementing application code, read:
+Before implementing application code, read:
 
 - `AGENTS.md`
 - `docs/PRODUCT.md`
 - `docs/ARCHITECTURE.md`
-- `docs/UI.md` for any interface work
+- `docs/UI.md` for interface work
 - the relevant file under `docs/features/`
 - the active plan under `docs/plans/`
 
-The first implementation initiative is `docs/plans/000-execplan.md`. It is a proposed plan and does not authorize application implementation until explicitly approved.
+Foundation implementation is tracked in `docs/plans/000-execplan.md`. The page-chat, Apps, and manual-linking revision is planned in `docs/plans/001-page-chats-and-linking.md`; that documentation update is not authorization to implement application changes.
+
+Use Chat and Activity in the interface. Existing specification filenames and internal `Conversation` terminology remain valid. Product vocabulary and feature ownership are indexed in `docs/PRODUCT.md`.

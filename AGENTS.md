@@ -14,6 +14,14 @@ Do not reference, import assumptions from, integrate with, or couple SideWire to
 
 Update the one document that owns changed behavior. Do not duplicate a feature specification across product, architecture, UI, and plan documents. When work spans features, read only the directly affected feature files and name which document owns each resulting behavior. The user's latest explicit direction overrides repository guidance.
 
+## Communication vocabulary and scope
+
+Use the interface terms Chat, Activity, and Apps from `docs/PRODUCT.md`. Existing `Conversation` symbols and the `page-conversations.md` and `inbox-and-unread.md` filenames are internal names for those same concepts, not competing entities. Do not undertake a rename-only schema or code migration. Thread is reserved for message-level replies, which remain deferred.
+
+Read `docs/features/page-contexts.md` for URL identity and Apps grouping, `docs/features/page-conversations.md` for shared chats and linking, and `docs/features/inbox-and-unread.md` for Activity and chat-level read state. Linking distinct contexts is not identity normalization or history merging. Say a context has no chat or an empty chat, not that the external page is unused.
+
+Retain authoritative `organization_memberships` and the existing default Workspace foundation. Apps are not per-domain workspaces, Teams are not Channels, and flexible tables do not approve switching, custom channels, automatic matching, or alternative product modes. The current communication implementation proposal is `docs/plans/001-page-chats-and-linking.md`; documentation approval alone is not implementation approval.
+
 ## How to work
 
 For a substantial feature, security-sensitive change, data migration, extension-permission change, or significant refactor, create or update one living ExecPlan under `docs/plans/` using `PLANS.md`. Obtain explicit implementation approval before changing application code. Update the same plan throughout implementation and record real verification results.

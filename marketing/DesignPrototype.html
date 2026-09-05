@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SideWire docks team chat, direct messages, and contextual conversations directly beside any web app in a Chrome side panel." name="description"/>
+<title>SideWire — Contextual In-Browser Team Chat</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            paper: '#fffdf8',
+            surface: '#f5f6f8',
+            'surface-2': '#eef0f4',
+            ink: '#172033',
+            'ink-muted': '#687084',
+            'ink-subtle': '#8790a2',
+            vermilion: '#f45b36',
+            'vermilion-dark': '#cf3f1f',
+            'vermilion-soft': '#fff0ea',
+            cobalt: '#3a62f3',
+            'cobalt-soft': '#edf1ff',
+            emerald: '#1c9b6c',
+            'emerald-soft': '#e8f8f1',
+            amber: '#f5c84b',
+            line: '#dfe3ea',
+            'line-strong': '#c8ced9'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            serif: ['Newsreader', 'Georgia', 'serif'],
+          },
+          boxShadow: {
+            subtle: '0 2px 10px rgba(23, 32, 51, 0.04)',
+            card: '0 12px 36px -4px rgba(23, 32, 51, 0.08), 0 2px 8px -2px rgba(23, 32, 51, 0.04)',
+            sidebar: '-12px 0 40px rgba(23, 32, 51, 0.12), -1px 0 0 rgba(223, 227, 234, 0.8)',
+            glow: '0 0 24px rgba(244, 91, 54, 0.35)',
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    /* Custom utility scrollbar */
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #dce0e8; border-radius: 999px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #b0b7c6; }
+    
+    /* Active tab underline transition */
+    .tab-active-indicator {
+      box-shadow: inset 0 -2px 0 #f45b36;
+    }
+  </style>
+</head>
+<body class="bg-paper text-ink font-sans antialiased overflow-x-hidden selection:bg-vermilion-soft selection:text-vermilion-dark">
+<!-- ========================================================================= -->
+<!-- INJECTED LIVE CHROME EXTENSION SIDEBAR (PERSISTENT / COLLAPSIBLE) -->
+<!-- ========================================================================= -->
+<aside aria-label="SideWire Injected Browser Extension Panel" class="fixed top-0 right-0 z-50 h-screen w-[380px] max-w-[90vw] bg-white border-l border-line shadow-sidebar flex flex-col transition-transform duration-300 ease-out translate-x-0" id="sideWirePanel">
+<!-- Chrome Side Panel Mock Frame Header -->
+<div class="h-11 bg-[#f4f5f8] border-b border-line flex items-center justify-between px-3 shrink-0 select-none">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-vermilion flex items-center justify-center ring-2 ring-vermilion/20">
+<span class="w-1 h-1 bg-white rounded-full"></span>
+</span>
+<span class="text-xs font-bold text-ink tracking-tight flex items-center gap-1.5">
+          SideWire
+          <span class="px-1.5 py-0.2 bg-vermilion-soft text-vermilion-dark text-[10px] font-extrabold rounded-md uppercase tracking-wider border border-vermilion/20">Active</span>
+</span>
+</div>
+<div class="flex items-center gap-1">
+<!-- Notification bell -->
+<button class="p-1 rounded text-ink-subtle hover:text-ink hover:bg-surface transition relative" id="sidebarBellBtn" title="Workspace notifications">
+<span class="material-symbols-outlined text-[17px]">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-vermilion ring-1 ring-white"></span>
+</button>
+<!-- Toggle docked/minimized -->
+<button class="p-1 rounded text-ink-subtle hover:text-ink hover:bg-surface transition" id="minimizePanelBtn" title="Minimize Side Panel">
+<span class="material-symbols-outlined text-[17px]">dock_to_right</span>
+</button>
+<button class="p-1 rounded text-ink-subtle hover:text-ink hover:bg-surface transition" id="closePanelBtn" title="Close Panel">
+<span class="material-symbols-outlined text-[17px]">close</span>
+</button>
+</div>
+</div>
+<!-- Active Tab Context Pill (Dynamic Demo Switcher) -->
+<div class="bg-surface border-b border-line p-2.5 shrink-0">
+<div class="flex items-center justify-between mb-1 text-[10px] font-bold text-ink-subtle uppercase tracking-wider">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald"></span> Current Tab Context
+        </span>
+<span class="text-[9px] text-ink-muted">Click to switch demo tab</span>
+</div>
+<div class="relative">
+<select class="w-full text-xs font-semibold text-ink bg-white border border-line rounded-lg py-1.5 pl-7 pr-7 shadow-xs focus:ring-1 focus:ring-vermilion focus:border-vermilion truncate cursor-pointer appearance-none" id="demoUrlSelector">
+<option value="supermove">app.supermove.co/jobs/48291 (Pacific Heights Move)</option>
+<option value="docusign">app.docusign.com/agreements/cnt-8942-relo (Addendum)</option>
+<option value="salesforce">lightning.salesforce.com/r/Opportunity/0068 (Stripe Expansion)</option>
+</select>
+<span class="material-symbols-outlined absolute left-2 top-2 text-[14px] text-cobalt pointer-events-none">link</span>
+<span class="material-symbols-outlined absolute right-2 top-2 text-[15px] text-ink-subtle pointer-events-none">unfold_more</span>
+</div>
+<div class="mt-1.5 text-[11px] text-ink-muted flex items-center justify-between px-0.5" id="pageMetaBadge">
+<span class="truncate font-medium text-ink" id="activeJobTitle">Pacific Heights Long-Haul Move #48291</span>
+<span class="text-[10px] text-emerald font-semibold shrink-0 ml-1">3 members on page</span>
+</div>
+</div>
+<!-- Sidebar Navigation Tabs -->
+<div class="flex items-center border-b border-line bg-white text-xs font-bold text-ink-muted shrink-0">
+<button class="sidebar-tab flex-1 py-2.5 text-center text-vermilion-dark font-extrabold tab-active-indicator transition flex items-center justify-center gap-1" data-tab="this-page">
+<span>This Page</span>
+<span class="w-1.5 h-1.5 bg-vermilion rounded-full"></span>
+</button>
+<button class="sidebar-tab flex-1 py-2.5 text-center hover:text-ink transition flex items-center justify-center gap-1.5" data-tab="team">
+<span>Team</span>
+<span class="px-1.5 py-0.2 rounded-full bg-vermilion text-white text-[10px] font-bold">3</span>
+</button>
+<button class="sidebar-tab flex-1 py-2.5 text-center hover:text-ink transition flex items-center justify-center gap-1.5" data-tab="direct">
+<span>Direct</span>
+<span class="w-2 h-2 rounded-full bg-emerald"></span>
+</button>
+</div>
+<!-- Scrollable Messages Feed -->
+<div class="flex-1 overflow-y-auto p-3.5 space-y-3.5 custom-scroll bg-[#fcfdfe]" id="sidebarFeed">
+<!-- THIS PAGE PANE -->
+<div class="space-y-3.5" id="paneThisPage">
+<div class="text-center my-1">
+<span class="px-2 py-0.5 text-[10px] font-bold text-ink-subtle bg-surface rounded-full uppercase tracking-wider">Page Conversation Pinned</span>
+</div>
+<!-- Message 1 -->
+<div class="flex items-start gap-2.5 text-xs group">
+<div class="w-7 h-7 rounded-lg bg-cobalt-soft text-cobalt font-bold flex items-center justify-center shrink-0 text-[11px] ring-1 ring-cobalt/20">
+            MC
+          </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-baseline justify-between mb-0.5">
+<span class="font-bold text-ink text-[12px]">Maya <span class="text-[10px] font-normal text-ink-muted">(Ops Dispatch)</span></span>
+<span class="text-[10px] text-ink-subtle">10:14 AM</span>
+</div>
+<div class="bg-white border border-line rounded-lg rounded-tl-none p-2 text-ink/90 leading-relaxed shadow-xs">
+              Driver flagged a narrow 25% incline at the origin pickup. We can't fit the 48-footer. Requesting a 16ft shuttle unit right now!
+            </div>
+</div>
+</div>
+<!-- Message 2 -->
+<div class="flex items-start gap-2.5 text-xs group">
+<div class="w-7 h-7 rounded-lg bg-vermilion-soft text-vermilion-dark font-bold flex items-center justify-center shrink-0 text-[11px] ring-1 ring-vermilion/20">
+            DK
+          </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-baseline justify-between mb-0.5">
+<span class="font-bold text-ink text-[12px]">Devon <span class="text-[10px] font-normal text-ink-muted">(Billing)</span></span>
+<span class="text-[10px] text-ink-subtle">10:17 AM</span>
+</div>
+<div class="bg-white border border-line rounded-lg rounded-tl-none p-2 text-ink/90 leading-relaxed shadow-xs">
+              Pushed $350 shuttle surcharge to DocuSign contract. Customer e-signed by phone 20 secs ago! 🚀
+            </div>
+<!-- Embedded page pill link -->
+<div class="mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-semibold text-cobalt bg-cobalt-soft px-2 py-1 rounded-md border border-cobalt/20 hover:bg-cobalt/10 cursor-pointer">
+<span class="material-symbols-outlined text-[13px]">description</span>
+<span>DocuSign #cnt-8942-relo attached</span>
+</div>
+</div>
+</div>
+<!-- Injected Live Message Destination Container -->
+<div class="space-y-3.5" id="dynamicMessages"></div>
+</div>
+<!-- TEAM PANE (Hidden by default) -->
+<div class="hidden space-y-3.5" id="paneTeam">
+<div class="text-center my-1">
+<span class="px-2 py-0.5 text-[10px] font-bold text-ink-subtle bg-surface rounded-full uppercase tracking-wider"># Logistics &amp; Revenue Team</span>
+</div>
+<div class="flex items-start gap-2.5 text-xs">
+<div class="w-7 h-7 rounded-lg bg-emerald-soft text-emerald font-bold flex items-center justify-center shrink-0 text-[11px]">
+            ER
+          </div>
+<div class="flex-1">
+<div class="flex items-baseline justify-between mb-0.5">
+<span class="font-bold text-ink text-[12px]">Elena Ross</span>
+<span class="text-[10px] text-ink-subtle">9:45 AM</span>
+</div>
+<div class="bg-white border border-line rounded-lg rounded-tl-none p-2 text-ink/90 leading-relaxed shadow-xs">
+              Austin receiving dock is open Friday 2-6 PM. Who has the gate code for Dr. Ross's inventory?
+            </div>
+<div class="mt-1.5 p-1.5 bg-surface border border-line rounded text-[11px] text-ink-muted flex items-center justify-between">
+<span class="font-semibold text-ink">Job #48291</span>
+<span class="text-cobalt text-[10px] font-bold underline cursor-pointer">Jump to tab</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-xs">
+<div class="w-7 h-7 rounded-lg bg-amber/20 text-ink font-bold flex items-center justify-center shrink-0 text-[11px]">
+            SW
+          </div>
+<div class="flex-1">
+<div class="flex items-baseline justify-between mb-0.5">
+<span class="font-bold text-ink text-[12px]">Sam Wright</span>
+<span class="text-[10px] text-ink-subtle">9:48 AM</span>
+</div>
+<div class="bg-white border border-line rounded-lg rounded-tl-none p-2 text-ink/90 leading-relaxed shadow-xs">
+              Code is <strong class="text-ink">#8821</strong>. Pinned right to the dispatch page.
+            </div>
+</div>
+</div>
+</div>
+<!-- DIRECT PANE (Hidden by default) -->
+<div class="hidden space-y-3.5" id="paneDirect">
+<div class="flex items-center gap-2 p-2 bg-surface rounded-lg border border-line mb-2">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-vermilion-soft text-vermilion-dark font-bold flex items-center justify-center text-xs">DK</div>
+<span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald ring-1 ring-white"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="font-bold text-xs text-ink truncate">Devon (Billing)</div>
+<div class="text-[10px] text-emerald font-medium">Viewing same tab right now</div>
+</div>
+</div>
+<div class="flex items-start gap-2.5 text-xs">
+<div class="w-7 h-7 rounded-lg bg-vermilion-soft text-vermilion-dark font-bold flex items-center justify-center shrink-0 text-[11px]">
+            DK
+          </div>
+<div class="flex-1">
+<div class="bg-white border border-line rounded-lg p-2 text-ink/90 leading-relaxed shadow-xs">
+              Hey, can you double check the insurance waiver checkbox before closing this ticket?
+            </div>
+<span class="text-[10px] text-ink-subtle mt-0.5 block">10:19 AM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active In-Browser Interactive Composer -->
+<div class="border-t border-line p-2.5 bg-white shrink-0">
+<form class="space-y-1.5" id="sidebarComposerForm" onsubmit="event.preventDefault(); window.sendSidebarMessage();">
+<div class="relative rounded-xl border border-line-strong focus-within:border-vermilion focus-within:ring-2 focus-within:ring-vermilion/20 bg-white transition shadow-xs">
+<textarea class="w-full px-2.5 pt-2 pb-1 text-xs border-0 focus:ring-0 resize-none placeholder:text-ink-subtle text-ink leading-relaxed" id="sidebarInput" placeholder="Message this page (press Enter to send)..." rows="2"></textarea>
+<div class="flex items-center justify-between px-2 pb-1.5">
+<div class="flex items-center gap-1 text-ink-subtle">
+<button class="p-1 hover:text-ink rounded transition" title="Attach page link" type="button">
+<span class="material-symbols-outlined text-[15px]">link</span>
+</button>
+<button class="p-1 hover:text-ink rounded transition" title="Mention teammate" type="button">
+<span class="material-symbols-outlined text-[15px]">alternate_email</span>
+</button>
+<button class="p-1 hover:text-ink rounded transition" title="Add emoji reaction" type="button">
+<span class="material-symbols-outlined text-[15px]">mood</span>
+</button>
+</div>
+<button class="w-7 h-7 bg-vermilion hover:bg-vermilion-dark text-white rounded-lg flex items-center justify-center shadow-sm transition active:scale-95" type="submit">
+<span class="material-symbols-outlined text-[15px]">send</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between text-[10px] text-ink-subtle px-1">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-emerald">lock</span> Private internal wire
+          </span>
+<span>Shift+Enter for newline</span>
+</div>
+</form>
+</div>
+<!-- Live Extension Callout Banner (Footer of sidebar) -->
+<div class="bg-vermilion-soft border-t border-vermilion/20 p-2.5 flex items-center justify-between text-[11px] text-vermilion-dark shrink-0">
+<div class="flex items-center gap-1.5 font-bold">
+<span class="text-sm">⚡</span>
+<span>SideWire Browser Extension Live</span>
+</div>
+<button class="text-[10px] underline font-semibold hover:text-vermilion" id="dockRightHelp">Docs</button>
+</div>
+</aside>
+<!-- FLOATING CALLOUT TOOLTIP POINTING TO THE LIVE SIDEBAR -->
+<div class="fixed right-[390px] top-24 z-40 bg-ink text-white text-xs font-semibold px-3 py-2 rounded-xl shadow-card hidden md:flex items-center gap-2 border border-white/10 animate-pulse transition-all" id="sidebarCalloutBadge">
+<span class="text-amber text-sm font-black">👈</span>
+<span><strong>Live Sidebar Demo:</strong> Try typing a message or changing tabs!</span>
+<button class="text-white/60 hover:text-white ml-1" onclick="document.getElementById('sidebarCalloutBadge').remove()">×</button>
+</div>
+<!-- FLOATING TAB BUTTON TO RE-OPEN / TOGGLE THE DOCKED SIDEBAR -->
+<button class="fixed right-0 top-1/3 -translate-y-1/2 z-40 bg-ink hover:bg-vermilion text-white font-bold text-xs py-3 px-2 rounded-l-xl shadow-card transition-all flex flex-col items-center gap-2 border-l-2 border-vermilion group cursor-pointer" id="reopenSidebarBtn" title="Open SideWire Extension Panel">
+<span class="material-symbols-outlined text-sm group-hover:rotate-12 transition-transform">dock_to_right</span>
+<span class="[writing-mode:vertical-rl] tracking-widest text-[10px] uppercase font-extrabold text-amber">⚡ SideWire Live Demo</span>
+</button>
+<!-- ========================================================================= -->
+<!-- MAIN LANDING PAGE CONTAINER (SEAMLESSLY DOCKED/PADDED BESIDE SIDEBAR) -->
+<!-- ========================================================================= -->
+<div class="transition-all duration-300 lg:pr-[380px]" id="pageLayoutWrapper">
+<!-- TOP NAVIGATION BAR -->
+<header class="sticky top-0 z-30 h-16 bg-paper/90 backdrop-blur-md border-b border-line">
+<div class="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+<!-- Brand -->
+<a class="flex items-center gap-2.5 font-black text-ink text-lg tracking-tight group" href="#top">
+<span class="relative w-7 h-7 flex items-center justify-center">
+<span class="absolute inset-0 bg-ink rounded-lg transform -rotate-3 group-hover:rotate-0 transition-transform"></span>
+<span class="absolute inset-0.5 bg-vermilion rounded-md transform rotate-3 group-hover:rotate-0 transition-transform"></span>
+<span class="relative z-10 w-2 h-2 rounded-full bg-paper"></span>
+</span>
+<span>SideWire</span>
+</a>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-ink-muted">
+<a class="hover:text-vermilion transition" href="#features">Wired In</a>
+<a class="hover:text-vermilion transition" href="#comparison">vs Slack Slump</a>
+<a class="hover:text-vermilion transition" href="#personas">Who it's for</a>
+<a class="hover:text-vermilion transition" href="#privacy">Privacy Guarantee</a>
+<a class="hover:text-vermilion transition" href="#pricing">Pricing</a>
+</nav>
+<!-- Top Actions -->
+<div class="flex items-center gap-3">
+<button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line-strong text-xs font-bold text-ink hover:border-vermilion hover:text-vermilion transition bg-white shadow-xs" id="navToggleSidebarBtn">
+<span class="w-2 h-2 rounded-full bg-vermilion animate-ping"></span>
+<span>Side panel: <strong id="navPanelStateText">Open</strong></span>
+</button>
+<a class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-ink text-white font-bold text-xs hover:bg-vermilion transition shadow-sm" href="#early-access">
+            Join Waitlist
+          </a>
+</div>
+</div>
+</header>
+<main id="top">
+<!-- ========================================================================= -->
+<!-- HERO SECTION -->
+<!-- ========================================================================= -->
+<section class="relative pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden border-b border-line">
+<!-- Ambient decorative editorial background radial -->
+<div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-vermilion/5 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 right-10 w-80 h-80 rounded-full bg-cobalt/5 blur-3xl pointer-events-none"></div>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Eyebrow -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-vermilion-soft border border-vermilion/20 text-vermilion-dark text-xs font-black uppercase tracking-widest mb-6">
+<span class="w-1.5 h-1.5 rounded-full bg-vermilion"></span>
+            Contextual In-Browser Collaboration
+          </div>
+<!-- Hero Headline -->
+<h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-ink tracking-tight leading-[1.05] max-w-4xl">
+            Work happens in the browser. 
+            <span class="relative inline-block text-vermilion">
+              Chat should too.
+              <span class="absolute bottom-1 left-0 right-0 h-3 bg-amber/40 -z-10 -rotate-1 rounded-sm"></span>
+</span>
+</h1>
+<!-- Body Subheading -->
+<p class="mt-6 text-lg sm:text-xl text-ink-muted max-w-2xl leading-relaxed font-normal">
+            SideWire docks team chat, direct messages, and page-specific conversations into a Chrome side panel—so every message stays directly connected to the CRM record, DocuSign contract, or dispatch sheet you’re looking at.
+          </p>
+<!-- CTAs -->
+<div class="mt-8 flex flex-wrap items-center gap-4">
+<a class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-vermilion hover:bg-vermilion-dark text-white font-extrabold text-sm tracking-tight shadow-md hover:shadow-glow transition transform active:scale-95" href="#early-access">
+<span>Get Early Access</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+<button class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white hover:bg-surface text-ink border border-line-strong font-bold text-sm shadow-xs transition" id="heroTryDemoBtn">
+<span class="material-symbols-outlined text-vermilion text-base">dock_to_right</span>
+<span>Try Injected Sidebar Demo</span>
+</button>
+</div>
+<!-- Proof points badges below hero -->
+<div class="mt-10 pt-6 border-t border-line/80 flex flex-wrap items-center gap-y-3 gap-x-8 text-xs font-semibold text-ink-muted">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-base">check_circle</span>
+<span>No CRM integrations needed</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-base">check_circle</span>
+<span>Zero page DOM scraping</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-base">check_circle</span>
+<span>Anchored to pure URL context</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- HIGH-IMPACT ROI STATS STRIP -->
+<!-- ========================================================================= -->
+<section class="border-b border-line bg-surface/60">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-line">
+<div class="pt-2 md:pt-0 md:pr-4">
+<div class="text-3xl lg:text-4xl font-black text-ink tracking-tight font-serif italic text-vermilion">18.4 min</div>
+<div class="text-xs font-bold text-ink mt-1">Saved per dispatcher/day</div>
+<div class="text-[11px] text-ink-muted">Eliminates tab toggling &amp; link copying</div>
+</div>
+<div class="pt-4 md:pt-0 md:px-4">
+<div class="text-3xl lg:text-4xl font-black text-ink tracking-tight font-serif italic text-cobalt">100%</div>
+<div class="text-xs font-bold text-ink mt-1">URL-anchored history</div>
+<div class="text-[11px] text-ink-muted">Teammates reopen a ticket and see decisions</div>
+</div>
+<div class="pt-4 md:pt-0 md:px-4">
+<div class="text-3xl lg:text-4xl font-black text-ink tracking-tight font-serif italic text-emerald">0 ms</div>
+<div class="text-xs font-bold text-ink mt-1">Setup or IT wait times</div>
+<div class="text-[11px] text-ink-muted">Works out of the box on all web portals</div>
+</div>
+<div class="pt-4 md:pt-0 md:pl-4">
+<div class="text-3xl lg:text-4xl font-black text-ink tracking-tight font-serif italic text-ink">3.8x</div>
+<div class="text-xs font-bold text-ink mt-1">Faster exception resolution</div>
+<div class="text-[11px] text-ink-muted">Instant collaborative sign-off on live pages</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- EDITORIAL PROBLEM STATEMENT & FRICTION BREAKDOWN -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+<!-- Left: Editorial Big Quote -->
+<div class="lg:col-span-5 relative pl-6 border-l-4 border-vermilion">
+<span class="absolute -top-7 left-2 text-7xl font-serif text-vermilion/20 select-none">“</span>
+<p class="font-serif text-2xl sm:text-3xl text-ink leading-snug italic">
+                Which customer are we talking about—and where was that quote sheet again?
+              </p>
+<div class="mt-4 text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+                The daily friction tax SideWire eliminates.
+              </div>
+</div>
+<!-- Right: 3-step breakdown of the Slack slump -->
+<div class="lg:col-span-7 space-y-4">
+<div class="p-4 bg-white border border-line rounded-xl flex items-start gap-4 shadow-xs">
+<span class="w-8 h-8 rounded-lg bg-vermilion-soft text-vermilion-dark font-black text-xs flex items-center justify-center shrink-0">01</span>
+<div>
+<h4 class="font-bold text-sm text-ink">Copy the link &amp; lose the zone</h4>
+<p class="text-xs text-ink-muted mt-0.5">You leave your CRM, find Slack, search for the right team channel, paste the URL, and write three paragraphs re-explaining the context.</p>
+</div>
+</div>
+<div class="p-4 bg-white border border-line rounded-xl flex items-start gap-4 shadow-xs">
+<span class="w-8 h-8 rounded-lg bg-vermilion-soft text-vermilion-dark font-black text-xs flex items-center justify-center shrink-0">02</span>
+<div>
+<h4 class="font-bold text-sm text-ink">Lose the thread in the noise</h4>
+<p class="text-xs text-ink-muted mt-0.5">The reply arrives 25 minutes later inside a flood of 200 random channel memes and unrelated announcements. Nobody remembers the line item.</p>
+</div>
+</div>
+<div class="p-4 bg-white border border-line rounded-xl flex items-start gap-4 shadow-xs">
+<span class="w-8 h-8 rounded-lg bg-vermilion-soft text-vermilion-dark font-black text-xs flex items-center justify-center shrink-0">03</span>
+<div>
+<h4 class="font-bold text-sm text-ink">Zero memory left on the record</h4>
+<p class="text-xs text-ink-muted mt-0.5">When another coordinator opens that same customer record tomorrow, they have zero visibility into yesterday’s urgent discussion.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- 'HOW IT FEELS TO BE WIRED IN' - BENTO GRID WITH INTERACTIVE CARDS -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line bg-surface/40" id="features">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-2xl mb-12">
+<div class="text-xs font-black text-vermilion uppercase tracking-widest mb-2">Architected for Speed</div>
+<h2 class="text-3xl sm:text-4xl font-black text-ink tracking-tight">How it feels to be Wired In.</h2>
+<p class="text-sm text-ink-muted mt-2 font-normal">SideWire turns every web page into a high-octane collaborative canvas.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-6">
+<!-- Bento 1: This Page Persistence -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+<div>
+<div class="w-10 h-10 rounded-xl bg-vermilion-soft text-vermilion-dark flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-xl">web_asset</span>
+</div>
+<h3 class="text-lg font-bold text-ink">This Page Threading</h3>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                  Every unique URL pattern gets its own dedicated, persistent discussion space. As colleagues navigate to the page, the discussion auto-mounts.
+                </p>
+</div>
+<div class="mt-6 p-3 bg-surface rounded-xl border border-line text-[11px] space-y-1.5">
+<div class="flex items-center justify-between text-ink-subtle">
+<span class="font-semibold text-ink">URL Anchor:</span>
+<span class="text-emerald font-bold">Auto-synced</span>
+</div>
+<div class="text-ink-muted font-mono text-[10px] bg-white p-1 rounded border border-line truncate">
+                  app.supermove.co/jobs/48291
+                </div>
+</div>
+</div>
+<!-- Bento 2: Team Broadcast with Link Magic -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+<div>
+<div class="w-10 h-10 rounded-xl bg-cobalt-soft text-cobalt flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-xl">hub</span>
+</div>
+<h3 class="text-lg font-bold text-ink">Magic Context Cards</h3>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                  Need workspace help? Mention the channel. SideWire automatically packages an actionable deep-link token so teammates jump right to your active view.
+                </p>
+</div>
+<div class="mt-6 p-3 bg-cobalt-soft/50 rounded-xl border border-cobalt/20 text-[11px]">
+<div class="font-bold text-ink">"Elena: Austin receiving ready"</div>
+<div class="text-cobalt text-[10px] font-semibold mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">open_in_new</span>
+<span>1-Click View Customer Profile</span>
+</div>
+</div>
+</div>
+<!-- Bento 3: Co-browsing Presence -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+<div>
+<div class="w-10 h-10 rounded-xl bg-emerald-soft text-emerald flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</div>
+<h3 class="text-lg font-bold text-ink">Live Page Presence</h3>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                  See which coworkers are viewing or editing the same web app page at this exact second. Never duplicate effort on dispatch sheets or quotes.
+                </p>
+</div>
+<div class="mt-6 flex items-center justify-between p-3 bg-surface rounded-xl border border-line text-[11px]">
+<div class="flex -space-x-1.5">
+<div class="w-6 h-6 rounded-full bg-vermilion-soft text-vermilion-dark text-[10px] font-bold flex items-center justify-center ring-2 ring-white">DK</div>
+<div class="w-6 h-6 rounded-full bg-cobalt-soft text-cobalt text-[10px] font-bold flex items-center justify-center ring-2 ring-white">MC</div>
+<div class="w-6 h-6 rounded-full bg-emerald-soft text-emerald text-[10px] font-bold flex items-center justify-center ring-2 ring-white">ER</div>
+</div>
+<span class="text-[10px] text-emerald font-bold">3 Viewing Now</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- 'THE WIRED WAY VS THE SLACK SLUMP' - HEAD-TO-HEAD COMPARISON CARD -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line" id="comparison">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-14">
+<div class="text-xs font-black text-vermilion uppercase tracking-widest mb-2">Direct Comparison</div>
+<h2 class="text-3xl sm:text-4xl font-black text-ink tracking-tight">The Wired Way vs The Slack Slump</h2>
+<p class="text-sm text-ink-muted mt-2">Why high-tempo operations teams are docking communication beside the work.</p>
+</div>
+<div class="grid md:grid-cols-2 gap-8 items-stretch">
+<!-- The Slack Slump (Negative) -->
+<div class="bg-surface/70 border border-line rounded-2xl p-7 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-line mb-6">
+<div class="font-extrabold text-base text-ink flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-ink-subtle"></span>
+<span>The Slack / Teams Slump</span>
+</div>
+<span class="text-xs font-bold text-ink-subtle">Disjointed</span>
+</div>
+<ul class="space-y-4 text-xs text-ink-muted">
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-ink-subtle text-base shrink-0">close</span>
+<span><strong>150+ tab toggles per shift:</strong> Constantly context-switching between your billing browser tab and standalone chat.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-ink-subtle text-base shrink-0">close</span>
+<span><strong>Copy-paste friction:</strong> Requires manual URL copying and exhaustive explanations before anyone understands what you're asking.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-ink-subtle text-base shrink-0">close</span>
+<span><strong>Ghost history:</strong> Discussions rot in old channels. Reopening a customer record shows zero historical notes.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-ink-subtle text-base shrink-0">close</span>
+<span><strong>Massive enterprise bloat:</strong> Demands IT clearance, integrations, OAuth scopes, and heavy desktop client installations.</span>
+</li>
+</ul>
+</div>
+<div class="mt-8 pt-4 border-t border-line text-[11px] text-ink-subtle font-medium">
+                Result: Fragmented discussions, delayed decisions, lost context.
+              </div>
+</div>
+<!-- The Wired Way (Positive with Warm Editorial Vermilion accent) -->
+<div class="bg-white border-2 border-vermilion rounded-2xl p-7 shadow-card flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-vermilion text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                Recommended
+              </div>
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-line mb-6">
+<div class="font-extrabold text-base text-ink flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-vermilion"></span>
+<span>The SideWire Way</span>
+</div>
+<span class="text-xs font-bold text-vermilion-dark">Zero-Latency Flow</span>
+</div>
+<ul class="space-y-4 text-xs text-ink">
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald text-base shrink-0">check_circle</span>
+<span><strong>Always docked beside the screen:</strong> The panel lives in Chrome. You never leave the tool you are actively using.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald text-base shrink-0">check_circle</span>
+<span><strong>Automatic URL anchoring:</strong> Just start typing. SideWire automatically indexes your message to the exact page URL.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald text-base shrink-0">check_circle</span>
+<span><strong>Persistent knowledge:</strong> The next time anyone visits that URL, the entire conversation is right there.</span>
+</li>
+<li class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald text-base shrink-0">check_circle</span>
+<span><strong>Zero configuration setup:</strong> Installs as a lightweight Chrome extension. No database sync or API keys needed.</span>
+</li>
+</ul>
+</div>
+<div class="mt-8 pt-4 border-t border-line text-[11px] text-vermilion-dark font-bold flex items-center justify-between">
+<span>Result: Real-time alignment right where the revenue is processed.</span>
+<span class="material-symbols-outlined text-sm">bolt</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- OPERATIONAL USE CASE PERSONAS ('WHERE DOES SIDEWIRE SHINE?') -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line bg-surface/30" id="personas">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-2xl mb-12">
+<div class="text-xs font-black text-vermilion uppercase tracking-widest mb-2">Built for Speed</div>
+<h2 class="text-3xl sm:text-4xl font-black text-ink tracking-tight">Where does SideWire shine?</h2>
+<p class="text-sm text-ink-muted mt-2">Teams living in web-based operations, customer portals, and internal tools.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-6">
+<!-- Persona 1: Logistics & Freight -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs">
+<div class="w-8 h-8 rounded-lg bg-vermilion-soft text-vermilion-dark font-black text-xs flex items-center justify-center mb-4">
+                🚚
+              </div>
+<h4 class="font-extrabold text-base text-ink">Logistics &amp; Dispatchers</h4>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                Dispatchers handling driver changes, route detours, and access codes can discuss loads directly on the TMS page without losing the order manifest.
+              </p>
+<div class="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-ink-subtle">
+                Tools: Supermove, Samsara, McLeod, Rose Rocket
+              </div>
+</div>
+<!-- Persona 2: Account Execs & RevOps -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs">
+<div class="w-8 h-8 rounded-lg bg-cobalt-soft text-cobalt font-black text-xs flex items-center justify-center mb-4">
+                💼
+              </div>
+<h4 class="font-extrabold text-base text-ink">Account Execs &amp; RevOps</h4>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                Tag legal and deal desk directly on contract redlines, Salesforce opportunity objects, or DocuSign envelopes for instant discount approvals.
+              </p>
+<div class="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-ink-subtle">
+                Tools: Salesforce, HubSpot, DocuSign, Ironclad
+              </div>
+</div>
+<!-- Persona 3: Property & Ops -->
+<div class="bg-white border border-line rounded-2xl p-6 shadow-xs">
+<div class="w-8 h-8 rounded-lg bg-emerald-soft text-emerald font-black text-xs flex items-center justify-center mb-4">
+                🏢
+              </div>
+<h4 class="font-extrabold text-base text-ink">Property &amp; Field Coordinators</h4>
+<p class="text-xs text-ink-muted mt-2 leading-relaxed">
+                Maintain live unit maintenance notes, tenant handover checklists, and move-in inspection logs right on the resident account portal.
+              </p>
+<div class="mt-4 pt-3 border-t border-line text-[11px] font-semibold text-ink-subtle">
+                Tools: AppFolio, Yardi, Buildium, Procore
+              </div>
+</div>
+</div>
+<!-- Customer Testimonial Card -->
+<div class="mt-10 bg-paper border border-line-strong rounded-2xl p-7 shadow-xs">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="flex items-center gap-3.5">
+<div class="w-12 h-12 rounded-full bg-ink text-amber font-serif font-black text-lg flex items-center justify-center ring-2 ring-amber/30">
+                  MR
+                </div>
+<div>
+<div class="font-bold text-sm text-ink">Marcus Reed</div>
+<div class="text-xs text-ink-muted">VP of Operations at BayLine Transit</div>
+</div>
+</div>
+<div class="flex items-center gap-1 text-amber">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+<p class="mt-4 text-sm sm:text-base text-ink leading-relaxed font-serif italic">
+              “SideWire completely eliminated the endless 'which load are you looking at?' messages on our Slack channels. Our team resolves dispatch snags in under two minutes because the sidebar is already looking at the exact job ID.”
+            </p>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- PRIVACY SECTION ('CONTEXT WITHOUT SURVEILLANCE / THE PAGE URL IS ENOUGH') -->
+<!-- Dark Ink Section -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 bg-ink text-white relative overflow-hidden" id="privacy">
+<!-- Subtle dark ambient glow -->
+<div class="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-vermilion/10 blur-3xl pointer-events-none"></div>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="grid lg:grid-cols-12 gap-12 items-center">
+<!-- Left Info -->
+<div class="lg:col-span-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-vermilion text-xs font-black uppercase tracking-widest mb-4">
+                Context Without Surveillance
+              </div>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                The page URL is enough.
+              </h2>
+<p class="mt-4 text-sm sm:text-base text-white/70 leading-relaxed font-normal">
+                SideWire does not read DOM text, record keystrokes, track mouse movements, or parse customer confidential data. It anchors your team’s internal chatter strictly to URL routes.
+              </p>
+<div class="mt-8 space-y-3">
+<div class="flex items-center gap-3 text-xs text-white/90">
+<span class="material-symbols-outlined text-emerald text-base">verified_user</span>
+<span>SOC2 Type II in progress &amp; zero data selling</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-white/90">
+<span class="material-symbols-outlined text-emerald text-base">verified_user</span>
+<span>Restricted to company workspace email domains</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-white/90">
+<span class="material-symbols-outlined text-emerald text-base">verified_user</span>
+<span>End-to-end TLS 1.3 encryption in transit and at rest</span>
+</div>
+</div>
+</div>
+<!-- Right Permission Table Card -->
+<div class="lg:col-span-6">
+<div class="bg-white/5 border border-white/15 rounded-2xl p-6 backdrop-blur-md">
+<div class="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+<span class="text-xs font-extrabold uppercase tracking-wider text-white">Browser Permission Audit</span>
+<span class="text-[11px] text-white/50 font-mono">Chrome Manifest V3</span>
+</div>
+<div class="space-y-3.5 text-xs">
+<div class="flex items-center justify-between py-1 border-b border-white/5">
+<div>
+<div class="font-bold text-white">Current Tab URL &amp; Title</div>
+<div class="text-[11px] text-white/60">To match conversations to exact records</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald/20 text-emerald font-extrabold text-[10px]">YES</span>
+</div>
+<div class="flex items-center justify-between py-1 border-b border-white/5">
+<div>
+<div class="font-bold text-white">Page Contents or DOM Reading</div>
+<div class="text-[11px] text-white/60">Zero scraping of customer data or forms</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white/10 text-white/50 font-extrabold text-[10px]">NO</span>
+</div>
+<div class="flex items-center justify-between py-1 border-b border-white/5">
+<div>
+<div class="font-bold text-white">CRM Database Write Access</div>
+<div class="text-[11px] text-white/60">No database credentials or tokens required</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white/10 text-white/50 font-extrabold text-[10px]">NO</span>
+</div>
+<div class="flex items-center justify-between py-1">
+<div>
+<div class="font-bold text-white">Unlisted Private Personal Sites</div>
+<div class="text-[11px] text-white/60">Extension remains dormant outside workplace tools</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white/10 text-white/50 font-extrabold text-[10px]">NO</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- TRANSPARENT PRICING TIERS ('PICK YOUR WIRE SPEED') -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line bg-paper" id="pricing">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-14">
+<div class="text-xs font-black text-vermilion uppercase tracking-widest mb-2">Simple &amp; Predictable</div>
+<h2 class="text-3xl sm:text-4xl font-black text-ink tracking-tight">Pick your wire speed.</h2>
+<p class="text-sm text-ink-muted mt-2">Start free in testing, scale across operations when your team falls in love.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-6 items-stretch">
+<!-- Tier 1: Starter -->
+<div class="bg-white border border-line rounded-2xl p-6 flex flex-col justify-between shadow-xs">
+<div>
+<div class="text-xs font-extrabold uppercase tracking-widest text-ink-subtle mb-2">Starter Pilot</div>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-black text-ink font-serif italic">$0</span>
+<span class="text-xs font-medium text-ink-muted">/ forever</span>
+</div>
+<p class="text-xs text-ink-muted mt-3">For small pods testing in-browser chat on up to 3 domains.</p>
+<ul class="mt-6 space-y-2.5 text-xs text-ink border-t border-line pt-6">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>Up to 5 team members</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>14-day URL message history</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>Side panel for Chrome</span>
+</li>
+</ul>
+</div>
+<div class="mt-8">
+<a class="w-full py-2.5 px-4 rounded-xl border border-line-strong font-bold text-xs text-ink hover:bg-surface transition flex items-center justify-center" href="#early-access">
+                  Start Free Pilot
+                </a>
+</div>
+</div>
+<!-- Tier 2: Pro (Highlighted) -->
+<div class="bg-white border-2 border-vermilion rounded-2xl p-6 flex flex-col justify-between shadow-card relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-vermilion text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-full tracking-wider">
+                Most Popular
+              </div>
+<div>
+<div class="text-xs font-extrabold uppercase tracking-widest text-vermilion mb-2">Team Pro</div>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-black text-ink font-serif italic">$10</span>
+<span class="text-xs font-medium text-ink-muted">/ user / mo</span>
+</div>
+<p class="text-xs text-ink-muted mt-3">Full contextual power for dispatch, logistics, and RevOps teams.</p>
+<ul class="mt-6 space-y-2.5 text-xs text-ink border-t border-line pt-6">
+<li class="flex items-center gap-2 font-semibold">
+<span class="material-symbols-outlined text-vermilion text-sm">check</span>
+<span>Unlimited team members</span>
+</li>
+<li class="flex items-center gap-2 font-semibold">
+<span class="material-symbols-outlined text-vermilion text-sm">check</span>
+<span>Permanent URL conversation history</span>
+</li>
+<li class="flex items-center gap-2 font-semibold">
+<span class="material-symbols-outlined text-vermilion text-sm">check</span>
+<span>All SaaS &amp; internal URL patterns</span>
+</li>
+<li class="flex items-center gap-2 font-semibold">
+<span class="material-symbols-outlined text-vermilion text-sm">check</span>
+<span>Direct messaging + Team channels</span>
+</li>
+</ul>
+</div>
+<div class="mt-8">
+<a class="w-full py-2.5 px-4 rounded-xl bg-vermilion hover:bg-vermilion-dark font-extrabold text-xs text-white transition flex items-center justify-center shadow-xs" href="#early-access">
+                  Claim Early Access Discount
+                </a>
+</div>
+</div>
+<!-- Tier 3: Enterprise -->
+<div class="bg-white border border-line rounded-2xl p-6 flex flex-col justify-between shadow-xs">
+<div>
+<div class="text-xs font-extrabold uppercase tracking-widest text-ink-subtle mb-2">Enterprise Wire</div>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-black text-ink font-serif italic">Custom</span>
+</div>
+<p class="text-xs text-ink-muted mt-3">For enterprise operations with audit log, SSO, and compliance requirements.</p>
+<ul class="mt-6 space-y-2.5 text-xs text-ink border-t border-line pt-6">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>SAML / Okta Single Sign-On</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>Custom retention &amp; e-discovery</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald text-sm">check</span>
+<span>Dedicated Ops Solutions Architect</span>
+</li>
+</ul>
+</div>
+<div class="mt-8">
+<a class="w-full py-2.5 px-4 rounded-xl border border-line-strong font-bold text-xs text-ink hover:bg-surface transition flex items-center justify-center" href="#early-access">
+                  Talk with Founders
+                </a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- FINAL CALL TO ACTION BANNER (WARM EDITORIAL PALETTE) -->
+<!-- ========================================================================= -->
+<section class="py-16 md:py-24 border-b border-line" id="early-access">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="relative bg-vermilion-soft border border-vermilion/30 rounded-3xl p-8 sm:p-12 overflow-hidden shadow-xs">
+<!-- Geometric warm graphic element -->
+<div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full border-4 border-vermilion/20 pointer-events-none"></div>
+<div class="absolute top-0 right-1/4 w-32 h-32 rounded-full bg-amber/20 blur-xl pointer-events-none"></div>
+<div class="relative z-10 max-w-2xl">
+<div class="text-xs font-black text-vermilion-dark uppercase tracking-widest mb-3">Priority Beta Enrollment</div>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight leading-tight">
+                Keep the conversation beside the work.
+              </h2>
+<p class="mt-4 text-sm sm:text-base text-ink/80 leading-relaxed font-normal">
+                Join forward-thinking dispatch, operations, and revenue teams test-driving the in-browser collaboration standard.
+              </p>
+<form class="mt-8 flex flex-col sm:flex-row gap-3" id="waitlistForm" onsubmit="event.preventDefault(); window.submitWaitlist();">
+<input class="flex-1 px-4 py-3.5 rounded-xl border border-line-strong bg-white text-xs sm:text-sm text-ink placeholder:text-ink-subtle focus:ring-2 focus:ring-vermilion focus:border-vermilion shadow-xs" id="waitlistEmail" placeholder="name@yourcompany.com" required="" type="email"/>
+<button class="px-6 py-3.5 rounded-xl bg-ink hover:bg-vermilion text-white font-extrabold text-xs sm:text-sm tracking-tight shadow-sm transition active:scale-95 shrink-0" type="submit">
+                  Request Invite
+                </button>
+</form>
+<div class="hidden mt-3 text-xs font-bold text-emerald flex items-center gap-1.5" id="waitlistSuccess">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>You're on the priority queue! We'll send your Chrome Extension invite link shortly.</span>
+</div>
+<div class="mt-4 text-[11px] text-ink-muted">
+                ⚡ Zero setup required. Instant private workspace deployment.
+              </div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FOOTER -->
+<footer class="py-10 bg-paper">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ink-muted">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-vermilion"></span>
+<span class="font-bold text-ink">SideWire Technologies Inc.</span>
+<span>© 2025</span>
+</div>
+<div class="flex items-center gap-6 font-semibold">
+<a class="hover:text-ink transition" href="#features">Features</a>
+<a class="hover:text-ink transition" href="#privacy">Privacy</a>
+<a class="hover:text-ink transition" href="#pricing">Pricing</a>
+<a class="hover:text-vermilion transition" href="#early-access">Early Access</a>
+</div>
+</div>
+</footer>
+</div>
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT: SIDEBAR INTERACTION, CONTEXT SWITCHING & FEED EMITTER -->
+<!-- ========================================================================= -->
+<script>
+    // State management
+    let isPanelOpen = true;
+    let activeTab = 'this-page';
+
+    const panel = document.getElementById('sideWirePanel');
+    const layoutWrapper = document.getElementById('pageLayoutWrapper');
+    const reopenBtn = document.getElementById('reopenSidebarBtn');
+    const minimizeBtn = document.getElementById('minimizePanelBtn');
+    const closeBtn = document.getElementById('closePanelBtn');
+    const navToggleBtn = document.getElementById('navToggleSidebarBtn');
+    const heroTryDemoBtn = document.getElementById('heroTryDemoBtn');
+    const navPanelStateText = document.getElementById('navPanelStateText');
+    const sidebarInput = document.getElementById('sidebarInput');
+    const demoUrlSelector = document.getElementById('demoUrlSelector');
+    const activeJobTitle = document.getElementById('activeJobTitle');
+    const dynamicMessages = document.getElementById('dynamicMessages');
+    const sidebarFeed = document.getElementById('sidebarFeed');
+
+    // Toggle panel visibility
+    function togglePanel(open) {
+      isPanelOpen = (open !== undefined) ? open : !isPanelOpen;
+      
+      if (isPanelOpen) {
+        panel.classList.remove('translate-x-full');
+        layoutWrapper.classList.add('lg:pr-[380px]');
+        reopenBtn.classList.add('hidden');
+        if (navPanelStateText) navPanelStateText.textContent = 'Open';
+      } else {
+        panel.classList.add('translate-x-full');
+        layoutWrapper.classList.remove('lg:pr-[380px]');
+        reopenBtn.classList.remove('hidden');
+        if (navPanelStateText) navPanelStateText.textContent = 'Closed';
+      }
+    }
+
+    minimizeBtn.addEventListener('click', () => togglePanel(false));
+    closeBtn.addEventListener('click', () => togglePanel(false));
+    reopenBtn.addEventListener('click', () => togglePanel(true));
+    if (navToggleBtn) navToggleBtn.addEventListener('click', () => togglePanel());
+
+    if (heroTryDemoBtn) {
+      heroTryDemoBtn.addEventListener('click', () => {
+        togglePanel(true);
+        sidebarInput.focus();
+        sidebarInput.placeholder = "Try sending a live message!";
+        panel.classList.add('ring-4', 'ring-vermilion');
+        setTimeout(() => panel.classList.remove('ring-4', 'ring-vermilion'), 1200);
+      });
+    }
+
+    // Tab switching inside Sidebar
+    const tabButtons = document.querySelectorAll('.sidebar-tab');
+    const paneThisPage = document.getElementById('paneThisPage');
+    const paneTeam = document.getElementById('paneTeam');
+    const paneDirect = document.getElementById('paneDirect');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tab = button.getAttribute('data-tab');
+        activeTab = tab;
+
+        tabButtons.forEach(btn => {
+          btn.classList.remove('text-vermilion-dark', 'font-extrabold', 'tab-active-indicator');
+          btn.classList.add('text-ink-muted');
+        });
+        button.classList.remove('text-ink-muted');
+        button.classList.add('text-vermilion-dark', 'font-extrabold', 'tab-active-indicator');
+
+        paneThisPage.classList.add('hidden');
+        paneTeam.classList.add('hidden');
+        paneDirect.classList.add('hidden');
+
+        if (tab === 'this-page') {
+          paneThisPage.classList.remove('hidden');
+          sidebarInput.placeholder = "Message this page (press Enter to send)...";
+        } else if (tab === 'team') {
+          paneTeam.classList.remove('hidden');
+          sidebarInput.placeholder = "Broadcast message to Logistics team...";
+        } else if (tab === 'direct') {
+          paneDirect.classList.remove('hidden');
+          sidebarInput.placeholder = "Direct message Devon (Billing)...";
+        }
+      });
+    });
+
+    // Dynamic Mock URL Context Changer
+    demoUrlSelector.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'supermove') {
+        activeJobTitle.textContent = "Pacific Heights Long-Haul Move #48291";
+      } else if (val === 'docusign') {
+        activeJobTitle.textContent = "DocuSign: Shuttle Rider Surcharge Waiver";
+      } else if (val === 'salesforce') {
+        activeJobTitle.textContent = "Salesforce: Opp #9820 - Western Expansion";
+      }
+
+      // Add visual flash notification
+      const flash = document.createElement('div');
+      flash.className = 'text-center my-2 transition-all';
+      flash.innerHTML = `<span class="px-2 py-0.5 text-[10px] font-extrabold text-vermilion-dark bg-vermilion-soft rounded-full border border-vermilion/20 animate-pulse">Context Switched: ${e.target.selectedOptions[0].text.split(' ')[0]}</span>`;
+      dynamicMessages.appendChild(flash);
+      sidebarFeed.scrollTop = sidebarFeed.scrollHeight;
+    });
+
+    // Interactive message emitter
+    window.sendSidebarMessage = function() {
+      const text = sidebarInput.value.trim();
+      if (!text) return;
+
+      const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      const msgCard = document.createElement('div');
+      msgCard.className = "flex items-start gap-2.5 text-xs animate-in fade-in slide-in-from-bottom-2 duration-200";
+      msgCard.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-ink text-amber font-bold flex items-center justify-center shrink-0 text-[11px] ring-1 ring-amber/30">
+          YOU
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline justify-between mb-0.5">
+            <span class="font-bold text-ink text-[12px]">You <span class="text-[10px] font-normal text-emerald">(Now)</span></span>
+            <span class="text-[10px] text-ink-subtle">${timeString}</span>
+          </div>
+          <div class="bg-vermilion-soft/40 border border-vermilion/30 rounded-lg rounded-tl-none p-2 text-ink leading-relaxed shadow-xs">
+            ${escapeHtml(text)}
+          </div>
+          <div class="mt-1 flex items-center gap-2 text-[10px] text-ink-subtle">
+            <span class="flex items-center gap-0.5 text-emerald font-semibold">
+              <span class="material-symbols-outlined text-[12px]">check</span> Wired to URL
+            </span>
+          </div>
+        </div>
+      `;
+
+      if (activeTab === 'this-page') {
+        dynamicMessages.appendChild(msgCard);
+      } else if (activeTab === 'team') {
+        paneTeam.appendChild(msgCard);
+      } else {
+        paneDirect.appendChild(msgCard);
+      }
+
+      sidebarInput.value = '';
+      sidebarFeed.scrollTop = sidebarFeed.scrollHeight;
+
+      // Simulated automated teammate reply after 1.8s
+      setTimeout(() => {
+        const replyCard = document.createElement('div');
+        replyCard.className = "flex items-start gap-2.5 text-xs animate-in fade-in slide-in-from-bottom-2 duration-200";
+        replyCard.innerHTML = `
+          <div class="w-7 h-7 rounded-lg bg-emerald-soft text-emerald font-bold flex items-center justify-center shrink-0 text-[11px] ring-1 ring-emerald/30">
+            ER
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline justify-between mb-0.5">
+              <span class="font-bold text-ink text-[12px]">Elena Ross <span class="text-[10px] font-normal text-ink-muted">(Online)</span></span>
+              <span class="text-[10px] text-ink-subtle">Just now</span>
+            </div>
+            <div class="bg-white border border-line rounded-lg rounded-tl-none p-2 text-ink/90 leading-relaxed shadow-xs">
+              Got it! Standing by on this URL pattern.
+            </div>
+          </div>
+        `;
+        if (activeTab === 'this-page') {
+          dynamicMessages.appendChild(replyCard);
+        } else if (activeTab === 'team') {
+          paneTeam.appendChild(replyCard);
+        } else {
+          paneDirect.appendChild(replyCard);
+        }
+        sidebarFeed.scrollTop = sidebarFeed.scrollHeight;
+      }, 1500);
+    };
+
+    // Keyboard enter handler
+    sidebarInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        window.sendSidebarMessage();
+      }
+    });
+
+    // Waitlist submission handling
+    window.submitWaitlist = function() {
+      const emailInput = document.getElementById('waitlistEmail');
+      const successDiv = document.getElementById('waitlistSuccess');
+      if (emailInput.value) {
+        successDiv.classList.remove('hidden');
+        emailInput.value = '';
+      }
+    };
+
+    function escapeHtml(string) {
+      const div = document.createElement('div');
+      div.innerText = string;
+      return div.innerHTML;
+    }
+  </script>
+</body></html>

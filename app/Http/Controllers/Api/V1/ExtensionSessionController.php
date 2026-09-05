@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\OrganizationRole;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class ExtensionSessionController extends Controller
                 'organization' => [
                     'id' => $organization->id,
                     'name' => $organization->name,
+                    'role' => $user->organizationRole()?->value,
+                    'can_manage_page_links' => $user->organizationRole()?->isAtLeast(OrganizationRole::Administrator) ?? false,
                 ],
             ],
         ]);

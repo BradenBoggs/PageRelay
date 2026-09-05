@@ -1,6 +1,6 @@
 # SideWire architecture
 
-Status: approved foundation; implementation is tracked in `docs/plans/000-execplan.md`. The page-chat and linking revision is planned separately in `docs/plans/001-page-chats-and-linking.md` and is not implemented by this documentation update.
+Status: approved foundation implemented through `docs/plans/000-execplan.md`; page contexts, page chats, manual linking, Activity, Chats discovery, Apps filtering, and chat-level unread state are implemented under `docs/plans/001-page-chats-and-linking.md`.
 
 ## System shape
 
@@ -69,15 +69,15 @@ The server is authoritative. The extension and web application are untrusted cli
 
 Use public opaque identifiers in client routes and payloads. Opaque identifiers are not authorization credentials. Validate the complete organization, workspace, chat, and context relationship rather than authorizing each identifier independently.
 
-The extension may report the active tab's URL, title, and favicon only after the user invokes SideWire and with minimum approved permissions. The server owns URL safety validation, normalization, and context resolution. Never use a client-generated normalized key as authorization or expose a raw URL as a database lookup boundary.
+The extension may report the active tab's URL, title, and favicon only while the SideWire panel is open after intentional user invocation and with minimum approved permissions. The server owns URL safety validation, normalization, and context resolution. Never use a client-generated normalized key as authorization or expose a raw URL as a database lookup boundary.
 
 Source-page access is not proof of SideWire access, and SideWire does not claim to mirror the external app's permissions. A message's source context is attributed client context validated against the chat association, not a trusted integration event.
 
 ## Extension constraints
 
-Use Manifest V3 and the native Chrome side-panel API. Request the least privilege possible. Prefer `sidePanel`, `activeTab`, and narrowly justified capabilities over broad host permissions.
+Use Manifest V3 and the native Chrome side-panel API. Request the least privilege possible. The approved `tabs` capability is limited in implementation to reading the active tab's URL, title, and favicon while the persistent panel is open; it replaces `activeTab`, whose temporary grant does not reliably cover side-panel opening paths and later tab changes. Prefer narrowly justified capabilities over broad host permissions.
 
-Do not inject content scripts, alter the source page, scrape page content, execute scripts in the host page, monitor browsing history, or request `<all_urls>` for convenience. A broader permission requires documented necessity, user-facing disclosure, and rejected alternatives before implementation.
+Do not inject content scripts, alter the source page, scrape page content, execute scripts in the host page, enumerate background tabs, retain browsing history, or request `<all_urls>` for convenience. Chrome describes `tabs` with a browsing-activity warning because it can expose tab metadata; SideWire must query only the active tab for the approved page-context workflow. A broader permission requires documented necessity, user-facing disclosure, and rejected alternatives before implementation.
 
 Treat restricted pages, browser-internal pages, local files, extension pages, new-tab pages, and unavailable tab metadata as normal states. Explain when SideWire cannot attach a context rather than inventing one.
 
@@ -98,6 +98,8 @@ Persist messages before presenting them as sent. Use server-generated timestamps
 Guard message creation and link changes against stale mappings and concurrent first sends. Feature-specific eligibility, provenance, unlinking, and recovery are defined in `page-conversations.md`.
 
 Realtime, read markers, and message notification identities must follow the chat/message, not multiply by linked page. Authorize private broadcast subscriptions against active organization membership and relevant chat access. On reconnect or missed events, refetch authoritative history and read state. Activity and notification policy remain in their owning documents.
+
+The implemented read state is one monotonic `conversation_reads` position per member and chat. Clients advance it only to a loaded visible message. Discovery and unread queries scope by authenticated organization/default workspace before applying search, Apps, or read filters; Activity relevance requires prior viewing or participation, while Chats remains the broader authorized discovery surface.
 
 Do not introduce end-to-end encryption claims. Use TLS in transit, appropriate managed-infrastructure encryption at rest, private access controls, and clear retention behavior once approved.
 

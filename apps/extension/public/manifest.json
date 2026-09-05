@@ -11,7 +11,7 @@
         "type": "module"
     },
     "host_permissions": ["http://localhost:8000/*"],
-    "permissions": ["sidePanel", "activeTab", "storage"],
+    "permissions": ["sidePanel", "tabs", "storage"],
     "side_panel": {
         "default_path": "sidepanel.html"
     }

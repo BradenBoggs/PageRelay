@@ -1,6 +1,6 @@
 # Page contexts and Apps grouping
 
-Status: approved MVP product direction; not implemented. Implementation planning is tracked in `docs/plans/001-page-chats-and-linking.md` and does not itself authorize application changes.
+Status: implemented through milestone 5 of `docs/plans/001-page-chats-and-linking.md`; manual Chrome verification remains pending.
 
 This document owns external-page identity, resolution, safe return links, display metadata, and Apps grouping. `page-conversations.md` owns chats and page-to-chat linking. Tasks retain their own scope and are not moved or combined by linking chats.
 
@@ -12,11 +12,15 @@ Do not call a context a project, customer, deal, channel, job, or ticket. It may
 
 ## Universal resolution
 
-After an intentional SideWire interaction, the extension may send the active supported page's URL, browser-provided title, optional favicon URL, and an idempotency key. The server validates the metadata and URL safety before persistence, computes a versioned normalized identity, and finds or creates the private context through the authenticated organization and its default workspace.
+After an intentional SideWire interaction, the extension may send the active supported page's URL, browser-provided title, and optional favicon URL. The server validates the metadata and URL safety, computes a versioned normalized identity, and performs an organization/default-workspace-scoped lookup. Resolution is read-only: visiting or resolving a page with no existing context must not create a `page_contexts` record or any durable idempotency record.
 
-Repeated resolution of the same organization, default workspace, and normalized identity returns the same active context. Different organizations viewing the same URL receive separate private contexts.
+When the normalized identity already has a context, resolution returns that context and its current chat, if any. Otherwise it returns a validated ephemeral page descriptor that lets the interface show **No chat yet** without persisting the URL, title, favicon, or browsing event. Different organizations continue to receive isolated lookup results.
 
-Resolution may persist a context, but ordinary navigation or resolution alone must not create a visible chat, send notifications, subscribe organization members, import every record in the external app, or populate a giant channel list. Chat creation and explicit linking follow `page-conversations.md`.
+Persist the context only when the user explicitly submits **Create chat for this page** or an eligible manager links the page to an existing chat. Sending a message is available only after a chat exists and must not implicitly create a context or chat. The server must repeat normalization, safety validation, active-membership checks, and organization/default-workspace scoping inside the create/link transaction; the ephemeral client descriptor and editable form values are not trusted authority. The normalized-identity unique constraint and transactional command rules must make concurrent creates and links converge on one context.
+
+Read-only resolution does not require a client idempotency key. Remove the `page_context_resolution_keys` table and do not replace it with another durable visit log. Explicit chat creation is naturally repeatable through the normalized-identity and one-chat-per-context constraints, message sends keep their existing message idempotency key, and linking remains repeatable when the same normalized page identity is already attached to the requested destination. Conflicting concurrent actions return the existing stale/conflict recovery response.
+
+Ordinary navigation, resolution, or draft entry alone must not create a visible chat, send notifications, subscribe organization members, import external records, populate Apps, or create persistent records. Manual chat creation and explicit linking follow `page-conversations.md`.
 
 ## Conservative normalization and safe URLs
 
@@ -35,7 +39,7 @@ Titles and favicons are display metadata, never identity or authorization inputs
 
 ## Context information
 
-A context includes an opaque public identifier, organization, workspace, safe source URL, normalized identity, normalization version, source host or approved platform key, safe display title or explicit user label, optional favicon reference, creator, and timestamps. A current primary chat association is optional and follows `page-conversations.md`.
+A persisted context includes an opaque public identifier, organization, workspace, safe source URL, normalized identity, normalization version, source host or approved platform key, safe display title or explicit user label, optional favicon reference, creator, and timestamps. A current primary chat association is optional and follows `page-conversations.md`. An ephemeral descriptor returned before collaboration is not a context record and must not appear in Apps, Chats, Activity, search, analytics, or organization data exports.
 
 Store only the minimum safe display metadata. Track collaboration activity without turning ordinary browsing into surveillance. Validate source URLs before opening or copying them; long raw URLs should not be the primary visible label.
 
@@ -65,10 +69,27 @@ Manual context merge/split, identity aliases, organization-defined normalization
 
 ## Privacy and isolation
 
-URLs and titles may contain customer or workplace information. Treat them as private organization data, exclude sensitive values from routine logs and analytics, and never reveal cross-organization existence. Do not persist unsupported pages or resolve background tabs merely because the browser navigated.
+URLs and titles may contain customer or workplace information. Treat them as private organization data, exclude sensitive values from routine logs and analytics, and never reveal cross-organization existence. Do not persist unsupported pages, visit-only pages, or background tabs merely because the browser navigated.
 
 SideWire does not infer or enforce an external app's permissions simply by recognizing its URL. Access to contexts and chats comes from SideWire's own approved membership and chat policies.
 
 ## Acceptance behavior
 
-Two authorized members resolving the same supported page reach the same context. Different records stay distinct even when sharing a chat. Apps grouping neither combines their identities nor fragments the shared history. Another organization cannot discover the context, App counts, chat association, title, or URL. Unsafe source links fail before persistence. Resolving a page with no chat does not create a visible discussion or company-wide activity.
+Two authorized members resolving the same supported page reach the same persisted context when collaboration exists and otherwise receive equivalent isolated ephemeral descriptors. Different records stay distinct even when sharing a chat. Apps grouping neither combines their identities nor fragments the shared history. Another organization cannot discover the context, App counts, chat association, title, or URL. Unsafe source links fail before persistence. Resolving a page with no existing context creates no database record, visible discussion, Apps entry, or company-wide activity. Submitting the creation form persists one context and one empty chat without sending a message. Concurrent creates or links converge on one context, and retrying create, link, or message commands does not duplicate a context, chat, message, or association.
+
+## Implementation map
+
+Primary entry points:
+
+- Extension API: lookup through `POST /api/v1/extension/page-contexts/resolve`, explicit creation through `POST /api/v1/extension/page-chats`, and persisted-context reads through `GET /api/v1/extension/page-contexts/{pageContext}`
+- Extension client: `apps/extension/src/page-chat/api.ts`
+- Domain services: `app/Domain/PageContexts/ResolvePageContext.php`, `CreatePageContext.php`, and `NormalizePageUrl.php`
+- Persistent model/table: `app/Models/PageContext.php` and `page_contexts`; `database/migrations/2026_09_05_140000_drop_page_context_resolution_keys.php` removes the former visit-request key table
+- API presentation: `app/Http/Resources/PageContextResource.php`
+- Apps discovery/filter query: `app/Domain/Activity/ConversationDiscovery.php`
+- Tests: `tests/Feature/PageContexts/`
+
+Related specifications:
+
+- `docs/features/browser-extension.md`
+- `docs/features/page-conversations.md`

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\Extension\ExchangeExtensionHandoff;
 use App\Domain\Extension\StartExtensionHandoff;
+use App\Enums\OrganizationRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ExchangeExtensionHandoffRequest;
 use App\Http\Requests\Api\StartExtensionHandoffRequest;
@@ -61,6 +62,8 @@ class ExtensionHandoffController extends Controller
                 'organization' => [
                     'id' => $organization->id,
                     'name' => $organization->name,
+                    'role' => $user->organizationRole()?->value,
+                    'can_manage_page_links' => $user->organizationRole()?->isAtLeast(OrganizationRole::Administrator) ?? false,
                 ],
             ],
         ]);

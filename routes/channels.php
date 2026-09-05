@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -13,3 +14,15 @@ Broadcast::channel('organizations.{organizationId}', function (User $user, int $
     return $user->hasVerifiedEmail()
         && $user->organization()->whereKey($organizationId)->exists();
 });
+
+Broadcast::channel(
+    'organizations.{organizationId}.conversations.{conversationPublicId}',
+    function (User $user, int $organizationId, string $conversationPublicId): bool {
+        return $user->hasVerifiedEmail()
+            && $user->organization()->whereKey($organizationId)->exists()
+            && Conversation::query()
+                ->where('organization_id', $organizationId)
+                ->where('public_id', $conversationPublicId)
+                ->exists();
+    },
+);

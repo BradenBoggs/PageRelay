@@ -81,6 +81,18 @@ class Organization extends Model
         return $this->hasMany(Team::class);
     }
 
+    /** @return HasMany<PageContext, $this> */
+    public function pageContexts(): HasMany
+    {
+        return $this->hasMany(PageContext::class);
+    }
+
+    /** @return HasMany<Conversation, $this> */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
     public function owner(): ?User
     {
         return $this->members()

@@ -1,6 +1,6 @@
 # Page chats and linked page contexts
 
-Status: approved MVP product behavior; not implemented. Implementation is planned in `docs/plans/001-page-chats-and-linking.md` and requires separate implementation approval.
+Status: implemented through milestone 5 of `docs/plans/001-page-chats-and-linking.md`; manual Chrome verification remains pending.
 
 This document owns page chats, messages, delivery, page-to-chat linking and unlinking, and message source attribution. `page-contexts.md` owns URL identity and Apps grouping. `inbox-and-unread.md` owns Activity and read state. The filename and any existing `Conversation` model remain valid internal names; the user-facing term is Chat.
 
@@ -22,7 +22,13 @@ A page chat belongs to one organization and its default workspace in the MVP. It
 
 A page context has zero or one current primary chat. A page chat can have multiple linked contexts. Organization-wide chats and DMs have their own scopes and cannot receive page-context links in this MVP.
 
-Resolve an existing chat when its context is opened. Create a new chat only when the user explicitly starts a discussion or sends the first message; creating the chat and first message must be safe under retries and concurrent sends. Linking a context to an existing chat must not also create another chat. Browsing and resolution alone do not subscribe members or produce a visible empty discussion.
+Resolve an existing chat when its context is opened. When no persisted context/chat exists, show **Create chat for this page** and, for eligible managers, **Link to existing chat**. Do not show the message composer until a chat exists, and do not create a chat by sending a first message.
+
+The creation form is intentionally small and inline in the This Page view. It contains editable **Page title**, **Page URL**, and **Chat name** fields. Prefill the page title and URL from the active tab and default the chat name to the detected title so the MVP can compare browser-detected information with deliberate user corrections. The favicon may be detected automatically but is not a required manual field. Explain that the values will be saved to the organization's SideWire data when the user selects **Create chat**.
+
+Submitting the form validates and normalizes the URL on the server, then creates or reuses the organization/default-workspace context and creates its empty page chat in one transaction. All active organization members may create a page chat. The client-supplied title, URL, chat name, favicon, organization, and workspace are untrusted; server membership, URL safety, normalization, scoping, and length rules remain authoritative. Repeated and concurrent creation requests for the same normalized identity return the one resulting context/chat without duplicating either record. If a manager links the ephemeral page to an existing chat instead, create or reuse the context and associate it atomically without creating another chat.
+
+Browsing, resolution, editing the form, and draft entry do not persist a context, subscribe members, or produce a visible empty discussion. An explicitly created empty chat is durable and visible on This Page, but it stays out of Chats and Activity until their existing history/relevance rules include it.
 
 ## Access
 
@@ -38,7 +44,7 @@ Viewing an external URL is not proof of permission. SideWire does not automatica
 
 From a recognized page, an eligible owner or administrator selects **Link to existing chat**, searches authorized page chats, chooses the intended chat, and confirms that either linked page will open the same complete history.
 
-The current page context is eligible when it has no chat or its current chat has no persisted message history. The destination is an existing authorized page chat. A context already linked to the requested destination returns idempotent success, even when that chat contains messages.
+The current page is eligible when it has no persisted context, its context has no chat, or its current chat has no persisted message history. The destination is an existing authorized page chat. Linking an ephemeral page creates its context inside the link transaction. A context already linked to the requested destination returns idempotent success, even when that chat contains messages.
 
 Use the precise phrase **no chat or an empty chat**. Do not call the external page unused: it may have extensive business activity in its own app.
 
@@ -82,15 +88,17 @@ Safe linkification may be added without rich previews. Editing, deletion, reacti
 
 ## Realtime and failure recovery
 
-Authorized teammates should receive new messages without refreshing. Realtime delivery follows the chat identifier, not one separate message stream per linked context. Durable server history is authoritative; refetch after disconnect, missed events, sleep, or extension restart.
+The web application may receive realtime messages on the chat identifier, not one separate stream per linked context. For the milestone 5 extension simplification, do not poll chat history in the background. Load history when the chat opens, after the local user sends or changes an association, and when the user selects **Refresh**. Durable server history remains authoritative; a later extension realtime transport requires separate implementation approval after the manual creation lifecycle is stable.
 
-Retain failed drafts with their intended chat and source context, and retry with the same idempotency key. Do not silently carry a draft to a newly selected page or relinked chat. Do not present a message as sent before server confirmation. Any temporary polling fallback must be documented honestly.
+Retain failed drafts with their intended chat and source context, and retry with the same idempotency key. Do not silently carry a draft to a newly selected page or relinked chat. Do not present a message as sent before server confirmation. Do not reintroduce periodic polling as an undocumented fallback.
 
 ## Presentation
 
 The side panel distinguishes the current page context from the shared chat's recognizable title and linked pages. A link list makes cross-app sharing visible. Message source labels identify the page selected for that message, not necessarily the page currently open.
 
-The message list is the main scroll region and the composer stays reachable. Provide explicit empty, loading, offline, permission, conflict, send-failure, expired-session, and removed-member states. Linking controls appear only for eligible roles.
+The web Chats index lists authorized, non-retired page chats with message history in latest-message order. Each result shows the chat title, a concise latest-message preview, author and time context, message count, and currently linked source hosts. A history-bearing chat remains listed when it has no currently linked pages. Empty or retired chats, other conversation types, other workspaces, and other organizations do not appear. The initial index is paginated browsing; full-text search, Apps filters, unread state, and Activity remain separately gated.
+
+After explicit chat creation, the message list is the main scroll region and the composer stays reachable. Before creation, the compact creation form occupies that primary region and the composer is absent. Provide explicit empty, loading, refreshing, offline, validation, permission, conflict, send-failure, expired-session, and removed-member states. Linking controls appear only for eligible roles.
 
 Activity, unread counts, mention notifications, and message search operate on the one underlying chat/message identity; linked pages do not duplicate them. Feature-specific implementations are owned by their respective specifications.
 
@@ -104,11 +112,33 @@ Automatic retention, legal hold, export, reporting, moderation, author editing/d
 
 Prove all of the following before implementation is complete:
 
-- The same page resolves to one context and at most one primary chat under concurrent first messages.
+- The same page resolves to one persisted context and at most one primary chat under repeated or concurrent explicit creation requests; no message is created with the chat.
 - Two distinct contexts from different apps can open one durable shared history with accurate per-message source attribution.
 - Linking a context with no chat or an empty chat succeeds for eligible managers without duplicating messages; linking two different nonempty histories fails without changes.
 - Relinking to the already-associated chat is idempotent, and a concurrent first send cannot be lost or moved.
 - Unlinking retains all messages, historical source labels, and access to a history-bearing chat even when it has no remaining pages.
 - Ordinary members cannot link/unlink; cross-organization, cross-workspace, DM, and organization-chat targets fail without leaking existence.
-- Stale drafts and mappings fail safely, web sends without a selected source remain unattributed, and unsafe links are never retained as provenance.
+- A message cannot be sent before explicit creation or linking. Stale drafts and mappings fail safely, web sends without a selected source remain unattributed, and unsafe links are never retained as provenance.
 - Activity, read markers, notifications, search, and realtime delivery do not multiply a message because several pages point to its chat.
+
+## Implementation map
+
+Primary entry points:
+
+- Extension API routes: `routes/api.php` under `/api/v1/extension/page-contexts` and `/api/v1/extension/page-chats`
+- Web chat routes: `GET /chats`, `GET /chats/{conversation}`, `POST /chats/{conversation}/messages`, and `POST /chats/{conversation}/read`
+- Domain services: `app/Domain/Conversations/CreatePageChat.php`, `SendPageMessage.php`, `LinkPageContext.php`, and `UnlinkPageContext.php`
+- Models/tables: `Conversation`/`conversations`, `Message`/`messages`, and the current association on `page_contexts`
+- Read state: `ConversationRead`/`conversation_reads` with `app/Domain/Activity/MarkConversationRead.php`
+- Authorization: `app/Policies/ConversationPolicy.php`, `app/Policies/PageContextPolicy.php`, and transactional membership checks in the domain services
+- Realtime event and channel: `app/Events/MessageCreated.php` and `routes/channels.php`
+- Audit boundary: Spatie Activitylog with `App\Models\OrganizationActivity` and `activity_log`
+- Extension interface: `apps/extension/src/sidepanel/main.tsx`
+- Web interfaces: `resources/js/pages/chats/index.tsx` and `resources/js/pages/chats/show.tsx`
+- Tests: `tests/Feature/Conversations/`
+
+Related specifications:
+
+- `docs/features/page-contexts.md`
+- `docs/features/browser-extension.md`
+- `docs/features/inbox-and-unread.md`

@@ -36,13 +36,13 @@ Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do 
 
 The panel must work at realistic narrow widths and variable heights; it is not a desktop dashboard squeezed into a column.
 
-The normal This Page view has a compact current-page header, safe source-page action, the associated chat as the main scroll region, a reachable composer, and compact navigation to Activity, Chats, and account state as those features ship.
+The normal This Page view has a compact current-page header, safe source-page action, and compact navigation to Activity, Chats, and account state as those features ship. When a chat exists, its history is the main scroll region and the composer stays reachable. When no chat exists, replace the history and composer with the compact **Create chat for this page** form defined in `docs/features/page-conversations.md`.
 
 For a shared page chat, show its recognizable title and linked-page list without implying that the current app owns the history. Show per-message source attribution when recorded. A message sent while viewing Docusign remains attributed to Docusign even when read beside Supermove.
 
 Long titles and URLs truncate without hiding the source domain. Do not make full raw URLs primary labels. Unsupported, signed-out, offline, inaccessible, and unresolved states must explain what happened and offer a safe next action.
 
-No chat yet is an intentional state. Merely visiting a page should not create a visible empty discussion or notify the organization.
+No chat yet is an intentional state. Merely visiting a page or editing the prefilled creation form must not persist a context, create a visible empty discussion, or notify the organization.
 
 Do not overlay SideWire UI into the host page during the MVP.
 
@@ -62,7 +62,7 @@ Show linking controls only to eligible roles. Do not expose inaccessible chat ti
 
 Messages prioritize author, time, content, recorded source, and delivery state. Do not add reactions, nested threads, rich-text toolbars, attachments, or AI actions before approval.
 
-The composer needs an accessible name, clear multiline/submission behavior, duplicate prevention, sending/failure states, and recoverable draft text. Drafts remain bound to their intended chat and source context; navigating to another linked page must not silently relabel a draft.
+The creation form uses explicit labels, identifies which page information was detected automatically, allows deliberate edits, explains that submission stores organization data, and retains input after validation or network failure. Its primary action is **Create chat**. The composer appears only for an existing or explicitly created chat and needs an accessible name, clear multiline/submission behavior, duplicate prevention, sending/failure states, and recoverable draft text. Drafts remain bound to their intended chat and source context; navigating to another linked page must not silently relabel a draft.
 
 ## Responsive and accessible behavior
 

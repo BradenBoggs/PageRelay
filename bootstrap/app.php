@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\PageChatConflict;
 use App\Http\Middleware\EnsureExtensionAccessToken;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use App\Http\Middleware\HandleAppearance;
@@ -36,4 +37,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+        $exceptions->render(function (PageChatConflict $exception, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'reason' => $exception->reason,
+            ], 409);
+        });
     })->create();

@@ -13,6 +13,8 @@ export type ExtensionSession = {
     organization: {
         id: number;
         name: string;
+        role: 'owner' | 'admin' | 'member';
+        canManagePageLinks: boolean;
     };
 };
 
@@ -30,7 +32,12 @@ type HandoffExchange =
           token: string;
           expires_at: string;
           user: ExtensionSession['user'];
-          organization: ExtensionSession['organization'];
+          organization: {
+              id: number;
+              name: string;
+              role: ExtensionSession['organization']['role'];
+              can_manage_page_links: boolean;
+          };
       };
 
 export async function loadSession(): Promise<ExtensionSession | null> {
@@ -57,7 +64,29 @@ export async function loadSession(): Promise<ExtensionSession | null> {
         throw new Error('SideWire could not verify the saved session.');
     }
 
-    return session;
+    const payload = (await response.json()) as {
+        data: {
+            organization: {
+                id: number;
+                name: string;
+                role: ExtensionSession['organization']['role'];
+                can_manage_page_links: boolean;
+            };
+        };
+    };
+    const refreshed = {
+        ...session,
+        organization: {
+            id: payload.data.organization.id,
+            name: payload.data.organization.name,
+            role: payload.data.organization.role,
+            canManagePageLinks: payload.data.organization.can_manage_page_links,
+        },
+    };
+
+    await chrome.storage.local.set({ [storageKey]: refreshed });
+
+    return refreshed;
 }
 
 export async function connect(signal?: AbortSignal): Promise<ExtensionSession> {
@@ -79,7 +108,13 @@ export async function connect(signal?: AbortSignal): Promise<ExtensionSession> {
                 token: exchange.token,
                 expiresAt: exchange.expires_at,
                 user: exchange.user,
-                organization: exchange.organization,
+                organization: {
+                    id: exchange.organization.id,
+                    name: exchange.organization.name,
+                    role: exchange.organization.role,
+                    canManagePageLinks:
+                        exchange.organization.can_manage_page_links,
+                },
             };
 
             await chrome.storage.local.set({ [storageKey]: session });

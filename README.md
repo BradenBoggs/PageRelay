@@ -13,7 +13,7 @@ Before implementing application code, read:
 - the relevant file under `docs/features/`
 - the active plan under `docs/plans/`
 
-Foundation implementation is tracked in `docs/plans/000-execplan.md`. The page-chat, Apps, and manual-linking revision is planned in `docs/plans/001-page-chats-and-linking.md`; that documentation update is not authorization to implement application changes.
+Foundation implementation is tracked in `docs/plans/000-execplan.md`. Page contexts, page chats, manual linking, Activity, Chats discovery, Apps filtering, and unread state through milestone 4 are tracked in `docs/plans/001-page-chats-and-linking.md`.
 
 Use Chat and Activity in the interface. Existing specification filenames and internal `Conversation` terminology remain valid. Product vocabulary and feature ownership are indexed in `docs/PRODUCT.md`.
 
@@ -72,8 +72,10 @@ a rebuild to run the new service worker and side-panel bundle.
 The extension can be built once with
 `./vendor/bin/sail npm run build:extension`.
 
-The development manifest can connect only to `http://localhost:8000`. It does
-not use a content script or broad website host permissions.
+The development manifest can connect only to `http://localhost:8000`. Its
+`tabs` permission lets the open side panel read the active tab's URL, title,
+and favicon as the user moves between work pages. It does not use a content
+script or broad website host permissions.
 
 ## shadcn MCP
 

@@ -16,9 +16,9 @@ The foundation account model is one organization per user. The organization is t
 
 1. A user creates or joins the company's SideWire organization and signs in. The default workspace is provisioned without asking the company to choose an operating mode.
 2. The user installs SideWire, opens a work page in Chrome, and opens the side panel.
-3. SideWire resolves the page to an organization-private page context and opens its existing chat, when one exists. Merely resolving a page does not create a visible chat or subscribe the company to it.
-4. The user starts or continues the chat beside that page.
-5. An authorized owner or administrator can explicitly link another page context to that chat when the other context has no chat or its chat has no message history.
+3. SideWire reads the active tab's limited page metadata and performs a private, read-only lookup. If a persisted context/chat exists, it opens that chat. Merely visiting or resolving a page creates no context, chat, subscription, or browsing-history record.
+4. When no chat exists, the user reviews an editable form prefilled from the active tab and explicitly selects **Create chat**, or an authorized owner or administrator links the page to an existing eligible chat. Only that explicit action persists the page context.
+5. The user continues the existing or newly created chat beside that page.
 6. Teammates reach the same shared history from either linked page, or catch up through Activity and find discussions through Chats and search.
 7. In a later milestone, the team can create and complete lightweight page-related tasks.
 

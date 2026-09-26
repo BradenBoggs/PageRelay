@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified', EnsureOrganizationMembership::class])
     ->group(function (): void {
         Route::get('activity', [ChatController::class, 'activity'])->name('activity.index');
         Route::get('chats', [ChatController::class, 'index'])->name('chats.index');
+        Route::post('chats', [ChatController::class, 'storeChat'])->name('chats.store');
         Route::get('chats/{conversation}', [ChatController::class, 'show'])->name('chats.show');
         Route::post('chats/{conversation}/messages', [ChatController::class, 'store'])->name('chats.messages.store');
         Route::post('chats/{conversation}/read', [ChatController::class, 'read'])->name('chats.read.store');

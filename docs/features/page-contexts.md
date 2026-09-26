@@ -6,7 +6,7 @@ This document owns external-page identity, resolution, safe return links, displa
 
 ## Purpose and ownership
 
-A page context identifies the external page or stable record where work is happening. It belongs to one organization and, under the existing MVP foundation, its default workspace. An App groups contexts for discovery; it does not own their messages or define a new tenant.
+A page context identifies an external page or stable record and can route that page into a durable work Chat. It belongs to one organization and, under the existing MVP foundation, its default workspace. An App groups contexts for discovery; it does not own their messages or define a new tenant.
 
 Do not call a context a project, customer, deal, channel, job, or ticket. It may represent any of those depending on the source application.
 
@@ -14,9 +14,9 @@ Do not call a context a project, customer, deal, channel, job, or ticket. It may
 
 After an intentional SideWire interaction, the extension may send the active supported page's URL, browser-provided title, and optional favicon URL. The server validates the metadata and URL safety, computes a versioned normalized identity, and performs an organization/default-workspace-scoped lookup. Resolution is read-only: visiting or resolving a page with no existing context must not create a `page_contexts` record or any durable idempotency record.
 
-When the normalized identity already has a context, resolution returns that context and its current chat, if any. Otherwise it returns a validated ephemeral page descriptor that lets the interface show **No chat yet** without persisting the URL, title, favicon, or browsing event. Different organizations continue to receive isolated lookup results.
+When the normalized identity already has a context, resolution returns that context and its current Chat, if any. Otherwise it returns a validated ephemeral page descriptor that lets the interface offer creation or linking without persisting the URL, title, favicon, or browsing event. Different organizations continue to receive isolated lookup results.
 
-Persist the context only when the user explicitly submits **Create chat for this page** or an eligible manager links the page to an existing chat. Sending a message is available only after a chat exists and must not implicitly create a context or chat. The server must repeat normalization, safety validation, active-membership checks, and organization/default-workspace scoping inside the create/link transaction; the ephemeral client descriptor and editable form values are not trusted authority. The normalized-identity unique constraint and transactional command rules must make concurrent creates and links converge on one context.
+Persist the context only when the user explicitly submits **Create chat for this page** or an eligible manager links the page to an existing work Chat. A named work Chat may already exist independently of any context. Sending from This Page is available only after a Chat is linked and must not implicitly create a context or Chat. The server must repeat normalization, safety validation, active-membership checks, and organization/default-workspace scoping inside the create/link transaction; the ephemeral client descriptor and editable form values are not trusted authority. The normalized-identity unique constraint and transactional command rules must make concurrent creates and links converge on one context.
 
 Read-only resolution does not require a client idempotency key. Remove the `page_context_resolution_keys` table and do not replace it with another durable visit log. Explicit chat creation is naturally repeatable through the normalized-identity and one-chat-per-context constraints, message sends keep their existing message idempotency key, and linking remains repeatable when the same normalized page identity is already attached to the requested destination. Conflicting concurrent actions return the existing stale/conflict recovery response.
 
@@ -58,6 +58,8 @@ A chat linked to contexts from several apps is one chat discoverable through eac
 URL recognition asks whether different URLs represent the same external record; proven equivalents resolve to one context under approved normalization rules.
 
 Chat linking asks whether distinct external records should share their SideWire discussion. A Supermove project and its Docusign agreement remain two contexts even when both open the same chat. Linking does not rewrite either normalized identity or declare their business records equivalent.
+
+Correct page routing does not require SideWire to infer every external application's complete URL model. Several exact or separately normalized contexts may route to one Chat. Conservative candidate suggestions and explicit linking can deliver the correct Chat while application-specific identity rules remain incomplete.
 
 A general reference, reusable template, or merely related page can be shared as an ordinary message link without joining the shared chat.
 

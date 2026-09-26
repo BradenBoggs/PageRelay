@@ -49,10 +49,10 @@ class ConversationDiscovery
             ->where('organization_id', $organization->id)
             ->where('workspace_id', $workspace->id)
             ->where('type', ConversationType::Page)
-            ->whereNull('retired_at')
-            ->whereHas('messages');
+            ->whereNull('retired_at');
 
         if ($surface === 'activity') {
+            $query->whereHas('messages');
             $this->whereRelevantTo($query, $user);
         }
 
@@ -88,10 +88,8 @@ class ConversationDiscovery
         return $query
             ->orderByDesc(
                 Message::query()
-                    ->select('id')
-                    ->whereColumn('conversation_id', 'conversations.id')
-                    ->latest('id')
-                    ->limit(1),
+                    ->selectRaw('COALESCE(MAX(id), 0)')
+                    ->whereColumn('conversation_id', 'conversations.id'),
             )
             ->orderByDesc('conversations.id')
             ->paginate($perPage)
@@ -111,19 +109,19 @@ class ConversationDiscovery
             ->where('workspace_id', $workspace->id)
             ->whereHas('conversation', function (Builder $query) use ($surface, $user): void {
                 $query->where('type', ConversationType::Page)
-                    ->whereNull('retired_at')
-                    ->whereHas('messages');
+                    ->whereNull('retired_at');
 
                 if ($surface === 'activity') {
-                    $query->where(function (Builder $query) use ($user): void {
-                        $query->whereHas(
-                            'messages',
-                            fn (Builder $query) => $query->where('author_id', $user->id),
-                        )->orWhereHas(
-                            'reads',
-                            fn (Builder $query) => $query->where('user_id', $user->id),
-                        );
-                    });
+                    $query->whereHas('messages')
+                        ->where(function (Builder $query) use ($user): void {
+                            $query->whereHas(
+                                'messages',
+                                fn (Builder $query) => $query->where('author_id', $user->id),
+                            )->orWhereHas(
+                                'reads',
+                                fn (Builder $query) => $query->where('user_id', $user->id),
+                            );
+                        });
                 }
             })
             ->select('source_host')

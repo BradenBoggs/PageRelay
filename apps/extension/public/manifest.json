@@ -10,7 +10,7 @@
         "service_worker": "service-worker.js",
         "type": "module"
     },
-    "host_permissions": ["http://localhost:8000/*"],
+    "host_permissions": ["http://localhost:8001/*"],
     "permissions": ["sidePanel", "tabs", "storage"],
     "side_panel": {
         "default_path": "sidepanel.html"

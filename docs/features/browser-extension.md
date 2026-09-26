@@ -1,6 +1,6 @@
 # Chrome browser extension
 
-Status: the extension shell and secure authentication handoff are implemented by `docs/plans/000-execplan.md`; This Page, page-chat, manual linking, Activity, Chats discovery, shared unread behavior, lookup-only resolution, explicit manual chat creation, and event-scoped loading are implemented through milestone 5 of `docs/plans/001-page-chats-and-linking.md`. Manual Chrome verification remains pending.
+Status: the extension shell and secure authentication handoff are implemented by `docs/plans/000-execplan.md`; This Page, page-chat, manual linking, Activity, Chats discovery, shared unread behavior, lookup-only resolution, explicit manual chat creation, and event-scoped loading are implemented through milestone 5 of `docs/plans/001-page-chats-and-linking.md`. Direct durable work-Chat creation and use in the panel are implemented by `docs/plans/002-durable-work-chats.md`. Manual Chrome verification remains pending.
 
 This document owns the extension shell, side-panel lifecycle, permissions, authentication surface, active-tab awareness, and navigation between extension views. Page identity and Apps grouping belong to `page-contexts.md`; shared chats belong to `page-conversations.md`.
 
@@ -13,10 +13,10 @@ The extension makes SideWire available beside the website where work is happenin
 Use Chrome Manifest V3 and the native side-panel API. The panel provides:
 
 - signed-out and session-expired states;
-- This Page with the current supported page context and its associated chat, if any;
+- This Page with the current supported page context and its associated Chat, if any;
 - an inline **Create chat for this page** form when the active page has no persisted context/chat;
 - eligible linking controls and a visible list of linked source pages;
-- compact Activity and Chats views with all/unread and Apps filters;
+- compact Activity and Chats views with all/unread and Apps filters, durable Chat creation, and direct in-panel Chat history and sending;
 - compact navigation to Activity, Chats, organization chat, DMs, and later tasks as those features ship;
 - account and organization identity;
 - clear offline, reconnecting, permission-denied, unresolved, conflict, and unsupported-page states.
@@ -40,6 +40,8 @@ If no persisted context exists, keep only the validated ephemeral page descripto
 Do not run periodic page-chat, Activity, or Chats refresh timers in the MVP panel. Load the current page once when the panel connects, load Activity or Chats when the user enters that view or changes its filters/search, reload affected data after a successful mutation, and provide a clear user-triggered **Refresh** action for current server state. A future realtime extension connection requires separate approval; unrelated Chrome activity must never refresh SideWire data.
 
 A new tab may resolve to a different context but the same shared chat. Keep the current source context visually accurate without duplicating history, realtime subscriptions, or chat-level unread state.
+
+A member may open a durable work Chat directly from Chats without changing the active browser tab. Direct Chat messages carry no source page. Returning to This Page resolves the active tab normally and must not silently attach it to the Chat that was most recently open. An eligible manager links the current page only through the explicit linking action.
 
 Preserve drafts with their intended chat and source context when practical. Do not automatically send a draft to a newly selected page, relabel its source, or follow a changed association on submit. A send includes its explicit chat and selected source context; the server validates their current authorized relationship. Conflicts require a clear reload/retry path.
 
@@ -73,6 +75,7 @@ Primary entry points:
 - Background service worker: `apps/extension/src/background/service-worker.ts`
 - Extension styles: `apps/extension/src/styles/app.css`
 - Page-chat API client: `apps/extension/src/page-chat/api.ts`
+- Direct work-Chat API: `app/Http/Controllers/Api/V1/WorkChatController.php` under `/api/v1/extension/work-chats`
 - This Page and chat interface: `apps/extension/src/sidepanel/main.tsx`
 - Build configuration: `apps/extension/vite.config.ts`
 - Handoff API: `POST` and `PUT /api/v1/extension/handoffs`

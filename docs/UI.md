@@ -10,7 +10,7 @@ This document owns application-wide interface rules. Feature-specific screens an
 
 SideWire should feel calm, lightweight, and native beside a team's tools. The source website remains the primary work surface; SideWire provides context without competing for attention.
 
-- Prioritize This Page and its chat in the side panel.
+- Prioritize This Page and its linked Chat while making durable work Chats directly usable from the side panel.
 - Make the current source page and the shared chat distinct and recognizable.
 - Keep common actions reachable without deep navigation.
 - Preserve drafts and scroll position when safe, without silently changing a draft's chat or source attribution.
@@ -36,9 +36,11 @@ Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do 
 
 The panel must work at realistic narrow widths and variable heights; it is not a desktop dashboard squeezed into a column.
 
-The normal This Page view has a compact current-page header, safe source-page action, and compact navigation to Activity, Chats, and account state as those features ship. When a chat exists, its history is the main scroll region and the composer stays reachable. When no chat exists, replace the history and composer with the compact **Create chat for this page** form defined in `docs/features/page-conversations.md`.
+The normal This Page view has a compact current-page header, safe source-page action, and compact navigation to Activity, Chats, and account state as those features ship. When a Chat is linked, its history is the main scroll region and the composer stays reachable. When no Chat is linked, replace the history and composer with compact actions to create a Chat for the page or, for eligible managers, link an existing work Chat.
 
-For a shared page chat, show its recognizable title and linked-page list without implying that the current app owns the history. Show per-message source attribution when recorded. A message sent while viewing Docusign remains attributed to Docusign even when read beside Supermove.
+The Chats view lists durable named work Chats, including newly created empty Chats. Selecting one opens its history and composer inside the panel without requiring an external page. A direct Chat send has no inferred source-page attribution. Provide a clear return to Chats and preserve the separate This Page destination.
+
+For a work Chat with linked pages, show its recognizable title and linked-page list without implying that the current app owns the history. Show per-message source attribution when recorded. A message sent while viewing Docusign remains attributed to Docusign even when read beside Supermove.
 
 Long titles and URLs truncate without hiding the source domain. Do not make full raw URLs primary labels. Unsupported, signed-out, offline, inaccessible, and unresolved states must explain what happened and offer a safe next action.
 
@@ -54,7 +56,7 @@ Deep links open the relevant authorized chat or message and preserve a source co
 
 ## Interaction patterns
 
-Use full pages for primary destinations and substantial forms, dialogs for short decisions or confirmations, sheets for contextual inspection, and popovers/dropdowns for lightweight controls.
+Use full pages for primary destinations and substantial forms, dialogs for short decisions or confirmations, sheets for contextual inspection, and popovers/dropdowns for lightweight controls. Creating a work Chat is a short named action that may use an inline form in Chats; linking the current page remains a focused dialog.
 
 The page-linking dialog follows `docs/features/page-conversations.md`. It distinguishes sharing an entire chat from posting a related link and explains when an existing nonempty history prevents linking. Do not use the ambiguous term unused page. Unlink confirmation explains that existing messages remain in the shared chat.
 

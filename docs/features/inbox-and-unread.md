@@ -12,13 +12,13 @@ Activity is not an email inbox, a mandatory zero-inbox workflow, or an organizat
 
 ## Activity contents and relevance
 
-Activity may combine authorized page-chat, organization-chat, DM, and mention activity as those features ship. Task activity and threaded replies appear only after their features are approved and implemented.
+Activity may combine authorized work-Chat, organization-Chat, DM, and mention activity as those features ship. Task activity and threaded replies appear only after their features are approved and implemented.
 
 Each item identifies its destination type, recognizable chat title, relevant sender and safe preview, activity time, unread state, and navigation action. Where available, distinguish the actual message's source page from the chat's complete list of linked pages.
 
 Keep relevance rules explicit and deterministic. Merely resolving a page or belonging to the organization must not automatically subscribe the user to every page chat or send a notification. Notification defaults and subscriptions remain governed by their owning specification.
 
-For the first page-chat Activity implementation, a chat is relevant after the member has opened and marked loaded history read or has authored a message in it. Chats remains the broader authorized discovery surface. Activity shows the latest event once per relevant chat; it is not a feed of every page chat the organization has ever created.
+For the first work-Chat Activity implementation, a Chat is relevant after the member has opened and marked loaded history read or has authored a message in it. Chats remains the broader authorized discovery surface and includes durable empty work Chats; Activity does not show an empty Chat. Activity shows the latest event once per relevant Chat; it is not a feed of every Chat the organization has ever created.
 
 ## Chat discovery and Apps
 
@@ -26,7 +26,7 @@ Chats provides authorized discussion discovery with search and recent activity r
 
 Apps is a browsing/filtering aid defined in `page-contexts.md`. For chat discovery, an app filter matches a chat through its currently linked contexts. A chat linked to Supermove and Docusign can appear under either filter but appears once in the combined result set. Its latest message can have a different source app from the selected filter; show the actual message source rather than relabeling it.
 
-History-bearing chats remain discoverable when their last page link is removed, according to the same chat access policy. Do not delete or hide historical communication merely because it no longer has a current source-page association.
+Durable work Chats remain discoverable when empty or when their last page link is removed, according to the same Chat access policy. Do not delete or hide a named Chat merely because it has no current source-page association.
 
 ## Read state and deduplication
 

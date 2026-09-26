@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\PageContextController;
 use App\Http\Controllers\Api\V1\PageContextMessageController;
 use App\Http\Controllers\Api\V1\PageConversationController;
 use App\Http\Controllers\Api\V1\PageConversationReadController;
+use App\Http\Controllers\Api\V1\WorkChatController;
 use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,12 @@ Route::prefix('v1/extension')
             ->name('api.page-chats.store');
         Route::get('discovery', [ConversationDiscoveryController::class, 'index'])
             ->name('api.discovery.index');
+        Route::post('work-chats', [WorkChatController::class, 'store'])
+            ->name('api.work-chats.store');
+        Route::get('work-chats/{conversation}', [WorkChatController::class, 'show'])
+            ->name('api.work-chats.show');
+        Route::post('work-chats/{conversation}/messages', [WorkChatController::class, 'message'])
+            ->name('api.work-chats.messages.store');
         Route::post('page-chats/{conversation}/read', [PageConversationReadController::class, 'store'])
             ->name('api.page-chats.read.store');
         Route::put('page-contexts/chat', [PageContextAssociationController::class, 'store'])

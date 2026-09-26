@@ -9,14 +9,17 @@ import {
 import { Button } from '../components/ui/button';
 import {
     createPageChat,
+    createWorkChat,
     linkPage,
     listDiscovery,
     listPageChats,
+    loadWorkChat,
     markChatRead,
     PageChatApiError,
     refreshPage,
     resolvePage,
     sendPageMessage,
+    sendWorkChatMessage,
     unlinkPage,
     type PageChat,
     type PageContext,
@@ -34,7 +37,7 @@ type Status =
     | 'ready'
     | 'error';
 type Draft = { body: string; idempotencyKey: string };
-type PanelView = 'page' | 'activity' | 'chats';
+type PanelView = 'page' | 'activity' | 'chats' | 'chat';
 type CreateForm = CreatePageChatInput;
 
 function SidePanel() {
@@ -67,6 +70,15 @@ function SidePanel() {
     );
     const [discoveryWebUrl, setDiscoveryWebUrl] = useState<string | null>(null);
     const [discoveryReload, setDiscoveryReload] = useState(0);
+    const [openChat, setOpenChat] = useState<PageChat | null>(null);
+    const [openChatLoading, setOpenChatLoading] = useState(false);
+    const [openChatMessage, setOpenChatMessage] = useState<string | null>(null);
+    const [workChatDrafts, setWorkChatDrafts] = useState<Record<string, Draft>>(
+        {},
+    );
+    const [newChatName, setNewChatName] = useState('');
+    const [newChatKey, setNewChatKey] = useState(crypto.randomUUID());
+    const [creatingWorkChat, setCreatingWorkChat] = useState(false);
     const connection = useRef<AbortController | null>(null);
     const activeTabKey = useRef<string | null>(null);
     const panelWindowId = useRef<number | null>(null);
@@ -140,7 +152,7 @@ function SidePanel() {
     }, [session]);
 
     useEffect(() => {
-        if (!session || view === 'page') return;
+        if (!session || (view !== 'activity' && view !== 'chats')) return;
         let active = true;
 
         const load = async () => {
@@ -219,6 +231,40 @@ function SidePanel() {
             );
         };
     }, [session, view, status, context]);
+
+    useEffect(() => {
+        const latestMessage = openChat?.messages?.at(-1);
+        if (!session || view !== 'chat' || !openChat || !latestMessage) {
+            return;
+        }
+
+        const marker = `${openChat.id}:${latestMessage.id}`;
+        const markVisibleMessagesRead = () => {
+            if (
+                document.visibilityState !== 'visible' ||
+                viewedMessage.current === marker
+            ) {
+                return;
+            }
+
+            viewedMessage.current = marker;
+            void markChatRead(session, openChat.id, latestMessage.id).catch(
+                () => {
+                    viewedMessage.current = null;
+                },
+            );
+        };
+
+        markVisibleMessagesRead();
+        document.addEventListener('visibilitychange', markVisibleMessagesRead);
+
+        return () => {
+            document.removeEventListener(
+                'visibilitychange',
+                markVisibleMessagesRead,
+            );
+        };
+    }, [session, view, openChat]);
 
     useEffect(() => {
         if (linking && !linkDialog.current?.open)
@@ -332,6 +378,9 @@ function SidePanel() {
             setSession(null);
             setContext(null);
             setCreateForm(null);
+            setOpenChat(null);
+            setWorkChatDrafts({});
+            setView('page');
             activeTabKey.current = null;
             setStatus('signed-out');
         } catch (error) {
@@ -479,7 +528,88 @@ function SidePanel() {
         setAppliedDiscoveryQuery(discoveryQuery.trim());
     }
 
+    async function openWorkChat(chatId: string) {
+        if (!session) return;
+        setView('chat');
+        if (openChat?.id !== chatId) setOpenChat(null);
+        setOpenChatLoading(true);
+        setOpenChatMessage(null);
+        try {
+            setOpenChat(await loadWorkChat(session, chatId));
+        } catch (error) {
+            setOpenChat(null);
+            setOpenChatMessage(errorMessage(error));
+        } finally {
+            setOpenChatLoading(false);
+        }
+    }
+
+    async function handleCreateWorkChat(event: React.FormEvent) {
+        event.preventDefault();
+        if (!session || !newChatName.trim() || creatingWorkChat) return;
+        setCreatingWorkChat(true);
+        setDiscoveryMessage(null);
+        try {
+            const created = await createWorkChat(session, {
+                title: newChatName,
+                idempotencyKey: newChatKey,
+            });
+            setNewChatName('');
+            setNewChatKey(crypto.randomUUID());
+            setOpenChatMessage(null);
+            setOpenChat(created);
+            setView('chat');
+        } catch (error) {
+            setDiscoveryMessage(errorMessage(error));
+        } finally {
+            setCreatingWorkChat(false);
+        }
+    }
+
+    function updateWorkChatDraft(body: string) {
+        if (!openChat) return;
+        setWorkChatDrafts((current) => ({
+            ...current,
+            [openChat.id]: {
+                body,
+                idempotencyKey:
+                    current[openChat.id]?.idempotencyKey ?? crypto.randomUUID(),
+            },
+        }));
+    }
+
+    async function handleWorkChatSend(event: React.FormEvent) {
+        event.preventDefault();
+        if (!session || !openChat || sending) return;
+        const chatId = openChat.id;
+        const draft = workChatDrafts[chatId];
+        if (!draft?.body.trim()) return;
+        setSending(true);
+        setOpenChatMessage(null);
+        try {
+            await sendWorkChatMessage(
+                session,
+                chatId,
+                draft.body,
+                draft.idempotencyKey,
+            );
+            setOpenChat(await loadWorkChat(session, chatId));
+            setWorkChatDrafts((current) => {
+                const next = { ...current };
+                delete next[chatId];
+                return next;
+            });
+        } catch (error) {
+            setOpenChatMessage(errorMessage(error));
+        } finally {
+            setSending(false);
+        }
+    }
+
     const currentDraft = context?.id ? (drafts[context.id]?.body ?? '') : '';
+    const currentWorkChatDraft = openChat
+        ? (workChatDrafts[openChat.id]?.body ?? '')
+        : '';
 
     return (
         <main className="flex h-screen min-h-96 flex-col">
@@ -487,7 +617,7 @@ function SidePanel() {
                 <div className="min-w-0">
                     <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                         {session
-                            ? `${view === 'page' ? 'This Page' : view === 'activity' ? 'Activity' : 'Chats'} · ${session.organization.name}`
+                            ? `${view === 'page' ? 'This Page' : view === 'activity' ? 'Activity' : view === 'chat' ? (openChat?.title ?? 'Chat') : 'Chats'} · ${session.organization.name}`
                             : 'Chrome side panel'}
                     </p>
                     <h1 className="truncate text-base font-semibold">
@@ -531,8 +661,12 @@ function SidePanel() {
                     <Button
                         className="flex-1"
                         size="sm"
-                        variant={view === 'chats' ? 'default' : 'outline'}
-                        aria-pressed={view === 'chats'}
+                        variant={
+                            view === 'chats' || view === 'chat'
+                                ? 'default'
+                                : 'outline'
+                        }
+                        aria-pressed={view === 'chats' || view === 'chat'}
                         onClick={() => setView('chats')}
                     >
                         Chats
@@ -638,9 +772,44 @@ function SidePanel() {
                 </section>
             )}
 
-            {session && view !== 'page' && (
+            {session && (view === 'activity' || view === 'chats') && (
                 <section className="flex min-h-0 flex-1 flex-col">
                     <div className="border-input space-y-2 border-b p-3">
+                        {view === 'chats' && (
+                            <form
+                                className="flex gap-2"
+                                onSubmit={handleCreateWorkChat}
+                            >
+                                <label
+                                    className="sr-only"
+                                    htmlFor="new-work-chat"
+                                >
+                                    Chat name
+                                </label>
+                                <input
+                                    id="new-work-chat"
+                                    className="border-input min-w-0 flex-1 rounded-md border px-3 text-sm"
+                                    value={newChatName}
+                                    onChange={(event) =>
+                                        setNewChatName(event.target.value)
+                                    }
+                                    maxLength={255}
+                                    placeholder="Chat name"
+                                    required
+                                    disabled={creatingWorkChat}
+                                />
+                                <Button
+                                    size="sm"
+                                    disabled={
+                                        creatingWorkChat || !newChatName.trim()
+                                    }
+                                >
+                                    {creatingWorkChat
+                                        ? 'Creating…'
+                                        : 'New chat'}
+                                </Button>
+                            </form>
+                        )}
                         <form className="flex gap-2" onSubmit={searchDiscovery}>
                             <label
                                 className="sr-only"
@@ -738,21 +907,16 @@ function SidePanel() {
                                     <p className="text-muted-foreground mt-1 text-sm leading-5">
                                         {view === 'activity'
                                             ? 'Open or join a page chat to see updates here.'
-                                            : 'Start a discussion beside a work page.'}
+                                            : 'Create a named Chat here or link one to a work page.'}
                                     </p>
                                 </div>
                             )}
                         {discoveryItems.map((item) => (
-                            <a
+                            <button
                                 key={item.id}
-                                className="border-input hover:bg-accent block rounded-md border p-3"
-                                href={
-                                    view === 'activity' && item.latest_message
-                                        ? `${item.web_url}#message-${item.latest_message.id}`
-                                        : item.web_url
-                                }
-                                target="_blank"
-                                rel="noreferrer"
+                                className="border-input focus-visible:ring-ring/50 hover:bg-accent block w-full rounded-md border p-3 text-left outline-none focus-visible:ring-2"
+                                type="button"
+                                onClick={() => openWorkChat(item.id)}
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <h2 className="min-w-0 truncate text-sm font-medium">
@@ -776,7 +940,7 @@ function SidePanel() {
                                         ? ` · ${item.latest_message.source.host}`
                                         : ''}
                                 </p>
-                            </a>
+                            </button>
                         ))}
                     </div>
 
@@ -801,6 +965,201 @@ function SidePanel() {
                                 Open {view} on the web
                             </a>
                         </footer>
+                    )}
+                </section>
+            )}
+
+            {session && view === 'chat' && (
+                <section className="flex min-h-0 flex-1 flex-col">
+                    <div className="border-input border-b px-4 py-3">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <h2 className="truncate text-sm font-semibold">
+                                    {openChat?.title ?? 'Chat'}
+                                </h2>
+                                <p className="text-muted-foreground text-xs">
+                                    {openChat
+                                        ? `${openChat.linked_pages.length} linked ${openChat.linked_pages.length === 1 ? 'page' : 'pages'}`
+                                        : 'Loading chat'}
+                                </p>
+                            </div>
+                            <div className="flex shrink-0 gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setView('chats')}
+                                >
+                                    Back
+                                </Button>
+                                {openChat && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={openChatLoading}
+                                        onClick={() =>
+                                            openWorkChat(openChat.id)
+                                        }
+                                    >
+                                        {openChatLoading
+                                            ? 'Refreshing…'
+                                            : 'Refresh'}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                        {openChat && openChat.linked_pages.length > 0 && (
+                            <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                                {openChat.linked_pages.map((page) => (
+                                    <a
+                                        key={page.id}
+                                        className="border-input shrink-0 rounded-md border px-2 py-1 text-xs"
+                                        href={page.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {page.host}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div
+                        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4"
+                        aria-live="polite"
+                    >
+                        {openChatMessage && (
+                            <p className="text-sm text-red-600" role="alert">
+                                {openChatMessage}
+                            </p>
+                        )}
+                        {openChatLoading && !openChat && (
+                            <p className="text-muted-foreground py-8 text-center text-sm">
+                                Loading chat…
+                            </p>
+                        )}
+                        {!openChatLoading && !openChat && (
+                            <div className="py-8 text-center">
+                                <h3 className="text-sm font-medium">
+                                    Chat unavailable
+                                </h3>
+                                <p className="text-muted-foreground mt-1 text-sm leading-5">
+                                    Return to Chats and try again.
+                                </p>
+                            </div>
+                        )}
+                        {openChat?.messages?.length === 0 && (
+                            <div className="py-8 text-center">
+                                <h3 className="text-sm font-medium">
+                                    No messages yet
+                                </h3>
+                                <p className="text-muted-foreground mt-1 text-sm leading-5">
+                                    Start this work Chat here or link it to a
+                                    page.
+                                </p>
+                            </div>
+                        )}
+                        {openChat?.messages?.map((chatMessage) => {
+                            const isOwnMessage =
+                                chatMessage.author.id === session.user.id;
+
+                            return (
+                                <article
+                                    key={chatMessage.id}
+                                    className={`flex items-end gap-2.5 ${isOwnMessage ? 'flex-row-reverse' : ''}`}
+                                >
+                                    <div
+                                        className="border-input bg-accent text-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-medium shadow-xs"
+                                        aria-hidden="true"
+                                    >
+                                        {initials(chatMessage.author.name)}
+                                    </div>
+                                    <div
+                                        className={`flex min-w-0 max-w-[82%] flex-col space-y-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
+                                    >
+                                        <div
+                                            className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${isOwnMessage ? 'justify-end' : ''}`}
+                                        >
+                                            <h3 className="truncate text-xs font-medium">
+                                                {isOwnMessage
+                                                    ? 'You'
+                                                    : chatMessage.author.name}
+                                            </h3>
+                                            <time
+                                                className="text-muted-foreground text-xs"
+                                                dateTime={
+                                                    chatMessage.created_at
+                                                }
+                                            >
+                                                {formatTime(
+                                                    chatMessage.created_at,
+                                                )}
+                                            </time>
+                                        </div>
+                                        <div
+                                            className={`rounded-xl border px-3 py-2 shadow-xs ${isOwnMessage ? 'border-primary bg-primary text-primary-foreground' : 'bg-background border-input'}`}
+                                        >
+                                            <p className="text-sm leading-5 break-words whitespace-pre-wrap">
+                                                {chatMessage.body}
+                                            </p>
+                                        </div>
+                                        {chatMessage.source && (
+                                            <a
+                                                className="border-input text-muted-foreground hover:bg-accent block w-fit max-w-full truncate rounded-md border px-2 py-0.5 text-xs font-medium underline-offset-4 hover:underline"
+                                                href={chatMessage.source.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Sent while viewing{' '}
+                                                {chatMessage.source.host}
+                                            </a>
+                                        )}
+                                    </div>
+                                </article>
+                            );
+                        })}
+                    </div>
+
+                    {openChat && (
+                        <form
+                            className="border-input space-y-2 border-t p-3"
+                            onSubmit={handleWorkChatSend}
+                        >
+                            <label className="sr-only" htmlFor="work-chat-body">
+                                Message {openChat.title}
+                            </label>
+                            <textarea
+                                id="work-chat-body"
+                                className="border-input focus:border-ring focus:ring-ring/30 min-h-20 w-full resize-y rounded-md border bg-white px-3 py-2 text-sm outline-none focus:ring-2 disabled:opacity-50"
+                                value={currentWorkChatDraft}
+                                onChange={(event) =>
+                                    updateWorkChatDraft(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (
+                                        (event.metaKey || event.ctrlKey) &&
+                                        event.key === 'Enter'
+                                    )
+                                        event.currentTarget.form?.requestSubmit();
+                                }}
+                                disabled={sending}
+                                maxLength={10000}
+                                placeholder={`Message ${openChat.title}…`}
+                            />
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-muted-foreground text-xs">
+                                    Not attributed to a page · Ctrl/⌘ + Enter
+                                </p>
+                                <Button
+                                    size="sm"
+                                    disabled={
+                                        sending || !currentWorkChatDraft.trim()
+                                    }
+                                >
+                                    {sending ? 'Sending…' : 'Send'}
+                                </Button>
+                            </div>
+                        </form>
                     )}
                 </section>
             )}
@@ -1261,9 +1620,15 @@ function SidePanel() {
                                                 {candidate.title}
                                             </span>
                                             <span className="text-muted-foreground block truncate text-xs">
-                                                {candidate.linked_pages
-                                                    .map((page) => page.host)
-                                                    .join(', ')}
+                                                {candidate.linked_pages.length >
+                                                0
+                                                    ? candidate.linked_pages
+                                                          .map(
+                                                              (page) =>
+                                                                  page.host,
+                                                          )
+                                                          .join(', ')
+                                                    : 'No linked pages yet'}
                                             </span>
                                         </span>
                                     </label>

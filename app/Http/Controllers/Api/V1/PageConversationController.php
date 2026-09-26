@@ -55,7 +55,6 @@ class PageConversationController extends Controller
             ->where('workspace_id', $workspace->id)
             ->where('type', ConversationType::Page)
             ->whereNull('retired_at')
-            ->whereHas('messages')
             ->when($request->string('query')->isNotEmpty(), function ($query) use ($request): void {
                 $search = '%'.addcslashes($request->string('query')->toString(), '%_').'%';
                 $query->where('title', 'like', $search);

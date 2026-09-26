@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Creates or reassigns an eligible page context under one association lock.
+ * Explicitly created work Chats remain durable when their last page moves.
  *
  * @see docs/features/page-conversations.md
  */
@@ -179,6 +180,7 @@ class LinkPageContext
         Conversation::query()
             ->where('organization_id', $organization->id)
             ->whereKey($conversationId)
+            ->whereNull('creation_key')
             ->whereDoesntHave('pageContexts')
             ->whereDoesntHave('messages')
             ->update(['retired_at' => now()]);

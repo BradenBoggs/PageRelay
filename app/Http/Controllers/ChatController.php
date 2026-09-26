@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Domain\Activity\ConversationDiscovery;
 use App\Domain\Activity\MarkConversationRead;
+use App\Domain\Conversations\CreateWorkChat;
 use App\Domain\Conversations\SendPageMessage;
 use App\Enums\ConversationType;
+use App\Http\Requests\CreateWorkChatRequest;
 use App\Http\Requests\MarkConversationReadRequest;
 use App\Http\Requests\SendConversationMessageRequest;
 use App\Http\Resources\ConversationActivityResource;
@@ -28,6 +30,22 @@ class ChatController extends Controller
     public function activity(Request $request, ConversationDiscovery $discovery): Response
     {
         return $this->discovery($request, $discovery, 'activity');
+    }
+
+    public function storeChat(
+        CreateWorkChatRequest $request,
+        CreateWorkChat $create,
+    ): RedirectResponse {
+        /** @var Organization $organization */
+        $organization = $request->attributes->get('organization');
+        $chat = $create->handle(
+            $organization,
+            $request->user(),
+            $request->validated('title'),
+            $request->validated('idempotency_key'),
+        );
+
+        return redirect()->route('chats.show', $chat);
     }
 
     public function show(Request $request, string $conversation): Response

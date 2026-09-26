@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
  * @property ConversationType $type
  * @property string $title
  * @property int|null $created_by
+ * @property string|null $creation_key
  * @property Carbon|null $retired_at
  * @property-read Collection<int, PageContext> $pageContexts
  * @property-read Collection<int, Message> $messages
@@ -30,7 +31,7 @@ use Illuminate\Support\Str;
  * @property-read int|string|null $unread_count
  * @property-read Collection<int, ConversationRead> $reads
  */
-#[Fillable(['organization_id', 'workspace_id', 'type', 'title', 'created_by', 'retired_at'])]
+#[Fillable(['organization_id', 'workspace_id', 'type', 'title', 'created_by', 'creation_key', 'retired_at'])]
 class Conversation extends Model
 {
     /** @use HasFactory<ConversationFactory> */

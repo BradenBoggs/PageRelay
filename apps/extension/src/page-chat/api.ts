@@ -43,6 +43,11 @@ export type CreatePageChatInput = {
     faviconUrl?: string | null;
 };
 
+export type CreateWorkChatInput = {
+    title: string;
+    idempotencyKey: string;
+};
+
 export type DiscoveryItem = {
     id: string;
     title: string;
@@ -124,6 +129,58 @@ export async function createPageChat(
                 page_title: input.pageTitle,
                 chat_name: input.chatName,
                 favicon_url: input.faviconUrl,
+            }),
+        },
+    );
+
+    return response.data;
+}
+
+export async function createWorkChat(
+    session: ExtensionSession,
+    input: CreateWorkChatInput,
+): Promise<PageChat> {
+    const response = await request<ApiResponse<PageChat>>(
+        session,
+        '/api/v1/extension/work-chats',
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                title: input.title,
+                idempotency_key: input.idempotencyKey,
+            }),
+        },
+    );
+
+    return response.data;
+}
+
+export async function loadWorkChat(
+    session: ExtensionSession,
+    chatId: string,
+): Promise<PageChat> {
+    const response = await request<ApiResponse<PageChat>>(
+        session,
+        `/api/v1/extension/work-chats/${encodeURIComponent(chatId)}`,
+    );
+
+    return response.data;
+}
+
+export async function sendWorkChatMessage(
+    session: ExtensionSession,
+    chatId: string,
+    body: string,
+    idempotencyKey: string,
+): Promise<ChatMessage> {
+    const response = await request<ApiResponse<ChatMessage>>(
+        session,
+        `/api/v1/extension/work-chats/${encodeURIComponent(chatId)}/messages`,
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                body,
+                idempotency_key: idempotencyKey,
             }),
         },
     );

@@ -2,7 +2,7 @@
 
 SideWire adds a shared collaboration layer to the web applications and websites a team already uses. It runs primarily in a Chrome side panel. When a teammate opens SideWire while viewing a supported page, they can see the chat associated with that work without requiring the underlying website to build collaboration features.
 
-The larger product promise is one source of truth for communication across a company's tools. Start talking where the work already is; link other pages when that same work spans multiple tools. SideWire does not require customers to recreate their CRM's projects as channels.
+The larger product promise is one source of truth for communication across a company's tools. A durable named work Chat can be used directly in SideWire and linked to every external page where that work appears, so opening any linked page brings the relevant history into the side panel. SideWire does not require a native integration or a second copy of the external application's business record.
 
 ## Intended users
 
@@ -16,9 +16,9 @@ The foundation account model is one organization per user. The organization is t
 
 1. A user creates or joins the company's SideWire organization and signs in. The default workspace is provisioned without asking the company to choose an operating mode.
 2. The user installs SideWire, opens a work page in Chrome, and opens the side panel.
-3. SideWire reads the active tab's limited page metadata and performs a private, read-only lookup. If a persisted context/chat exists, it opens that chat. Merely visiting or resolving a page creates no context, chat, subscription, or browsing-history record.
-4. When no chat exists, the user reviews an editable form prefilled from the active tab and explicitly selects **Create chat**, or an authorized owner or administrator links the page to an existing eligible chat. Only that explicit action persists the page context.
-5. The user continues the existing or newly created chat beside that page.
+3. SideWire reads the active tab's limited page metadata and performs a private, read-only lookup. If a persisted context is linked to a Chat, it opens that Chat. Merely visiting or resolving a page creates no context, Chat, subscription, or browsing-history record.
+4. When no Chat is linked, the user explicitly creates a named work Chat for the page or an authorized owner or administrator links the page to an existing eligible work Chat. Members may also create and use a named work Chat directly from Chats before any page is linked. Only explicit creation or linking persists collaboration data.
+5. The user continues the same durable Chat beside a linked page or directly from SideWire's Chats view.
 6. Teammates reach the same shared history from either linked page, or catch up through Activity and find discussions through Chats and search.
 7. In a later milestone, the team can create and complete lightweight page-related tasks.
 
@@ -33,15 +33,15 @@ The first useful release needs to make this loop dependable. It does not need to
 - **Member:** an authenticated user with an active organization membership.
 - **Seat:** one active billable organization membership, regardless of team, workspace, app, or chat usage.
 - **Page context:** SideWire's organization-private identity for a web page or stable external record, scoped to the default workspace in the MVP.
-- **Chat:** a persistent message history within an approved communication scope. A page chat can have multiple linked page contexts; each page context has at most one current primary chat.
+- **Chat:** a persistent named message history within an approved communication scope. A work Chat can exist without a linked page and can have multiple linked page contexts; each page context has at most one current primary Chat.
 - **Thread:** a message and its associated replies within a chat. This reserves the term; threaded replies are not approved for the MVP merely by defining it.
-- **Channel:** a named shared chat for an ongoing topic, such as Sales or Announcements. Custom channels are a later expansion, not a required parent for page chats.
+- **Channel:** a future shared Chat with its own ongoing-topic and audience semantics, such as Sales or Announcements. Current named work Chats are organization-wide and page-linkable without implementing full channel membership or administration.
 - **Activity:** a cross-tool view of relevant updates, unread chats, and mentions as those features ship. Replies appear only after replies are separately approved.
 - **Chats:** the browsable and searchable collection of discussions. Activity answers what changed; Chats helps locate a discussion.
 - **Task:** a lightweight action item tied to a page context. Tasks follow the core chat workflow.
 - **Source page:** the external page represented by a page context. A message may record the page context selected when it was sent.
 
-Use Chat and Activity in user-facing copy instead of Conversation and Inbox. Existing `Conversation` models, storage names, and specification filenames may remain; they refer to the same chat concept, not a second product entity. In particular, `page-conversations.md` owns page chats and linking, and `inbox-and-unread.md` owns Activity and read state. Do not perform a rename-only code or schema migration.
+Use Chat and Activity in user-facing copy instead of Conversation and Inbox. Existing `Conversation` models, storage names, the internal `page` discriminator, and specification filenames may remain; they refer to the same Chat concept, not a second product entity. In particular, `page-conversations.md` owns work Chats and page linking, and `inbox-and-unread.md` owns Activity and read state. Do not perform a rename-only code or schema migration.
 
 Do not call a page context a project, channel, ticket, deal, job, or customer: the underlying website may represent any of those. Workspace, App, Team, and Channel are not interchangeable.
 
@@ -53,7 +53,7 @@ The MVP product direction includes:
 - one private organization per user, authoritative organization memberships, no organization switching, and the existing single default workspace;
 - organization members and the existing optional organization-owned team foundation;
 - conservative page-context identification using approved URL rules and limited display metadata;
-- page-first chats, source-page return links, and optional manual cross-app linking into one shared page chat;
+- durable named work Chats available directly in SideWire, source-page return links, and optional manual linking of pages from one or several apps into the same Chat;
 - Apps as a browsing/filtering aid, not separate workspaces per domain;
 - near-real-time durable messaging with clear failure recovery;
 - Activity, chat discovery, and one read position per member and chat across all linked pages;
@@ -71,9 +71,9 @@ The extension must not silently read or copy page bodies, form values, private m
 
 The universal baseline is a safe page identity and return link, not native synchronization. A source label means a SideWire message was posted while viewing or selecting that page context; it does not mean a message was imported from the external app. SideWire permissions do not automatically mirror external-app permissions.
 
-Linking distinct contexts to one chat is not URL normalization, a context merge, or a chat-history merge. A related reference can simply be posted as a link without sharing all discussion. Do not introduce automatic matching by customer name or page title, mandatory channels per project, a SideWire Project model, page-to-many-chat selection, or administrator-selectable page/channel/hybrid modes.
+Linking distinct contexts to one Chat is not URL normalization, a context merge, or a chat-history merge. A related reference can simply be posted as a link without sharing all discussion. Do not introduce automatic matching by customer name or page title, automatic Chat creation for every visited external record, a SideWire Project model, page-to-many-chat selection, or administrator-selectable product modes.
 
-Custom channels, merging nonempty chats, history splitting, and automatic cross-app matching are outside the MVP.
+Slack-style channel membership and visibility, merging nonempty Chats, history splitting, and automatic cross-app matching are outside the MVP. Named organization-wide work Chats linked to pages are part of the approved direction; they do not imply private channels or per-Chat membership.
 
 ## Open product decisions
 

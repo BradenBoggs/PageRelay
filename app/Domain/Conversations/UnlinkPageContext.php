@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Removes only the current association and never mutates chat history or source provenance.
+ * Explicitly created work Chats remain durable after their last page is removed.
  *
  * @see docs/features/page-conversations.md
  */
@@ -59,6 +60,7 @@ class UnlinkPageContext
             Conversation::query()
                 ->where('organization_id', $organization->id)
                 ->whereKey($oldConversationId)
+                ->whereNull('creation_key')
                 ->whereDoesntHave('pageContexts')
                 ->whereDoesntHave('messages')
                 ->update(['retired_at' => now()]);

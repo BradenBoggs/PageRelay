@@ -50,7 +50,7 @@ class ChatIndexTest extends TestCase
             1,
         )->message->conversation;
 
-        Conversation::query()->create([
+        $empty = Conversation::query()->create([
             'organization_id' => $organization->id,
             'workspace_id' => $organization->defaultWorkspace()->firstOrFail()->id,
             'type' => ConversationType::Page,
@@ -73,7 +73,7 @@ class ChatIndexTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('chats/index')
                 ->where('surface', 'chats')
-                ->has('chats.items', 2)
+                ->has('chats.items', 3)
                 ->where('chats.items.0.id', $current->public_id)
                 ->where('chats.items.0.title', 'Current work page')
                 ->where('chats.items.0.message_count', 1)
@@ -84,6 +84,9 @@ class ChatIndexTest extends TestCase
                 ->where('chats.items.1.id', $historical->public_id)
                 ->where('chats.items.1.title', 'Historical chat')
                 ->where('chats.items.1.linked_pages', [])
+                ->where('chats.items.2.id', $empty->public_id)
+                ->where('chats.items.2.message_count', 0)
+                ->where('chats.items.2.latest_message', null)
                 ->where('chats.previousPageUrl', null)
                 ->where('chats.nextPageUrl', null));
     }

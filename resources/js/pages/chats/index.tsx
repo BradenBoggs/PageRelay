@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -70,6 +70,10 @@ export default function ChatsIndex({
     chats: ChatsPage;
 }) {
     const [query, setQuery] = useState(filters.query);
+    const createChat = useForm({
+        title: '',
+        idempotency_key: crypto.randomUUID(),
+    });
     const path = surface === 'activity' ? '/activity' : '/chats';
     const title = surface === 'activity' ? 'Activity' : 'Chats';
 
@@ -91,17 +95,75 @@ export default function ChatsIndex({
         visit({ query: query.trim() });
     }
 
+    function submitChat(event: FormEvent) {
+        event.preventDefault();
+        createChat.post('/chats', {
+            preserveScroll: true,
+        });
+    }
+
     return (
         <>
             <Head title={title} />
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 sm:p-6">
-                <header>
-                    <h1 className="text-2xl font-semibold">{title}</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        {surface === 'activity'
-                            ? 'Catch up on discussions you have opened or participated in.'
-                            : 'Find discussions from work pages across your organization.'}
-                    </p>
+                <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold">{title}</h1>
+                        <p className="text-muted-foreground mt-1 text-sm">
+                            {surface === 'activity'
+                                ? 'Catch up on discussions you have opened or participated in.'
+                                : 'Use your work Chats directly or link them to pages across your apps.'}
+                        </p>
+                    </div>
+                    {surface === 'chats' && (
+                        <form
+                            className="flex w-full gap-2 sm:w-auto"
+                            onSubmit={submitChat}
+                        >
+                            <div className="min-w-0 flex-1 sm:w-64">
+                                <label
+                                    className="sr-only"
+                                    htmlFor="new-chat-title"
+                                >
+                                    Chat name
+                                </label>
+                                <Input
+                                    id="new-chat-title"
+                                    value={createChat.data.title}
+                                    onChange={(event) =>
+                                        createChat.setData(
+                                            'title',
+                                            event.target.value,
+                                        )
+                                    }
+                                    maxLength={255}
+                                    placeholder="Chat name"
+                                    required
+                                    aria-invalid={Boolean(
+                                        createChat.errors.title,
+                                    )}
+                                />
+                                {createChat.errors.title && (
+                                    <p
+                                        className="mt-1 text-sm text-red-600"
+                                        role="alert"
+                                    >
+                                        {createChat.errors.title}
+                                    </p>
+                                )}
+                            </div>
+                            <Button
+                                disabled={
+                                    createChat.processing ||
+                                    !createChat.data.title.trim()
+                                }
+                            >
+                                {createChat.processing
+                                    ? 'Creating…'
+                                    : 'New chat'}
+                            </Button>
+                        </form>
+                    )}
                 </header>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -188,7 +250,7 @@ export default function ChatsIndex({
                             <CardDescription>
                                 {surface === 'activity'
                                     ? 'Open or join a page chat and new activity will appear here.'
-                                    : 'Start a discussion from the SideWire panel on a work page.'}
+                                    : 'Create a named Chat here or from the SideWire panel.'}
                             </CardDescription>
                         </CardHeader>
                     </Card>

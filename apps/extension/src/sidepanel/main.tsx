@@ -1075,7 +1075,7 @@ function SidePanel() {
                                         {initials(chatMessage.author.name)}
                                     </div>
                                     <div
-                                        className={`flex min-w-0 max-w-[82%] flex-col space-y-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
+                                        className={`flex max-w-[82%] min-w-0 flex-col space-y-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
                                     >
                                         <div
                                             className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${isOwnMessage ? 'justify-end' : ''}`}
@@ -1417,7 +1417,7 @@ function SidePanel() {
                                             {initials(chatMessage.author.name)}
                                         </div>
                                         <div
-                                            className={`flex min-w-0 max-w-[82%] flex-col space-y-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
+                                            className={`flex max-w-[82%] min-w-0 flex-col space-y-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
                                         >
                                             <div
                                                 className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${isOwnMessage ? 'justify-end' : ''}`}

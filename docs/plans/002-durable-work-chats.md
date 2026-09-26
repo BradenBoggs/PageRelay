@@ -15,7 +15,8 @@ This milestone delivers channel-like persistence without implementing Slack-styl
 - [x] Backend creation, discovery, direct history, sending, and page-link eligibility implemented.
 - [x] Web Chats creation interface implemented from existing components.
 - [x] Extension Chats creation and in-panel Chat experience implemented from existing primitives.
-- [x] Available focused and repository-level verification recorded; supported-runtime tests and manual Chrome verification remain pending as described below.
+- [x] Available focused and repository-level verification recorded.
+- [x] 2026-09-26: Rebase onto the current application, retain the expanded ignore rules, and pass the supported Sail runtime checks; manual Chrome verification remains pending.
 
 ## Surprises & Discoveries
 
@@ -38,7 +39,7 @@ This milestone delivers channel-like persistence without implementing Slack-styl
 
 The first milestone is implemented. Members can create durable named work Chats on the web or in the extension, empty Chats appear in Chats and manager link pickers, and the extension opens and messages a selected Chat without a page source. Existing This Page creation and manager linking continue to route linked pages into the same underlying history. The implementation reused existing shared web components and the extension Button/native-form patterns; it introduced no UI component API.
 
-Supported-runtime Laravel tests and production builds remain unverified because Docker/Podman was not running and the host provides PHP 8.3.6 and Node 18.19.1 instead of the repository-required PHP 8.4.1 and Node 22.18 or newer. Manual Chrome behavior also remains pending. These are verification gaps, not claimed passes.
+Supported-runtime verification passed through Sail on 2026-09-26 after rebasing the local work onto the current application. Laravel reported 99 passing tests and one PostgreSQL-only test skipped under the default SQLite suite. PHP static analysis, frontend checks, TypeScript checks, and both production builds passed. Manual Chrome behavior and the PostgreSQL-only race check remain unverified for this milestone.
 
 ## Context and Orientation
 
@@ -46,7 +47,7 @@ Permanent product behavior is owned by `docs/PRODUCT.md`, `docs/features/page-co
 
 The shared aggregate is `app/Models/Conversation.php`, discriminated by `app/Enums/ConversationType.php`; page associations are stored by `app/Models/PageContext.php` through `page_contexts.conversation_id`. `app/Domain/Conversations/CreatePageChat.php` creates a context and Chat together, `LinkPageContext.php` links another context, `SendPageMessage.php` sends either with a validated source context or directly to a conversation, and `ConversationDiscovery.php` supplies Chats and Activity.
 
-Web entry points are `app/Http/Controllers/ChatController.php`, `routes/web.php`, `resources/js/pages/chats/index.tsx`, and `resources/js/pages/chats/show.tsx`. Extension entry points are `routes/api.php`, controllers under `app/Http/Controllers/Api/V1/`, `apps/extension/src/page-chat/api.ts`, and `apps/extension/src/sidepanel/main.tsx`. Existing tests are under `tests/Feature/Conversations/` and `tests/Feature/Activity/`.
+Web entry points are `app/Http/Controllers/ChatController.php`, `routes/web.php`, `resources/js/pages/chats/index.tsx`, and `resources/js/pages/chats/show.tsx`. Extension entry points are `routes/api.php`, controllers under `app/Http/Controllers/Api/V1/`, `apps/extension/src/page-chat/api.ts`, and `apps/extension/src/sidepanel/main.tsx`. Existing tests are under `tests/Feature/Conversations/` and `tests/Feature/Activity/`. `tests/Feature/PageContexts/PageContextResolutionTest.php` covers the ephemeral descriptor and normalized source URL used by the existing page workflow.
 
 ## Plan of Work
 
@@ -59,6 +60,8 @@ Update `ConversationDiscovery` so Chats includes non-retired work Chats even whe
 Update `resources/js/pages/chats/index.tsx` to create a named Chat using existing web components. Update `apps/extension/src/page-chat/api.ts` and `apps/extension/src/sidepanel/main.tsx` so members can create, open, read, and send in a work Chat from the Chats view, then return to Chats or This Page. Reuse the current page-link dialog to attach the current page.
 
 Changed paths are `docs/PRODUCT.md`, `docs/UI.md`, `docs/features/page-contexts.md`, `docs/features/page-conversations.md`, `docs/features/team-conversations.md`, `docs/features/inbox-and-unread.md`, `docs/features/browser-extension.md`, `PLANS.md`, this plan, `database/migrations/2026_09_05_150000_add_creation_key_to_conversations.php`, `app/Domain/Conversations/CreateWorkChat.php`, `app/Domain/Conversations/LinkPageContext.php`, `app/Domain/Conversations/UnlinkPageContext.php`, `app/Domain/Activity/ConversationDiscovery.php`, `app/Http/Requests/CreateWorkChatRequest.php`, `app/Http/Controllers/ChatController.php`, `app/Http/Controllers/Api/V1/WorkChatController.php`, `app/Http/Controllers/Api/V1/PageConversationController.php`, `app/Models/Conversation.php`, `routes/web.php`, `routes/api.php`, `resources/js/pages/chats/index.tsx`, `apps/extension/src/page-chat/api.ts`, `apps/extension/src/sidepanel/main.tsx`, `tests/Feature/Conversations/WorkChatTest.php`, and `tests/Feature/Conversations/ChatIndexTest.php`.
+
+The integration follow-up preserves the local API port in `apps/extension/public/manifest.json` and the expanded `.gitignore`. It also sorts existing Tailwind classes in `apps/extension/src/sidepanel/main.tsx` and `resources/js/pages/chats/show.tsx`, and corrects the stale tracking-parameter expectation in `tests/Feature/PageContexts/PageContextResolutionTest.php`; production URL normalization is unchanged.
 
 ## Concrete Steps
 
@@ -105,6 +108,16 @@ The migration is additive. Rolling back may remove only the nullable creation-ke
 - Direct host `php artisan test` could not boot Laravel 13 under PHP 8.3.6 and reported a parser error from the unsupported runtime.
 - `npm run check` and `npm run build` could not run through Vite Plus under Node 18.19.1 because `node:util.styleText` is unavailable; the project requires Node 22.18 or newer. Direct TypeScript and focused formatter/linter checks passed as recorded above.
 - No migration execution or manual Chrome behavior is claimed.
+
+2026-09-26 integration verification:
+
+- Completed the interrupted rebase of local `main` onto `1602fccd`. All 21 add/add conflict versions matched the saved local work; the application merge retained all 431 upstream files and all 28 locally changed files before the verification repairs below. The original commits remain on `backup/main-before-rebase-20260926`.
+- The first full check found two Tailwind class-order formatting issues and one pre-existing test expectation that retained `utm_source` even though the unchanged normalizer removes recognized tracking parameters. Applied formatting only to the two chat views and corrected that assertion.
+- `./vendor/bin/sail composer validate --strict` passed.
+- `./vendor/bin/sail composer test` passed Pint, Larastan with zero errors, and 99 tests with 549 assertions; the PostgreSQL-only race test was the one expected skip under the default SQLite suite.
+- `./vendor/bin/sail npm run foundation:check`, `npm run check`, and `npm run types:check` passed. Formatting covered 116 files and linting covered 78 files without warnings.
+- `./vendor/bin/sail npm run build` built the web application and extension, transforming 2,326 and 25 modules respectively.
+- No manual Chrome or PostgreSQL race-test result is claimed.
 
 Do not include live customer URLs, access links, or credentials in later evidence.
 

@@ -110,7 +110,7 @@ class PageContextResolutionTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.persisted', false)
             ->assertJsonPath('data.id', null)
-            ->assertJsonPath('data.url', 'https://example.com/private/42?utm_source=email')
+            ->assertJsonPath('data.url', 'https://example.com/private/42')
             ->assertJsonPath('data.chat', null);
 
         $this->assertDatabaseCount('page_contexts', 0);

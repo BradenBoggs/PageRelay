@@ -152,7 +152,7 @@ export default function ShowChat({
                                 </Avatar>
 
                                 <div
-                                    className={`flex min-w-0 max-w-[85%] flex-col space-y-1.5 sm:max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}
+                                    className={`flex max-w-[85%] min-w-0 flex-col space-y-1.5 sm:max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}
                                 >
                                     <div
                                         className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 ${isOwnMessage ? 'justify-end' : ''}`}

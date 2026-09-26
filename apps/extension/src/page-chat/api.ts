@@ -1,3 +1,8 @@
+import {
+    selectionFor,
+    type UrlSelection,
+    type UrlMatchDefinition,
+} from '../../../../packages/page-contexts/url-selection';
 import type { ExtensionSession } from '../auth/session';
 
 const appUrl = (
@@ -29,6 +34,8 @@ export type PageChat = {
 };
 
 export type PageContext = Omit<PageSource, 'id'> & {
+    view_url: string;
+    url_match: UrlMatchDefinition | null;
     persisted: boolean;
     id: string | null;
     favicon_url: string | null;
@@ -37,6 +44,9 @@ export type PageContext = Omit<PageSource, 'id'> & {
 };
 
 export type CreatePageChatInput = {
+    matching?: UrlSelection;
+    expectedContextId?: string | null;
+    expectedAssociationVersion?: number | null;
     pageUrl: string;
     pageTitle: string;
     chatName: string;
@@ -119,20 +129,30 @@ export async function createPageChat(
     session: ExtensionSession,
     input: CreatePageChatInput,
 ): Promise<PageContext> {
+    return savePageLink(session, input);
+}
+
+async function savePageLink(
+    session: ExtensionSession,
+    input: CreatePageChatInput,
+    conversationId?: string,
+): Promise<PageContext> {
     const response = await request<ApiResponse<PageContext>>(
         session,
-        '/api/v1/extension/page-chats',
+        '/api/v1/extension/page-links',
         {
             method: 'POST',
             body: JSON.stringify({
-                page_url: input.pageUrl,
-                page_title: input.pageTitle,
+                url: input.pageUrl,
+                title: input.pageTitle,
                 chat_name: input.chatName,
-                favicon_url: input.faviconUrl,
+                conversation_id: conversationId,
+                matching: input.matching ?? { mode: 'exact' },
+                expected_context_id: input.expectedContextId,
+                expected_association_version: input.expectedAssociationVersion,
             }),
         },
     );
-
     return response.data;
 }
 
@@ -193,6 +213,7 @@ export async function sendPageMessage(
     context: PageContext,
     body: string,
     idempotencyKey: string,
+    includeSource = true,
 ): Promise<ChatMessage> {
     if (!context.id || context.association_version === null || !context.chat) {
         throw new PageChatApiError(
@@ -209,6 +230,8 @@ export async function sendPageMessage(
             method: 'POST',
             body: JSON.stringify({
                 body,
+                source_url: context.view_url,
+                include_source: includeSource,
                 idempotency_key: idempotencyKey,
                 expected_association_version: context.association_version,
             }),
@@ -285,37 +308,18 @@ export async function linkPage(
     conversationId: string,
     input?: CreatePageChatInput,
 ): Promise<PageContext> {
-    if (!context.id) {
-        const response = await request<ApiResponse<PageContext>>(
-            session,
-            '/api/v1/extension/page-contexts/chat',
-            {
-                method: 'PUT',
-                body: JSON.stringify({
-                    conversation_id: conversationId,
-                    page_url: input?.pageUrl ?? context.url,
-                    page_title: input?.pageTitle ?? context.title,
-                    favicon_url: input?.faviconUrl ?? context.favicon_url,
-                }),
-            },
-        );
-
-        return response.data;
-    }
-
-    const response = await request<ApiResponse<PageContext>>(
+    return savePageLink(
         session,
-        `/api/v1/extension/page-contexts/${encodeURIComponent(context.id)}/chat`,
-        {
-            method: 'PUT',
-            body: JSON.stringify({
-                conversation_id: conversationId,
-                expected_association_version: context.association_version,
-            }),
+        input ?? {
+            pageUrl: context.url,
+            pageTitle: context.title,
+            chatName: context.chat?.title ?? context.title,
+            matching: selectionFor(context.url_match),
+            expectedContextId: context.id,
+            expectedAssociationVersion: context.association_version,
         },
+        conversationId,
     );
-
-    return response.data;
 }
 
 export async function unlinkPage(
@@ -374,10 +378,13 @@ async function request<T>(
         const payload = (await response.json().catch(() => ({}))) as {
             message?: string;
             reason?: string;
+            errors?: Record<string, string[]>;
         };
 
         throw new PageChatApiError(
-            payload.message ??
+            (payload.errors
+                ? Object.values(payload.errors).flat().join(' ')
+                : payload.message) ??
                 `SideWire request failed (HTTP ${response.status}).`,
             response.status,
             payload.reason,

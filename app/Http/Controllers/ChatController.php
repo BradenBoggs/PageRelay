@@ -82,7 +82,7 @@ class ChatController extends Controller
                     'source' => $message->sourcePageContext ? [
                         'title' => $message->sourcePageContext->title,
                         'host' => $message->sourcePageContext->source_host,
-                        'url' => $message->sourcePageContext->source_url,
+                        'url' => $message->source_url ?? $message->sourcePageContext->source_url,
                     ] : null,
                 ]),
             ],

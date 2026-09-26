@@ -60,7 +60,7 @@ Deep links open the relevant authorized chat or message and preserve a source co
 
 Use full pages for primary destinations and substantial forms, dialogs for short decisions or confirmations, sheets for contextual inspection, and popovers/dropdowns for lightweight controls. Creating a work Chat is a short named action that may use an inline form in Chats; linking the current page remains a focused dialog.
 
-The page-linking dialog follows `docs/features/page-conversations.md`. It distinguishes sharing an entire chat from posting a related link and explains when an existing nonempty history prevents linking. Do not use the ambiguous term unused page. Unlink confirmation explains that existing messages remain in the shared chat.
+The page-linking dialog follows `docs/features/page-conversations.md`. Its shared segmented URL selector lives in `packages/page-contexts/`; scope selection, preview/commit behavior, query chips, and broad-scope confirmation are owned by `docs/features/page-contexts.md`. Reuse it on both client surfaces. It distinguishes sharing an entire chat from posting a related link and explains when an existing nonempty history prevents linking. Do not use the ambiguous term unused page. Unlink confirmation explains that existing messages remain in the shared chat.
 
 Show linking controls only to eligible roles. Do not expose inaccessible chat titles or previews through the picker. Provide a reload/retry path for stale links without silently choosing another chat.
 

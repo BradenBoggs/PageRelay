@@ -24,7 +24,7 @@ class MessageResource extends JsonResource
                 'id' => $this->sourcePageContext->public_id,
                 'title' => $this->sourcePageContext->title,
                 'host' => $this->sourcePageContext->source_host,
-                'url' => $this->sourcePageContext->source_url,
+                'url' => $this->source_url ?? $this->sourcePageContext->source_url,
             ] : null,
         ];
     }

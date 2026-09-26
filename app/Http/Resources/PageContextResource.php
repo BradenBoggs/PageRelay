@@ -9,6 +9,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin PageContext */
 class PageContextResource extends JsonResource
 {
+    public function __construct(PageContext $resource, private ?string $viewUrl = null)
+    {
+        parent::__construct($resource);
+    }
+
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
@@ -18,6 +23,8 @@ class PageContextResource extends JsonResource
             'title' => $this->title,
             'host' => $this->source_host,
             'url' => $this->source_url,
+            'view_url' => $this->viewUrl ?? $this->source_url,
+            'url_match' => $this->url_match,
             'favicon_url' => $this->favicon_url,
             'association_version' => $this->association_version,
             'chat' => $this->whenLoaded(

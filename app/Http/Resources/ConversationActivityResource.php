@@ -38,7 +38,7 @@ class ConversationActivityResource extends JsonResource
                     'id' => $latestMessage->sourcePageContext->public_id,
                     'title' => $latestMessage->sourcePageContext->title,
                     'host' => $latestMessage->sourcePageContext->source_host,
-                    'url' => $latestMessage->sourcePageContext->source_url,
+                    'url' => $latestMessage->source_url ?? $latestMessage->sourcePageContext->source_url,
                 ] : null,
             ] : null,
         ];

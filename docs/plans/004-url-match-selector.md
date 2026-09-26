@@ -10,9 +10,9 @@ Approval: the user explicitly requested planning, documentation, and implementat
 
 - [x] Inspect current main at `f7c7212ae12f1453daea5df7b26d11f0e503b02b`, contributor rules, specifications, resolver, transactional create/link/send boundaries, and extension client.
 - [x] Record the approved scope and safety boundaries before application changes.
-- [ ] Implement and document versioned per-context URL matching and conflict checks.
-- [ ] Integrate the shared segmented selector with extension create/link and web Link Page.
-- [ ] Preserve a message's precise safe view URL and freeze draft attribution.
+- [x] Implement and document versioned per-context URL matching and conflict checks.
+- [x] Integrate the shared segmented selector with extension create/link and web Link Page.
+- [x] Preserve a message's precise safe view URL and freeze draft attribution.
 - [ ] Run supported-runtime tests, type checks, builds, and browser interaction checks; record actual results.
 - [ ] Review the final diff and publish the implementation for review.
 
@@ -37,7 +37,7 @@ The local container cannot resolve GitHub for a git clone. Use the authorized Gi
 
 ## Outcomes & Retrospective
 
-Implementation and verification are in progress. No deployment or completed test result is claimed here.
+Implementation is present on the working branch. Local PHP syntax checks and three Node URL-selection tests passed. Supported-runtime integration, type, build, and browser checks are pending; no deployment is claimed.
 
 ## Context and Orientation
 
@@ -54,11 +54,11 @@ Existing tests cover read-only resolution, tenant isolation, unsafe URLs, nonemp
 3. Validate and snapshot the precise safe view URL on new This Page messages. Preserve that source and the intended association in in-memory drafts; direct web/Chats sends remain unattributed.
 4. Add focused domain, API, concurrency, and browser coverage; update the owning specs and implementation maps; record verification in this plan.
 
-Expected changed directories: `app/Domain/PageContexts/`, `app/Domain/Conversations/`, `app/Http/`, `app/Models/`, `database/migrations/`, shared React selector code, `resources/js/components/chats/`, `apps/extension/src/`, `routes/`, and focused tests. Actual paths will be recorded as implemented.
+Expected changed directories: `app/Domain/PageContexts/`, `app/Domain/Conversations/`, `app/Http/`, `app/Models/`, `database/migrations/`, shared React selector code, `resources/js/components/chats/`, `apps/extension/src/`, `routes/`, and focused tests. Implemented additions: `PageUrlMatch.php`, `SavePageLink.php`, `PageLinkController.php`, `SavePageLinkRequest.php`, migration `2026_09_26_160000_add_page_url_matching.php`, shared `packages/page-contexts/`, web `link-page-dialog.tsx`, `UrlMatchingTest.php`, `PostgresUrlMatchingConcurrencyTest.php`, `tests/frontend/url-selection.test.mjs`, and `tests/browser/url-selector.cjs`. Existing resolver/create/source resources and both interface adapters consume these boundaries.
 
 ## Concrete Steps
 
-Run in the repository's supported PHP 8.4 / Node 24 environment: `composer install`, `npm ci`, `php artisan wayfinder:generate --with-form`, `composer lint:check`, `composer types:check`, `npm run foundation:check`, `npm run check`, `npm run types:check`, `npm run build`, and `php artisan test`. Add focused test commands and browser evidence when their files exist. Use a disposable test database, never production data.
+Run in the repository's supported PHP 8.4 / Node 24 environment: `composer install`, `npm ci`, `php artisan wayfinder:generate --with-form`, `composer lint:check`, `composer types:check`, `npm run foundation:check`, `npm run check`, `npm run types:check`, `npm run build`, and `php artisan test`. Focused checks: `php artisan test --filter=UrlMatching`, `node --experimental-strip-types --test tests/frontend/url-selection.test.mjs`, and `NODE_PATH=/tmp/url-selector-browser/node_modules node tests/browser/url-selector.cjs` after preparing a disposable authenticated fixture. PostgreSQL concurrency tests require a PostgreSQL test database and migrated schema; SQLite runs explicitly skip row-lock tests. The browser fixture uses the real built extension with mocked Chrome metadata, not a live CRM. Use a disposable test database, never production data.
 
 ## Validation and Acceptance
 

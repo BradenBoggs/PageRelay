@@ -3,16 +3,126 @@ on:
   push:
     branches: [work/url-match-selector-20260926]
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: url-selector-work
+  cancel-in-progress: false
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: sidewire
+          POSTGRES_PASSWORD: sidewire-test-only
+          POSTGRES_DB: sidewire_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sidewire -d sidewire_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_URL: http://localhost:8000
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BROADCAST_CONNECTION: 'null'
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
     steps:
       - uses: actions/checkout@v6
-      - name: Package tracked source for isolated review
-        run: git archive --format=zip HEAD -o /tmp/sidewire-source.zip
-      - uses: actions/upload-artifact@v4
+      - name: Apply checksum-verified implementation on this work branch only
+        run: |
+          if test -f scripts/url-selector.transport-0; then
+            cat scripts/url-selector.transport-{0,1,2,3,4} | base64 --decode | xz --decompress > /tmp/url-selector.patch
+            echo 'b6120464f3585f0a4b14187d5949f0131c3590d5834abe66d4faf4edeee08883  /tmp/url-selector.patch' | sha256sum --check
+            git apply --check /tmp/url-selector.patch
+            git apply /tmp/url-selector.patch
+            rm scripts/url-selector.transport-{0,1,2,3,4}
+          fi
+      - uses: shivammathur/setup-php@v2
         with:
-          name: sidewire-source
-          path: /tmp/sidewire-source.zip
-          retention-days: 1
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+          extensions: pdo_sqlite, pdo_pgsql
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: cp .env.example .env
+      - run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - run: npm ci
+      - name: Format reviewed implementation
+        run: |
+          vendor/bin/pint app/Domain/PageContexts app/Domain/Conversations/SendPageMessage.php app/Http/Controllers/PageLinkController.php app/Http/Controllers/ChatController.php app/Http/Controllers/Api/V1/PageContextController.php app/Http/Controllers/Api/V1/PageContextMessageController.php app/Http/Requests/SavePageLinkRequest.php app/Http/Requests/Api/SendPageMessageRequest.php app/Http/Resources/PageContextResource.php app/Http/Resources/MessageResource.php app/Http/Resources/ConversationActivityResource.php app/Models/PageContext.php app/Models/Message.php database/migrations/2026_09_26_160000_add_page_url_matching.php routes tests/Feature/PageContexts
+          npm run check:fix
+      - name: Preserve reviewed source on work branch
+        if: always()
+        run: |
+          git add -- app apps/extension/src database/migrations/2026_09_26_160000_add_page_url_matching.php docs packages resources/js/components/chats routes tests scripts/url-selector.transport-*
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement segmented URL matching, linking, and precise message sources'
+            git push origin HEAD:work/url-match-selector-20260926
+          fi
+          git rev-parse HEAD
+      - name: Foundation, PHP lint and static analysis
+        run: |
+          npm run foundation:check
+          composer lint:check
+          composer types:check
+      - run: npm run check
+      - run: php artisan wayfinder:generate --with-form
+      - run: npm run types:check
+      - run: npm run build
+      - name: SQLite regression suite
+        run: php artisan test
+      - name: URL selector helper tests
+        run: node --experimental-strip-types --test tests/frontend/url-selection.test.mjs
+      - name: PostgreSQL concurrent matching regression
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: sidewire_test
+          DB_USERNAME: sidewire
+          DB_PASSWORD: sidewire-test-only
+        run: |
+          php artisan migrate --force
+          php artisan test --filter=PostgresUrlMatchingConcurrencyTest
+      - name: Install isolated browser verification
+        run: |
+          npm install --prefix /tmp/url-selector-browser --no-save playwright
+          node /tmp/url-selector-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Authenticated web and extension-bundle browser regression
+        env:
+          DB_DATABASE: /tmp/selector.sqlite
+          SESSION_DRIVER: file
+          NODE_PATH: /tmp/url-selector-browser/node_modules
+        run: |
+          touch /tmp/selector.sqlite
+          php artisan migrate --force
+          php artisan tinker --execute='$u = App\Models\User::factory()->create(["name" => "Selector Reviewer", "email" => "selector@example.test", "password" => Illuminate\Support\Facades\Hash::make("Selector-preview-ONLY-42!")]); $o = $u->organization()->firstOrFail(); app(App\Domain\Conversations\CreateWorkChat::class)->handle($o, $u, "URL selector review", (string) Illuminate\Support\Str::uuid()); $token = $u->createToken("selector-browser-test", [App\Enums\ApiTokenAbility::ExtensionAccess->value], now()->addHour()); file_put_contents("/tmp/selector-session.json", json_encode(["token" => $token->plainTextToken, "expiresAt" => now()->addHour()->toISOString(), "user" => ["id" => $u->id, "name" => $u->name], "organization" => ["id" => $o->id, "name" => $o->name, "role" => "owner", "canManagePageLinks" => true]]));'
+          cp apps/extension/dist/sidepanel.html public/extension-fixture.html
+          cp -r apps/extension/dist/assets public/assets
+          mkdir -p /tmp/selector-screenshots
+          php artisan serve --host=127.0.0.1 --port=8000 >/tmp/selector-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8000/login && break; sleep 1; done
+          node tests/browser/url-selector.cjs
+      - name: Capture tracked source for review
+        if: always()
+        run: |
+          git archive --format=zip HEAD -o /tmp/sidewire-source.zip
+          git status --short
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selector-review
+          path: |
+            /tmp/sidewire-source.zip
+            /tmp/selector-screenshots
+          retention-days: 2

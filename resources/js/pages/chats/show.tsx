@@ -64,7 +64,7 @@ function ChatView({
     useEffect(() => {
         if (followLatest.current && history.current)
             history.current.scrollTop = history.current.scrollHeight;
-    }, [chat.messages.length]);
+    }, [lastMessageId]);
 
     useEffect(() => {
         const hash = url.split('#')[1] || window.location.hash.slice(1);

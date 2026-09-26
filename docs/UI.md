@@ -50,6 +50,8 @@ Do not overlay SideWire UI into the host page during the MVP.
 
 ## Web-application shell
 
+The authenticated web shell is implemented through `resources/js/layouts/app-layout.tsx`. Its region, responsive-layout, token, and reference rules are owned by `docs/features/application-shell.md`; the September 26 reference is indexed in `docs/references/application-shell/README.md`. Compose new web features into this frame rather than copying its header and navigation. The browser extension keeps its separate narrow shell.
+
 Use the web application for authentication, onboarding, organization administration, Activity, Chats/search, billing, and workflows needing more width. Use the same server chat and read state as the extension.
 
 Deep links open the relevant authorized chat or message and preserve a source context when supplied. They must not depend on a page remaining linked forever. A web message without an explicitly selected source has no inferred external-page attribution.

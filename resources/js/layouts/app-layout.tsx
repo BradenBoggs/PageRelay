@@ -88,7 +88,18 @@ export default function AppLayout({
                     </main>
                 </div>
                 <Sheet open={navigationOpen} onOpenChange={setNavigationOpen}>
-                    <SheetContent side="left" className="sw-nav-sheet">
+                    <SheetContent
+                        side="left"
+                        className="sw-nav-sheet"
+                        onCloseAutoFocus={(event) => {
+                            event.preventDefault();
+                            document
+                                .querySelector<HTMLButtonElement>(
+                                    '.sw-menu-toggle',
+                                )
+                                ?.focus();
+                        }}
+                    >
                         <SheetHeader>
                             <SheetTitle>SideWire</SheetTitle>
                             <SheetDescription>

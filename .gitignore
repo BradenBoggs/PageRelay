@@ -1,31 +1,60 @@
-/.phpunit.cache
-/bootstrap/ssr
-/apps/extension/dist
-/node_modules
-/public/build
-/public/fonts-manifest.dev.json
+# Dependencies and build output
+node_modules/
+/vendor/
+dist/
+build/
+/bootstrap/ssr/
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
-/resources/js/actions
-/resources/js/routes
-/resources/js/wayfinder
-/vendor
-.DS_Store
+/public/fonts-manifest.dev.json
+*.tsbuildinfo
+
+# Generated Laravel Wayfinder files
+/resources/js/actions/
+/resources/js/routes/
+/resources/js/wayfinder/
+
+# Local environment and credentials
 .env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
+.env.*
+!.env.example
+!.env.*.example
+/auth.json
+/storage/*.key
 Homestead.json
 Homestead.yaml
-npm-debug.log
-yarn-error.log
-/auth.json
-/.fleet
-/.idea
-/.nova
+
+# Laravel runtime files; retain directory placeholder rules
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/**
+!/storage/**/
+!/storage/**/.gitignore
+
+# Test and tool caches
+.phpunit.cache/
+.phpunit.result.cache
+.phpactor.json
+.vite/
+/coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and operating-system files
+/.fleet/
+/.idea/
+/.nova/
+/.zed/
 /.vscode/*
 !/.vscode/mcp.json
-/.zed
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo

@@ -12,7 +12,7 @@ jobs:
       contents: write
     env:
       APP_ENV: testing
-      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
       BROADCAST_CONNECTION: 'null'
       CACHE_STORE: array
       DB_CONNECTION: sqlite
@@ -35,20 +35,140 @@ jobs:
           cache: npm
       - run: composer install --no-interaction --prefer-dist --optimize-autoloader
       - run: npm ci
+      - name: Apply reviewed shell integration corrections
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('resources/js/pages/chats/show.tsx')
+          s = p.read_text().replace('}, [chat.messages.length]);', '}, [lastMessageId]);')
+          p.write_text(s)
+          p = Path('resources/js/layouts/app-layout.tsx')
+          s = p.read_text()
+          if 'onCloseAutoFocus' not in s:
+              s = s.replace('className="sw-nav-sheet"', '''className="sw-nav-sheet"
+                                  onCloseAutoFocus={(event) => {
+                                      event.preventDefault();
+                                      document.querySelector<HTMLButtonElement>('.sw-menu-toggle')?.focus();
+                                  }}''')
+          p.write_text(s)
+          p = Path('docs/UI.md')
+          s = p.read_text()
+          if 'docs/features/application-shell.md' not in s:
+              s = s.replace('## Web-application shell\n\n', '## Web-application shell\n\nThe authenticated web shell is implemented through `resources/js/layouts/app-layout.tsx`. Its region, responsive-layout, token, and reference rules are owned by `docs/features/application-shell.md`; the September 26 reference is indexed in `docs/references/application-shell/README.md`. Compose new web features into this frame rather than copying its header and navigation. The browser extension keeps its separate narrow shell.\n\n')
+          p.write_text(s)
+          p = Path('.github/workflows/ci.yml')
+          s = p.read_text().replace('base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=', 'base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=')
+          if 'wayfinder:generate' not in s:
+              s = s.replace('      - name: Check frontend types', '      - name: Generate typed routes\n        run: php artisan wayfinder:generate --with-form\n\n      - name: Check frontend types')
+          p.write_text(s)
+          PY
       - name: Format scoped implementation
         run: |
           vendor/bin/pint app/Http/Controllers/ChatController.php tests/Feature/Conversations/ApplicationShellTest.php
           npm run check:fix
-      - name: Preserve formatter output on the temporary work branch
+      - name: Preserve reviewed and formatted output on the temporary work branch
         if: always()
         run: |
-          git add -- app/Http/Controllers/ChatController.php tests/Feature/Conversations/ApplicationShellTest.php resources/css/application-shell.css resources/js/components/application-shell resources/js/components/chats resources/js/layouts/app-layout.tsx resources/js/lib/chat-navigation.ts resources/js/types/chat.ts resources/js/pages/chats docs/features/application-shell.md docs/references/application-shell docs/plans/003-application-shell.md
+          git add -- .github/workflows/ci.yml app/Http/Controllers/ChatController.php tests/Feature/Conversations/ApplicationShellTest.php resources/css/application-shell.css resources/js/components/application-shell resources/js/components/chats resources/js/layouts/app-layout.tsx resources/js/lib/chat-navigation.ts resources/js/types/chat.ts resources/js/pages/chats docs/UI.md docs/features/application-shell.md docs/references/application-shell docs/plans/003-application-shell.md
           if ! git diff --cached --quiet; then
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m '[skip ci] chore: format application shell'
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m '[skip ci] fix: finalize shell integration and CI prerequisites'
             git push origin HEAD:work/application-shell-20260926
           fi
       - run: npm run foundation:check
       - run: composer lint:check && composer types:check
-      - run: npm run check && npm run types:check
+      - run: npm run check
+      - run: php artisan wayfinder:generate --with-form
+      - run: npm run types:check
       - run: npm run build
       - run: php artisan test
+      - name: Install isolated browser verification tools
+        run: |
+          npm install --prefix /tmp/shell-browser --no-save playwright
+          node /tmp/shell-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Authenticated Chromium smoke checks
+        env:
+          DB_DATABASE: /tmp/sidewire-shell.sqlite
+          SESSION_DRIVER: file
+          APP_URL: http://127.0.0.1:8000
+        run: |
+          touch /tmp/sidewire-shell.sqlite
+          php artisan migrate --force
+          php artisan tinker --execute='$u = App\Models\User::factory()->create(["name" => "Shell Reviewer", "email" => "shell@example.test", "password" => Illuminate\Support\Facades\Hash::make("Shell-preview-ONLY-42!")]); $o = $u->organization()->firstOrFail(); foreach (["Office Move", "Website Review"] as $title) { $chat = app(App\Domain\Conversations\CreateWorkChat::class)->handle($o, $u, $title, (string) Illuminate\Support\Str::uuid()); app(App\Domain\Conversations\SendPageMessage::class)->toConversation($o, $u, $chat, "Ready for review.", (string) Illuminate\Support\Str::uuid()); }'
+          php artisan serve --host=127.0.0.1 --port=8000 >/tmp/shell-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
+          mkdir -p /tmp/shell-screenshots
+          cat > /tmp/shell-browser/smoke.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+          (async () => {
+              const browser = await chromium.launch({ headless: true });
+              const page = await browser.newPage({ viewport: { width: 1535, height: 989 } });
+              const errors = [];
+              page.on('pageerror', e => errors.push(e.message));
+              await page.goto('http://127.0.0.1:8000/login');
+              await page.locator('input[name="email"]').fill('shell@example.test');
+              await page.locator('input[name="password"]').fill('Shell-preview-ONLY-42!');
+              await page.locator('form').filter({ has: page.locator('input[name="password"]') }).locator('button[type="submit"]').click();
+              await page.waitForURL('**/dashboard');
+              await page.goto('http://127.0.0.1:8000/chats');
+              await page.locator('.sw-chat-row').filter({ hasText: 'Office Move' }).click();
+              await page.locator('.sw-chat-heading h1').filter({ hasText: 'Office Move' }).waitFor();
+              await page.locator('#chat-body').fill('Draft belongs to Office Move');
+              await page.locator('.sw-chat-row').filter({ hasText: 'Website Review' }).click();
+              assert.equal(await page.locator('#chat-body').inputValue(), '');
+              await page.locator('.sw-chat-row').filter({ hasText: 'Office Move' }).click();
+              assert.equal(await page.locator('#chat-body').inputValue(), 'Draft belongs to Office Move');
+              await page.locator('#chat-body').fill('Browser smoke message');
+              await page.locator('#chat-body').press('Control+Enter');
+              await page.locator('.sw-message-content > p').filter({ hasText: 'Browser smoke message' }).waitFor();
+              assert.equal(await page.locator('#chat-body').inputValue(), '');
+              for (const width of [1535, 900, 390]) {
+                  await page.setViewportSize({ width, height: 989 });
+                  await page.waitForTimeout(150);
+                  const metrics = await page.evaluate(() => ({
+                      viewport: innerWidth,
+                      width: document.documentElement.scrollWidth,
+                      sidebar: getComputedStyle(document.querySelector('.sw-sidebar')).display,
+                      list: getComputedStyle(document.querySelector('.sw-chat-list')).display,
+                      composerBottom: document.querySelector('.sw-composer').getBoundingClientRect().bottom,
+                  }));
+                  assert(metrics.width <= width, JSON.stringify(metrics));
+                  assert(metrics.composerBottom <= 990, JSON.stringify(metrics));
+                  assert.equal(metrics.sidebar === 'none', width < 1100);
+                  assert.equal(metrics.list === 'none', width < 768);
+                  console.log('SHELL_VIEWPORT', width, JSON.stringify(metrics));
+                  await page.screenshot({ path: `/tmp/shell-screenshots/chat-${width}.png`, fullPage: true });
+              }
+              await page.getByRole('link', { name: 'Back to chat list' }).click();
+              await page.locator('.sw-chat-row').first().waitFor();
+              assert.equal(await page.locator('.sw-main').isVisible(), false);
+              await page.getByRole('button', { name: 'Open navigation' }).click();
+              await page.getByRole('dialog').waitFor();
+              await page.keyboard.press('Escape');
+              assert.equal(await page.getByRole('button', { name: 'Open navigation' }).evaluate(e => document.activeElement === e), true);
+              await page.setViewportSize({ width: 1535, height: 989 });
+              await page.getByRole('button', { name: 'Create chat', exact: true }).click();
+              await page.getByRole('textbox', { name: 'Chat name' }).fill('Browser Created Chat');
+              await page.getByRole('dialog').getByRole('button', { name: 'Create chat', exact: true }).click();
+              await page.locator('.sw-chat-heading h1').filter({ hasText: 'Browser Created Chat' }).waitFor();
+              await page.keyboard.press('Control+k');
+              assert.equal(await page.locator('#shell-search').evaluate(e => document.activeElement === e), true);
+              await page.locator('#shell-search').fill('Website');
+              await page.locator('#shell-search').press('Enter');
+              await page.waitForURL('**/chats?query=Website');
+              assert.equal(await page.locator('.sw-chat-row').count(), 1);
+              await page.goto('http://127.0.0.1:8000/settings/profile');
+              await page.locator('.sw-topbar').waitFor();
+              assert.equal(await page.locator('.sw-chat-list').count(), 0);
+              assert.deepEqual(errors, []);
+              console.log('SHELL_SMOKE_PASS: login, detail, scoped draft navigation, keyboard send, desktop/tablet/mobile regions, no horizontal overflow, pinned composer, mobile back, dialog dismissal/focus, create chat, search shortcut/filter, settings shell, zero page errors.');
+              await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          JS
+          node /tmp/shell-browser/smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shell-browser-screenshots
+          path: /tmp/shell-screenshots
+          retention-days: 7

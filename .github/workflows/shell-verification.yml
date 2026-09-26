@@ -1,0 +1,54 @@
+name: Application shell verification
+on:
+  push:
+    branches: [work/application-shell-20260926]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BROADCAST_CONNECTION: 'null'
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - run: npm ci
+      - name: Format scoped implementation
+        run: |
+          vendor/bin/pint app/Http/Controllers/ChatController.php tests/Feature/Conversations/ApplicationShellTest.php
+          npm run check:fix
+      - name: Preserve formatter output on the temporary work branch
+        if: always()
+        run: |
+          git add -- app/Http/Controllers/ChatController.php tests/Feature/Conversations/ApplicationShellTest.php resources/css/application-shell.css resources/js/components/application-shell resources/js/components/chats resources/js/layouts/app-layout.tsx resources/js/lib/chat-navigation.ts resources/js/types/chat.ts resources/js/pages/chats docs/features/application-shell.md docs/references/application-shell docs/plans/003-application-shell.md
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m '[skip ci] chore: format application shell'
+            git push origin HEAD:work/application-shell-20260926
+          fi
+      - run: npm run foundation:check
+      - run: composer lint:check && composer types:check
+      - run: npm run check && npm run types:check
+      - run: npm run build
+      - run: php artisan test

@@ -48,7 +48,7 @@ class ChatController extends Controller
         return redirect()->route('chats.show', $chat);
     }
 
-    public function show(Request $request, string $conversation): Response
+    public function show(Request $request, string $conversation, ConversationDiscovery $discovery): Response
     {
         $chat = $this->scopedChat($request, $conversation)->load([
             'pageContexts' => fn ($query) => $query->orderBy('id'),
@@ -59,8 +59,12 @@ class ChatController extends Controller
         ]);
         $this->authorize('view', $chat);
         $chat->setRelation('messages', $chat->messages->sortBy('id')->values());
+        $validated = $request->validate([
+            'surface' => ['nullable', Rule::in(['chats', 'activity'])],
+        ]);
 
         return Inertia::render('chats/show', [
+            ...$this->discoveryProps($request, $discovery, $validated['surface'] ?? 'chats'),
             'chat' => [
                 'id' => $chat->public_id,
                 'title' => $chat->title,
@@ -148,6 +152,18 @@ class ChatController extends Controller
         ConversationDiscovery $discovery,
         string $surface,
     ): Response {
+        return Inertia::render(
+            $surface === 'activity' ? 'activity/index' : 'chats/index',
+            $this->discoveryProps($request, $discovery, $surface),
+        );
+    }
+
+    /** @return array<string, mixed> */
+    private function discoveryProps(
+        Request $request,
+        ConversationDiscovery $discovery,
+        string $surface,
+    ): array {
         $validated = $request->validate([
             'view' => ['nullable', Rule::in(['all', 'unread'])],
             'query' => ['nullable', 'string', 'max:100'],
@@ -169,7 +185,7 @@ class ChatController extends Controller
             20,
         );
 
-        return Inertia::render($surface === 'activity' ? 'activity/index' : 'chats/index', [
+        return [
             'surface' => $surface,
             'filters' => [
                 'view' => $view,
@@ -181,9 +197,10 @@ class ChatController extends Controller
                 'items' => $chats->getCollection()->map(
                     fn ($chat) => (new ConversationActivityResource($chat))->resolve($request),
                 )->values(),
+                'total' => $chats->total(),
                 'previousPageUrl' => $chats->previousPageUrl(),
                 'nextPageUrl' => $chats->nextPageUrl(),
             ],
-        ]);
+        ];
     }
 }

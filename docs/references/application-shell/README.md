@@ -10,15 +10,15 @@ The source is an application-shell reference, not the earlier marketing-site dra
 
 ## Reference-to-implementation map
 
-| Original region and source lines | Preserve | Adapt |
-| --- | --- | --- |
-| Global header, 38–78 | Compact charcoal header, identity, search, account | Real read-only organization and SideWire search; no switching, fake presence, or inactive bells. |
-| Navigation, 79–195 | Pale full-height column, grouped compact rows | Activity, Chats, Overview, Apps; no per-domain Workspaces or dispatch queues. |
-| Discovery, 196–295 | Dense rows, preview, selected warm border, segmented filters | Authorized data, All/Unread, creation, real totals/pagination; no simulated sync footer. |
-| Chat header, 296–340 | Compact chat identity | Durable Chat title; omit unsupported actions rather than fake them. |
-| Connected strip, 341–362 | Persistent external-page entry points | Label Linked pages and show actual hosts; do not imply native integration. |
-| History, 363–449 | Left-aligned author/time/content/source hierarchy | Escaped server messages; no fabricated documents or permissions. |
-| Composer, 450–492 | Pinned writing area, destination, Send | Plain multiline text, keyboard send, real validation/idempotency and session draft recovery. |
+| Original region and source lines | Preserve                                                     | Adapt                                                                                            |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Global header, 38–78             | Compact charcoal header, identity, search, account           | Real read-only organization and SideWire search; no switching, fake presence, or inactive bells. |
+| Navigation, 79–195               | Pale full-height column, grouped compact rows                | Activity, Chats, Overview, Apps; no per-domain Workspaces or dispatch queues.                    |
+| Discovery, 196–295               | Dense rows, preview, selected warm border, segmented filters | Authorized data, All/Unread, creation, real totals/pagination; no simulated sync footer.         |
+| Chat header, 296–340             | Compact chat identity                                        | Durable Chat title; omit unsupported actions rather than fake them.                              |
+| Connected strip, 341–362         | Persistent external-page entry points                        | Label Linked pages and show actual hosts; do not imply native integration.                       |
+| History, 363–449                 | Left-aligned author/time/content/source hierarchy            | Escaped server messages; no fabricated documents or permissions.                                 |
+| Composer, 450–492                | Pinned writing area, destination, Send                       | Plain multiline text, keyboard send, real validation/idempotency and session draft recovery.     |
 
 The source uses a 48px header, 240px navigation, 320px list, charcoal `#1c1e21`, pale `#f9f9fb`, `#e2e4e8` borders, and `#c85a32` accent. The implementation names semantic tokens and uses a darker `#b64d29` action fill for stronger white-text contrast. It does not copy Google font imports, Material Symbols, externally hosted avatars, global `select-none`, or the Tailwind runtime script.
 

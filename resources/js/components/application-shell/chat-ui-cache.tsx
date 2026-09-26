@@ -11,7 +11,11 @@ export function ChatUiCache({ children }: { children: ReactNode }) {
         drafts: new Map(),
         scroll: new Map(),
     }));
-    return <ChatUiContext.Provider value={cache}>{children}</ChatUiContext.Provider>;
+    return (
+        <ChatUiContext.Provider value={cache}>
+            {children}
+        </ChatUiContext.Provider>
+    );
 }
 
 export function useChatUiCache(): Cache {

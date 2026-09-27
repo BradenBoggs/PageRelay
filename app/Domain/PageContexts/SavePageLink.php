@@ -80,14 +80,16 @@ class SavePageLink
                 if ($expectedContextId !== $context->public_id || $expectedVersion !== $context->association_version) {
                     throw new PageChatConflict('This page already has a mapping. Review it before changing it.', 'stale_mapping');
                 }
-                if (! $this->matcher->matches($definition, $context->normalized_url, $context->source_url)) {
+                if (! $this->matcher->matches($definition, $resolved->normalizedUrl, $context->source_url)) {
                     throw new PageChatConflict('The scope must still include the original linked page. Start from that link to edit matching.', 'representative_outside_scope');
                 }
             }
-            $others = PageContext::query()->where('organization_id', $organization->id)
-                ->where('workspace_id', $workspace->id)->where('source_host', $resolved->host)
-                ->when($context, fn ($q) => $q->where('id', '!=', $context->id))->get();
-            foreach ($others as $other) {
+            $query = PageContext::query()->where('organization_id', $organization->id)
+                ->where('workspace_id', $workspace->id)->where('source_host', $resolved->host);
+            if ($context !== null) {
+                $query->where('id', '!=', $context->id);
+            }
+            foreach ($query->get() as $other) {
                 if ($this->matcher->overlaps($definition, $resolved->normalizedUrl, $other->url_match, $other->normalized_url)) {
                     throw new PageChatConflict('This selection overlaps another saved page. Choose a more specific scope; chats will not be merged.', 'overlapping_scope');
                 }

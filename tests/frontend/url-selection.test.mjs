@@ -7,7 +7,7 @@ import {
     isBroad,
 } from '../../packages/page-contexts/url-selection.ts';
 
-test('segments path and query in their original order, retaining encoded separators', () => {
+await test('segments path and query in their original order, retaining encoded separators', () => {
     const parts = segmentUrl(
         'https://crm.example/records/a%2Fb/view?tab=notes&id=a%26b&id=2',
     );
@@ -21,7 +21,7 @@ test('segments path and query in their original order, retaining encoded separat
         ],
     );
 });
-test('exact default and broad scope confirmation are conservative', () => {
+await test('exact default and broad scope confirmation are conservative', () => {
     assert.deepEqual(selectionFor(null), { mode: 'exact' });
     const broad = { mode: 'prefix', path_depth: 0, query_keys: [] };
     assert.equal(isBroad(broad), true);
@@ -45,7 +45,7 @@ test('exact default and broad scope confirmation are conservative', () => {
         true,
     );
 });
-test('unsupported routes, credentials and missing selected parameters cannot be saved', () => {
+await test('unsupported routes, credentials and missing selected parameters cannot be saved', () => {
     for (const url of [
         'javascript:alert(1)',
         'https://user:pass@crm.example/records/1',

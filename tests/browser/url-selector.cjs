@@ -42,10 +42,15 @@ const fs = require('node:fs');
         name: 'Use path through /123',
         exact: true,
     });
+    await page.screenshot({
+        path: '/tmp/selector-screenshots/selector-initial.png',
+    });
     await path.hover();
-    await page.locator('.um-preview').waitFor();
+    await page
+        .getByRole('button', { name: 'Use path through /view', exact: true })
+        .and(page.locator('[data-used="false"]'))
+        .waitFor();
     assert.equal(await path.getAttribute('aria-pressed'), 'false');
-    assert.equal(await page.locator('.um-preview').isVisible(), true);
     await path.focus();
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
@@ -60,6 +65,10 @@ const fs = require('node:fs');
         'false',
     );
     await page.getByRole('button', { name: '&id=123', exact: false }).click();
+    await page
+        .locator('.um-chip[aria-pressed="true"]')
+        .filter({ hasText: '&id=123' })
+        .waitFor();
     assert.equal(
         await page
             .getByRole('button', { name: '&id=123', exact: false })
@@ -73,6 +82,10 @@ const fs = require('node:fs');
             exact: true,
         })
         .click();
+    await page
+        .getByRole('dialog')
+        .locator('button[type="submit"]:disabled')
+        .waitFor();
     assert.equal(
         await page
             .getByRole('button', { name: 'Link to chat', exact: true })

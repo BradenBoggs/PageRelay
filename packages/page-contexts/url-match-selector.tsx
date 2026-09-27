@@ -152,12 +152,10 @@ export function UrlMatchSelector({
                 <span>✓ Selected</span>
                 <span>Muted sections are ignored for matching</span>
             </div>
-            {preview !== null && (
-                <p className="um-preview">
-                    Preview through section {preview}. Click or press Enter to
-                    select; nothing is saved yet.
-                </p>
-            )}
+            <p className="um-preview">
+                Hover or focus a path section to preview. Click or press Enter
+                to select; nothing is saved yet.
+            </p>
             <div className="um-summary" role="status" aria-live="polite">
                 <strong>
                     {value.mode === 'exact'

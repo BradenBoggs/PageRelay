@@ -181,7 +181,7 @@ class UrlMatchingTest extends TestCase
     {
         $owner = User::factory()->create();
         $org = $owner->organization()->firstOrFail();
-        $member = User::create(['name' => 'Member', 'email' => 'member@example.test', 'password' => 'password', 'email_verified_at' => now()]);
+        $member = User::forceCreate(['name' => 'Member', 'email' => 'member@example.test', 'password' => 'password', 'email_verified_at' => now()]);
         OrganizationMembership::create(['organization_id' => $org->id, 'user_id' => $member->id, 'role' => OrganizationRole::Member,
             'status' => OrganizationMembershipStatus::Active, 'is_billable' => true, 'joined_at' => now()]);
         $token = $member->createToken('Chrome', [ApiTokenAbility::ExtensionAccess->value], now()->addDay());

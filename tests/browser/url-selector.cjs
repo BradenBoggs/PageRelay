@@ -165,6 +165,10 @@ const fs = require('node:fs');
             'https://crm.example/records/extension/view?tab=files',
         ),
     );
+    await ext
+        .locator('a[href="https://crm.example/records/extension/view?tab=files"]')
+        .first()
+        .waitFor();
     await ext.locator('#message-body').waitFor();
     assert.equal(
         await ext.locator('#message-body').inputValue(),

@@ -43,6 +43,7 @@ const fs = require('node:fs');
         exact: true,
     });
     await path.hover();
+    await page.locator('.um-preview').waitFor();
     assert.equal(await path.getAttribute('aria-pressed'), 'false');
     assert.equal(await page.locator('.um-preview').isVisible(), true);
     await path.focus();
@@ -165,10 +166,7 @@ const fs = require('node:fs');
             'https://crm.example/records/extension/view?tab=files',
         ),
     );
-    await ext
-        .locator('a[href="https://crm.example/records/extension/view?tab=files"]')
-        .first()
-        .waitFor();
+    await ext.locator('a[href$="?tab=files"]').first().waitFor();
     await ext.locator('#message-body').waitFor();
     assert.equal(
         await ext.locator('#message-body').inputValue(),

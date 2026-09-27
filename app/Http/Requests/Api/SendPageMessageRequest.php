@@ -15,6 +15,8 @@ class SendPageMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'source_url' => ['nullable', 'string', 'max:4096'],
+            'include_source' => ['sometimes', 'boolean'],
             'body' => ['required', 'string', 'max:10000', 'regex:/\S/u'],
             'idempotency_key' => ['required', 'uuid'],
             'expected_association_version' => ['required', 'integer', 'min:0'],

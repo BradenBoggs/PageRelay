@@ -32,6 +32,8 @@ class PageContextMessageController extends Controller
             $request->validated('body'),
             $request->validated('idempotency_key'),
             $request->integer('expected_association_version'),
+            $request->validated('source_url'),
+            $request->boolean('include_source', true),
         );
 
         return (new MessageResource($result->message))

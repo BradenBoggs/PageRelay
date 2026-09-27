@@ -1,0 +1,122 @@
+.um-selector {
+    min-width: 0;
+    border: 1px solid var(--border, #dce0e5);
+    border-radius: 8px;
+    padding: 14px;
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.um-selector legend {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 4px;
+}
+.um-selector p,
+.um-selector label {
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 0;
+}
+.um-segments {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.um-chip {
+    min-height: 36px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: left;
+    font:
+        12px/1.5 ui-monospace,
+        monospace;
+    border: 1px solid var(--border, #dce0e5);
+    border-radius: 4px;
+    padding: 6px 8px;
+    background: var(--muted, #f4f5f7);
+    color: var(--muted-foreground, #626872);
+    cursor: pointer;
+}
+.um-chip[data-used='true'] {
+    background: #fbede5;
+    color: #803816;
+    border-color: #d5a48c;
+}
+.um-chip[data-end='true'] {
+    border-bottom: 3px solid #a74825;
+}
+.um-chip:focus-visible,
+.um-reset:focus-visible,
+.um-warning input:focus-visible {
+    outline: 2px solid #a74825;
+    outline-offset: 3px;
+}
+.um-selector:disabled {
+    opacity: 0.65;
+}
+.um-chip:disabled {
+    cursor: default;
+}
+.um-summary {
+    min-width: 0;
+    border-top: 1px solid var(--border, #dce0e5);
+    padding-top: 10px;
+    display: grid;
+    gap: 6px;
+}
+.um-summary strong {
+    font-size: 13px;
+}
+.um-summary code {
+    display: block;
+    font-size: 11px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.um-legend,
+.um-note,
+.um-preview {
+    font-size: 11px;
+    color: var(--muted-foreground, #626872);
+}
+.um-legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.um-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: #fff4d9;
+    color: #654400;
+    border-radius: 4px;
+}
+.um-warning input {
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+.um-reset {
+    align-self: flex-start;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+.um-error {
+    font-size: 12px;
+    color: var(--destructive, #a62626);
+}
+@media (forced-colors: active) {
+    .um-chip[data-used='true'] {
+        border: 2px solid Highlight;
+    }
+    .um-chip[data-end='true'] {
+        outline: 2px solid Highlight;
+    }
+}

@@ -1,0 +1,112 @@
+name: URL selector verification
+
+on:
+  push:
+    branches: [main, work/url-match-selector-20260926]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: url-selector-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: sidewire
+          POSTGRES_PASSWORD: sidewire-test-only
+          POSTGRES_DB: sidewire_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sidewire -d sidewire_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_URL: http://localhost:8000
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BROADCAST_CONNECTION: 'null'
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+          extensions: pdo_sqlite, pdo_pgsql
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: cp .env.example .env && mkdir -p /tmp/selector-results
+      - run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - run: npm ci
+      - name: Foundation, PHP lint and static analysis
+        run: |
+          npm run foundation:check
+          composer lint:check
+          composer types:check 2>&1 | tee /tmp/selector-results/php-types.txt
+      - run: npm run check
+      - run: php artisan wayfinder:generate --with-form
+      - run: npm run types:check 2>&1 | tee /tmp/selector-results/frontend-types.txt
+      - run: npm run build
+      - name: SQLite regression suite
+        run: php artisan test 2>&1 | tee /tmp/selector-results/php-tests.txt
+      - name: URL selector helper tests
+        run: node --experimental-strip-types --test tests/frontend/url-selection.test.mjs 2>&1 | tee /tmp/selector-results/selector-helpers.txt
+      - name: PostgreSQL concurrent matching regression
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: sidewire_test
+          DB_USERNAME: sidewire
+          DB_PASSWORD: sidewire-test-only
+        run: |
+          php artisan migrate --force
+          php artisan test --filter=PostgresUrlMatchingConcurrencyTest 2>&1 | tee /tmp/selector-results/concurrency.txt
+      - name: Install isolated browser verification
+        run: |
+          npm install --prefix /tmp/url-selector-browser --no-save playwright
+          node /tmp/url-selector-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Authenticated web and extension-bundle browser regression
+        env:
+          DB_DATABASE: /tmp/selector.sqlite
+          SESSION_DRIVER: file
+          NODE_PATH: /tmp/url-selector-browser/node_modules
+        run: |
+          touch /tmp/selector.sqlite
+          php artisan migrate --force
+          php artisan tinker --execute='$u = App\Models\User::factory()->create(["name" => "Selector Reviewer", "email" => "selector@example.test", "password" => Illuminate\Support\Facades\Hash::make("Selector-preview-ONLY-42!")]); $o = $u->organization()->firstOrFail(); app(App\Domain\Conversations\CreateWorkChat::class)->handle($o, $u, "URL selector review", (string) Illuminate\Support\Str::uuid()); $token = $u->createToken("selector-browser-test", [App\Enums\ApiTokenAbility::ExtensionAccess->value], now()->addHour()); file_put_contents("/tmp/selector-session.json", json_encode(["token" => $token->plainTextToken, "expiresAt" => now()->addHour()->toISOString(), "user" => ["id" => $u->id, "name" => $u->name], "organization" => ["id" => $o->id, "name" => $o->name, "role" => "owner", "canManagePageLinks" => true]]));'
+          cp apps/extension/dist/sidepanel.html public/extension-fixture.html
+          cp -r apps/extension/dist/assets public/assets
+          mkdir -p /tmp/selector-screenshots
+          php artisan serve --host=127.0.0.1 --port=8000 >/tmp/selector-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8000/login && break; sleep 1; done
+          node tests/browser/url-selector.cjs 2>&1 | tee /tmp/selector-results/browser.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selector-review
+          path: |
+            /tmp/selector-screenshots
+            /tmp/selector-results
+          retention-days: 7

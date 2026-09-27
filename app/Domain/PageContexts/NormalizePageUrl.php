@@ -33,6 +33,9 @@ class NormalizePageUrl
             $this->reject();
         }
 
+        if (str_contains($url, '\\') || preg_match('/%(?![0-9a-f]{2})|%(?:0[0-9a-f]|1[0-9a-f]|7f)/i', $url) === 1) {
+            $this->reject();
+        }
         $parts = parse_url($url);
 
         if ($parts === false
@@ -62,6 +65,12 @@ class NormalizePageUrl
 
         if ($path === '') {
             $path = '/';
+        }
+
+        foreach (explode('/', $path) as $segment) {
+            if (in_array(rawurldecode($segment), ['.', '..'], true) || str_contains(rawurldecode($segment), '\\')) {
+                $this->reject();
+            }
         }
 
         if (preg_match('~/(?:signing|sign)(?:/|$)~i', $path) === 1) {

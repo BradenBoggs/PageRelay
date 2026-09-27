@@ -1,3 +1,8 @@
+import { UrlMatchSelector } from '../../../../packages/page-contexts/url-match-selector';
+import {
+    canSaveSelection,
+    selectionFor,
+} from '../../../../packages/page-contexts/url-selection';
 import { StrictMode, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -36,7 +41,16 @@ type Status =
     | 'unsupported'
     | 'ready'
     | 'error';
-type Draft = { body: string; idempotencyKey: string };
+type Draft = {
+    body: string;
+    idempotencyKey: string;
+    source?: {
+        chatId: string;
+        associationVersion: number;
+        url: string;
+    };
+    includeSource?: boolean;
+};
 type PanelView = 'page' | 'activity' | 'chats' | 'chat';
 type CreateForm = CreatePageChatInput;
 
@@ -51,6 +65,11 @@ function SidePanel() {
     const [createForm, setCreateForm] = useState<CreateForm | null>(null);
     const [drafts, setDrafts] = useState<Record<string, Draft>>({});
     const [linking, setLinking] = useState(false);
+    const [linkTarget, setLinkTarget] = useState<{
+        context: PageContext;
+        form: CreateForm;
+    } | null>(null);
+    const mutationBusy = useRef(false);
     const [unlinking, setUnlinking] = useState(false);
     const [candidates, setCandidates] = useState<PageChat[]>([]);
     const [selectedChat, setSelectedChat] = useState('');
@@ -309,6 +328,10 @@ function SidePanel() {
             return;
         }
         const sequence = ++resolveSequence.current;
+        // A URL change cancels a pending selector, never changes its target.
+        setLinking(false);
+        setUnlinking(false);
+        setLinkTarget(null);
         activeTabKey.current = tabKey;
         setStatus('resolving');
         setMessage(null);
@@ -333,7 +356,11 @@ function SidePanel() {
                 resolved.chat
                     ? null
                     : {
-                          pageUrl: resolved.url,
+                          pageUrl: tab.url,
+                          matching: selectionFor(resolved.url_match),
+                          expectedContextId: resolved.id,
+                          expectedAssociationVersion:
+                              resolved.association_version,
                           pageTitle: resolved.title,
                           chatName: resolved.title,
                           faviconUrl: resolved.favicon_url,
@@ -375,6 +402,11 @@ function SidePanel() {
         setMessage(null);
         try {
             await disconnect();
+            resolveSequence.current += 1;
+            setDrafts({});
+            setLinking(false);
+            setUnlinking(false);
+            setLinkTarget(null);
             setSession(null);
             setContext(null);
             setCreateForm(null);
@@ -394,74 +426,147 @@ function SidePanel() {
             !session ||
             !context?.id ||
             context.association_version === null ||
-            !context.chat
-        ) {
+            !context.chat ||
+            mutationBusy.current
+        )
             return;
-        }
         const contextId = context.id;
         const draft = drafts[contextId];
-        if (!draft?.body.trim() || sending) return;
+        if (!draft?.body.trim() || !draft.source) return;
+        if (
+            draft.source.chatId !== context.chat.id ||
+            draft.source.associationVersion !== context.association_version
+        ) {
+            setMessage(
+                'The page mapping changed. Review the chat and use “Use current page” to confirm your draft’s destination.',
+            );
+            return;
+        }
+        const sequence = resolveSequence.current;
+        mutationBusy.current = true;
         setSending(true);
         setMessage(null);
         try {
             await sendPageMessage(
                 session,
-                context,
+                {
+                    ...context,
+                    association_version: draft.source.associationVersion,
+                    view_url: draft.source.url,
+                },
                 draft.body,
                 draft.idempotencyKey,
+                draft.includeSource ?? true,
             );
-            setContext(await refreshPage(session, contextId));
+            const refreshed = await refreshPage(session, contextId);
+            if (sequence === resolveSequence.current)
+                setContext({ ...refreshed, view_url: context.view_url });
             setDrafts((current) => {
+                if (current[contextId]?.idempotencyKey !== draft.idempotencyKey)
+                    return current;
                 const next = { ...current };
                 delete next[contextId];
                 return next;
             });
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
+            mutationBusy.current = false;
             setSending(false);
         }
     }
 
-    function updateDraft(body: string) {
-        if (!context?.id || !context.chat) return;
+    function updateDraft(
+        body: string,
+        rebind = false,
+        includeSource?: boolean,
+    ) {
+        if (
+            !context?.id ||
+            !context.chat ||
+            context.association_version === null
+        )
+            return;
         const contextId = context.id;
+        const source = {
+            chatId: context.chat.id,
+            associationVersion: context.association_version,
+            url: context.view_url,
+        };
         setDrafts((current) => ({
             ...current,
             [contextId]: {
                 body,
-                idempotencyKey:
-                    current[contextId]?.idempotencyKey ?? crypto.randomUUID(),
+                // Explicitly rebinding a rejected draft is a new send, not a retry.
+                idempotencyKey: rebind
+                    ? crypto.randomUUID()
+                    : (current[contextId]?.idempotencyKey ??
+                      crypto.randomUUID()),
+                source: rebind
+                    ? source
+                    : (current[contextId]?.source ?? source),
+                includeSource:
+                    includeSource ?? current[contextId]?.includeSource ?? true,
             },
         }));
     }
 
     async function handleCreateChat(event: React.FormEvent) {
         event.preventDefault();
-        if (!session || !context || !createForm || creating) return;
+        if (!session || !context || !createForm || mutationBusy.current) return;
+        const sequence = resolveSequence.current;
+        mutationBusy.current = true;
         setCreating(true);
         setMessage(null);
-
         try {
             const created = await createPageChat(session, createForm);
-            setContext(created);
-            setCreateForm(null);
+            if (sequence === resolveSequence.current) {
+                setContext(created);
+                setCreateForm(null);
+            }
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
+            mutationBusy.current = false;
             setCreating(false);
         }
     }
 
     async function openLinking() {
-        if (!session) return;
+        if (!session || !context || mutationBusy.current) return;
+        const sequence = resolveSequence.current;
+        setLinkTarget({
+            context,
+            form: createForm ?? {
+                pageUrl: context.url,
+                pageTitle: context.title,
+                chatName: context.chat?.title ?? context.title,
+                matching: selectionFor(context.url_match),
+                expectedContextId: context.id,
+                expectedAssociationVersion: context.association_version,
+            },
+        });
+        setSelectedChat(context.chat?.id ?? '');
+        setLinkQuery('');
+        setCandidates([]);
         setLinking(true);
         setLinkBusy(true);
         setMessage(null);
         try {
-            setCandidates(await listPageChats(session));
+            const result = await listPageChats(session);
+            if (sequence === resolveSequence.current) {
+                setCandidates(
+                    context.chat &&
+                        !result.some((chat) => chat.id === context.chat!.id)
+                        ? [context.chat, ...result]
+                        : result,
+                );
+            }
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
             setLinkBusy(false);
         }
@@ -470,55 +575,65 @@ function SidePanel() {
     async function searchCandidates(event: React.FormEvent) {
         event.preventDefault();
         if (!session) return;
+        const sequence = resolveSequence.current;
         setLinkBusy(true);
         try {
-            setCandidates(await listPageChats(session, linkQuery));
+            const result = await listPageChats(session, linkQuery);
+            if (sequence === resolveSequence.current) setCandidates(result);
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
             setLinkBusy(false);
         }
     }
 
     async function confirmLink() {
-        if (!session || !context || !selectedChat) return;
+        if (!session || !linkTarget || !selectedChat || mutationBusy.current)
+            return;
+        const sequence = resolveSequence.current;
+        mutationBusy.current = true;
         setLinkBusy(true);
         setMessage(null);
         try {
             const linked = await linkPage(
                 session,
-                context,
+                linkTarget.context,
                 selectedChat,
-                createForm ?? undefined,
+                linkTarget.form,
             );
-            setContext(linked);
-            setCreateForm(null);
-            setLinking(false);
-            setSelectedChat('');
+            if (sequence === resolveSequence.current) {
+                // Re-resolve the active view; never replace its URL with the representative link.
+                await resolveActiveTab(session, true, true);
+                setLinking(false);
+                setSelectedChat('');
+                if (!linked.chat)
+                    setMessage('Link saved. Refresh to open its chat.');
+            }
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
+            mutationBusy.current = false;
             setLinkBusy(false);
         }
     }
 
     async function confirmUnlink() {
-        if (!session || !context?.id) return;
+        if (!session || !context?.id || mutationBusy.current) return;
+        const sequence = resolveSequence.current;
+        mutationBusy.current = true;
         setLinkBusy(true);
         setMessage(null);
         try {
-            const unlinked = await unlinkPage(session, context);
-            setContext(unlinked);
-            setCreateForm({
-                pageUrl: unlinked.url,
-                pageTitle: unlinked.title,
-                chatName: unlinked.title,
-                faviconUrl: unlinked.favicon_url,
-            });
-            setUnlinking(false);
+            await unlinkPage(session, context);
+            if (sequence === resolveSequence.current)
+                await resolveActiveTab(session, true, true);
         } catch (error) {
-            setMessage(errorMessage(error));
+            if (sequence === resolveSequence.current)
+                setMessage(errorMessage(error));
         } finally {
+            mutationBusy.current = false;
             setLinkBusy(false);
         }
     }
@@ -1138,7 +1253,8 @@ function SidePanel() {
                                 onKeyDown={(event) => {
                                     if (
                                         (event.metaKey || event.ctrlKey) &&
-                                        event.key === 'Enter'
+                                        event.key === 'Enter' &&
+                                        !event.nativeEvent.isComposing
                                     )
                                         event.currentTarget.form?.requestSubmit();
                                 }}
@@ -1174,7 +1290,7 @@ function SidePanel() {
                                 </h2>
                                 <a
                                     className="text-muted-foreground block truncate text-xs underline-offset-4 hover:underline"
-                                    href={context.url}
+                                    href={context.view_url}
                                     target="_blank"
                                     rel="noreferrer"
                                 >
@@ -1191,18 +1307,15 @@ function SidePanel() {
                                 >
                                     Refresh
                                 </Button>
-                                {session.organization.canManagePageLinks &&
-                                    (!context.chat ||
-                                        context.chat.messages?.length ===
-                                            0) && (
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={openLinking}
-                                        >
-                                            Link
-                                        </Button>
-                                    )}
+                                {session.organization.canManagePageLinks && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={openLinking}
+                                    >
+                                        {context.chat ? 'Matching' : 'Link'}
+                                    </Button>
+                                )}
                             </div>
                         </div>
                         {context.chat && (
@@ -1337,6 +1450,13 @@ function SidePanel() {
                                                               pageUrl:
                                                                   event.target
                                                                       .value,
+                                                              matching: {
+                                                                  mode: 'exact',
+                                                              },
+                                                              expectedContextId:
+                                                                  null,
+                                                              expectedAssociationVersion:
+                                                                  null,
                                                           }
                                                         : current,
                                                 )
@@ -1346,6 +1466,24 @@ function SidePanel() {
                                             disabled={creating}
                                         />
                                     </div>
+
+                                    <UrlMatchSelector
+                                        key={createForm.pageUrl}
+                                        url={createForm.pageUrl}
+                                        value={
+                                            createForm.matching ?? {
+                                                mode: 'exact',
+                                            }
+                                        }
+                                        disabled={creating}
+                                        onChange={(matching) =>
+                                            setCreateForm((current) =>
+                                                current
+                                                    ? { ...current, matching }
+                                                    : current,
+                                            )
+                                        }
+                                    />
 
                                     <div className="space-y-1.5">
                                         <label
@@ -1382,7 +1520,13 @@ function SidePanel() {
                                             creating ||
                                             !createForm.pageTitle.trim() ||
                                             !createForm.pageUrl.trim() ||
-                                            !createForm.chatName.trim()
+                                            !createForm.chatName.trim() ||
+                                            !canSaveSelection(
+                                                createForm.pageUrl,
+                                                createForm.matching ?? {
+                                                    mode: 'exact',
+                                                },
+                                            )
                                         }
                                     >
                                         {creating ? 'Creating…' : 'Create chat'}
@@ -1494,6 +1638,56 @@ function SidePanel() {
                                         </Button>
                                     </div>
                                 )}
+                                <div className="space-y-1 text-xs">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={
+                                                context.id
+                                                    ? (drafts[context.id]
+                                                          ?.includeSource ??
+                                                      true)
+                                                    : true
+                                            }
+                                            disabled={sending}
+                                            onChange={(event) =>
+                                                updateDraft(
+                                                    currentDraft,
+                                                    false,
+                                                    event.target.checked,
+                                                )
+                                            }
+                                        />
+                                        Include page source
+                                    </label>
+                                    <p className="break-all">
+                                        Source:{' '}
+                                        {context.id
+                                            ? (drafts[context.id]?.source
+                                                  ?.url ?? context.view_url)
+                                            : context.view_url}
+                                    </p>
+                                    {context.id &&
+                                        drafts[context.id]?.source && (
+                                            <button
+                                                type="button"
+                                                className="underline"
+                                                disabled={sending}
+                                                onClick={() =>
+                                                    updateDraft(
+                                                        currentDraft,
+                                                        true,
+                                                    )
+                                                }
+                                            >
+                                                Use current page
+                                            </button>
+                                        )}
+                                    <p className="text-muted-foreground">
+                                        A draft keeps its original page source
+                                        while you browse.
+                                    </p>
+                                </div>
                                 <label
                                     className="sr-only"
                                     htmlFor="message-body"
@@ -1510,7 +1704,8 @@ function SidePanel() {
                                     onKeyDown={(event) => {
                                         if (
                                             (event.metaKey || event.ctrlKey) &&
-                                            event.key === 'Enter'
+                                            event.key === 'Enter' &&
+                                            !event.nativeEvent.isComposing
                                         )
                                             event.currentTarget.form?.requestSubmit();
                                     }}
@@ -1562,6 +1757,33 @@ function SidePanel() {
                                 >
                                     {message}
                                 </p>
+                            )}
+                            {linkTarget && (
+                                <div className="mt-3">
+                                    <UrlMatchSelector
+                                        key={linkTarget.form.pageUrl}
+                                        url={linkTarget.form.pageUrl}
+                                        value={
+                                            linkTarget.form.matching ?? {
+                                                mode: 'exact',
+                                            }
+                                        }
+                                        disabled={linkBusy}
+                                        onChange={(matching) =>
+                                            setLinkTarget((current) =>
+                                                current
+                                                    ? {
+                                                          ...current,
+                                                          form: {
+                                                              ...current.form,
+                                                              matching,
+                                                          },
+                                                      }
+                                                    : current,
+                                            )
+                                        }
+                                    />
+                                </div>
                             )}
                             <form
                                 className="mt-4 flex gap-2"
@@ -1642,7 +1864,17 @@ function SidePanel() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    disabled={!selectedChat || linkBusy}
+                                    disabled={
+                                        !selectedChat ||
+                                        linkBusy ||
+                                        !linkTarget ||
+                                        !canSaveSelection(
+                                            linkTarget.form.pageUrl,
+                                            linkTarget.form.matching ?? {
+                                                mode: 'exact',
+                                            },
+                                        )
+                                    }
                                     onClick={confirmLink}
                                 >
                                     {linkBusy ? 'Linking…' : 'Link page'}

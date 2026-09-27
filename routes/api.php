@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\PageContextMessageController;
 use App\Http\Controllers\Api\V1\PageConversationController;
 use App\Http\Controllers\Api\V1\PageConversationReadController;
 use App\Http\Controllers\Api\V1\WorkChatController;
+use App\Http\Controllers\PageLinkController;
 use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,8 @@ Route::prefix('v1/extension')
         'throttle:extension-api',
     ])
     ->group(function (): void {
+        Route::post('page-links/preview', [PageLinkController::class, 'preview'])->name('api.page-links.preview');
+        Route::post('page-links', [PageLinkController::class, 'store'])->name('api.page-links.store');
         Route::get('session', [ExtensionSessionController::class, 'show'])
             ->name('api.extension.session.show');
         Route::delete('session', [ExtensionSessionController::class, 'destroy'])

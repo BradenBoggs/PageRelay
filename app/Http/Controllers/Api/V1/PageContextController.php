@@ -29,7 +29,7 @@ class PageContextController extends Controller
         );
 
         if ($resolved->context) {
-            return (new PageContextResource($this->loadContext($resolved->context)))
+            return (new PageContextResource($this->loadContext($resolved->context), $resolved->url))
                 ->response();
         }
 
@@ -40,6 +40,8 @@ class PageContextController extends Controller
                 'title' => $resolved->title,
                 'host' => $resolved->host,
                 'url' => $resolved->url,
+                'view_url' => $resolved->url,
+                'url_match' => null,
                 'favicon_url' => $resolved->faviconUrl,
                 'association_version' => null,
                 'chat' => null,

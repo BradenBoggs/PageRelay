@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  * @property int $author_id
  * @property int|null $source_page_context_id
  * @property string $idempotency_key
+ * @property string|null $source_url
  * @property string $body
  * @property Carbon $created_at
  * @property-read Conversation $conversation
@@ -27,7 +28,7 @@ use Illuminate\Support\Str;
  */
 #[Fillable([
     'organization_id', 'workspace_id', 'conversation_id', 'author_id',
-    'source_page_context_id', 'idempotency_key', 'body',
+    'source_page_context_id', 'idempotency_key', 'body', 'source_url',
 ])]
 class Message extends Model
 {

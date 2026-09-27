@@ -3,6 +3,7 @@
 namespace App\Domain\PageContexts;
 
 use App\Data\ResolvedPageContext;
+use App\Exceptions\PageChatConflict;
 use App\Models\Organization;
 use App\Models\OrganizationMembership;
 use App\Models\PageContext;
@@ -16,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  */
 class ResolvePageContext
 {
-    public function __construct(private NormalizePageUrl $normalizer)
+    public function __construct(private NormalizePageUrl $normalizer, private PageUrlMatch $matcher)
     {
         //
     }
@@ -48,6 +49,21 @@ class ResolvePageContext
                 'url' => 'SideWire could not safely resolve this page identity.',
             ]);
         }
+
+        $matches = PageContext::query()
+            ->where('organization_id', $organization->id)->where('workspace_id', $workspace->id)
+            ->where('source_host', $identity->host)->whereNotNull('url_match')->get()
+            ->filter(fn (PageContext $candidate): bool => $this->matcher->matches(
+                $candidate->url_match, $candidate->normalized_url, $identity->sourceUrl,
+            ));
+        if ($context) {
+            $matches->push($context);
+        }
+        $matches = $matches->unique('id');
+        if ($matches->count() > 1) {
+            throw new PageChatConflict('More than one saved page matches this URL. Ask an administrator to review the links.', 'ambiguous_scope');
+        }
+        $context = $matches->first();
 
         return new ResolvedPageContext(
             context: $context,

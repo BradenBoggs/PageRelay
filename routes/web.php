@@ -4,6 +4,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExtensionConnectionController;
 use App\Http\Controllers\Organizations\OrganizationInvitationController;
+use App\Http\Controllers\PageLinkController;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,8 @@ Route::middleware(['auth', 'verified', EnsureOrganizationMembership::class, 'thr
 
 Route::middleware(['auth', 'verified', EnsureOrganizationMembership::class])
     ->group(function (): void {
+        Route::post('page-links/preview', [PageLinkController::class, 'preview'])->middleware(['organization.member:admin', 'throttle:60,1'])->name('page-links.preview');
+        Route::post('page-links', [PageLinkController::class, 'store'])->middleware(['organization.member:admin', 'throttle:30,1'])->name('page-links.store');
         Route::get('activity', [ChatController::class, 'activity'])->name('activity.index');
         Route::get('chats', [ChatController::class, 'index'])->name('chats.index');
         Route::post('chats', [ChatController::class, 'storeChat'])->name('chats.store');

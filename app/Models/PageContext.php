@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
+ * @phpstan-import-type Definition from \App\Domain\PageContexts\PageUrlMatch
+ *
+ * @property Definition|null $url_match
  * @property int $id
  * @property string $public_id
  * @property int $organization_id
@@ -31,12 +34,17 @@ use Illuminate\Support\Str;
 #[Fillable([
     'organization_id', 'workspace_id', 'conversation_id', 'source_url', 'normalized_url',
     'normalized_url_hash', 'normalization_version', 'source_host', 'title', 'favicon_url',
-    'created_by', 'association_version', 'association_reason',
+    'created_by', 'association_version', 'association_reason', 'url_match',
 ])]
 class PageContext extends Model
 {
     /** @use HasFactory<PageContextFactory> */
     use HasFactory;
+
+    protected function casts(): array
+    {
+        return ['url_match' => 'array'];
+    }
 
     protected static function booted(): void
     {

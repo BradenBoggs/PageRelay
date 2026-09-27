@@ -3,6 +3,8 @@
 namespace App\Domain\Conversations;
 
 use App\Data\SentMessage;
+use App\Domain\PageContexts\NormalizePageUrl;
+use App\Domain\PageContexts\PageUrlMatch;
 use App\Enums\ConversationType;
 use App\Events\MessageCreated;
 use App\Exceptions\PageChatConflict;
@@ -24,6 +26,8 @@ use Illuminate\Support\Facades\DB;
  */
 class SendPageMessage
 {
+    public function __construct(private NormalizePageUrl $normalizer, private PageUrlMatch $matcher) {}
+
     public function fromContext(
         Organization $organization,
         User $actor,
@@ -31,6 +35,8 @@ class SendPageMessage
         string $body,
         string $idempotencyKey,
         int $expectedAssociationVersion,
+        ?string $sourceUrl = null,
+        bool $includeSource = true,
     ): SentMessage {
         return DB::transaction(function () use (
             $organization,
@@ -39,6 +45,8 @@ class SendPageMessage
             $body,
             $idempotencyKey,
             $expectedAssociationVersion,
+            $sourceUrl,
+            $includeSource,
         ): SentMessage {
             $this->lockActiveMembership($organization, $actor);
             $retry = $this->retry($organization, $actor, $idempotencyKey);
@@ -80,13 +88,14 @@ class SendPageMessage
                 ->whereNull('retired_at')
                 ->findOrFail($lockedContext->conversation_id);
 
+            $safeSource = $includeSource ? $this->normalizer->handle($sourceUrl ?? $lockedContext->source_url)->sourceUrl : null;
+            if ($safeSource !== null && ! $this->matcher->matches($lockedContext->url_match, $lockedContext->normalized_url, $safeSource)) {
+                throw new PageChatConflict('The message source no longer matches this page. Your draft has not been sent.', 'stale_source');
+            }
+
             return $this->persist(
-                $organization,
-                $actor,
-                $conversation,
-                $lockedContext,
-                $body,
-                $idempotencyKey,
+                $organization, $actor, $conversation, $includeSource ? $lockedContext : null,
+                $body, $idempotencyKey, $safeSource,
             );
         }, 3);
     }
@@ -188,6 +197,7 @@ class SendPageMessage
         ?PageContext $sourceContext,
         string $body,
         string $idempotencyKey,
+        ?string $sourceUrl = null,
     ): SentMessage {
         $message = Message::create([
             'organization_id' => $organization->id,
@@ -195,6 +205,7 @@ class SendPageMessage
             'conversation_id' => $conversation->id,
             'author_id' => $actor->id,
             'source_page_context_id' => $sourceContext?->id,
+            'source_url' => $sourceContext ? ($sourceUrl ?? $sourceContext->source_url) : null,
             'idempotency_key' => $idempotencyKey,
             'body' => trim($body),
         ]);

@@ -89,7 +89,7 @@ Keep extension tokens out of web-page JavaScript and content-script contexts. St
 
 `docs/features/page-conversations.md` owns the chat as the durable message-history aggregate. Multiple distinct contexts may point to one page chat; a context has at most one current primary chat. The chat has its own organization/workspace ownership rather than deriving it from whichever context was linked first.
 
-URL recognition, page-to-chat linking, and history merging are separate operations. Linking must not rewrite identities, copy messages, change the audience, or alter billing. Context aliases, canonical-link reading, context merges, and organization-defined normalization rules remain separate future approvals.
+URL recognition, page-to-chat linking, and history merging are separate operations. Linking must not rewrite identities, copy messages, change the audience, or alter billing. Explicit per-context literal URL scopes are approved by plan 004 and owned by `page-contexts.md`. Context aliases, canonical-link reading, context merges, and reusable organization-wide normalization templates remain separate future approvals.
 
 ## Collaboration delivery
 

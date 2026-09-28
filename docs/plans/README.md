@@ -14,12 +14,12 @@ The four legacy root-level numbered files are short forwarding notes for existin
 
 Reviewed against branch revision `2cbc88eb2ff5d974367de4794d1c68cfbed858c6` on September 27, 2026. Classification is based on recorded evidence, not a fresh application audit. The initial move preserves the four original plan bodies byte-for-byte.
 
-| Plan | Lifecycle for this migration | Recorded reason it remains active |
-| --- | --- | --- |
-| [000 — Trusted foundation](active/000-execplan.md) | Verification pending | Local implementation recorded; the plan still requires a recorded first hosted CI result. |
-| [001 — Page chats and linking](active/001-page-chats-and-linking.md) | Verification pending | Milestone 5 supported-runtime and manual Chrome verification are not established as complete in its record. |
-| [002 — Durable work Chats](active/002-durable-work-chats.md) | Verification pending | Supported Sail checks recorded September 26; manual Chrome and PostgreSQL race verification remain unverified. |
-| [003 — Application shell](active/003-application-shell.md) | Verification pending | Supported-runtime and authenticated-browser/accessibility/failure checks remain unchecked in the plan. |
+| Plan                                                                 | Lifecycle for this migration | Recorded reason it remains active                                                                              |
+| -------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [000 — Trusted foundation](active/000-execplan.md)                   | Verification pending         | Local implementation recorded; the plan still requires a recorded first hosted CI result.                      |
+| [001 — Page chats and linking](active/001-page-chats-and-linking.md) | Verification pending         | Milestone 5 supported-runtime and manual Chrome verification are not established as complete in its record.    |
+| [002 — Durable work Chats](active/002-durable-work-chats.md)         | Verification pending         | Supported Sail checks recorded September 26; manual Chrome and PostgreSQL race verification remain unverified. |
+| [003 — Application shell](active/003-application-shell.md)           | Verification pending         | Supported-runtime and authenticated-browser/accessibility/failure checks remain unchecked in the plan.         |
 
 No plan is being marked complete by this documentation change. See [completed plans](completed/README.md). Later evidence must be tied to its exact revision and scope before updating a row; a later general test run does not silently close every earlier plan.
 

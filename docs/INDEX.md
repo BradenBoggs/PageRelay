@@ -6,22 +6,22 @@ Owner: repository documentation. Reviewed: September 27, 2026. This map governs 
 
 Start at [AGENTS.md](../AGENTS.md), use this map to find the owner, then inspect its current implementation and tests. Do not load the whole documentation tree for an unrelated change. Repository-local specifications and evidence must be sufficient to resume work without past chats or private attachments.
 
-| Need | Authoritative entry point |
-| --- | --- |
-| Local setup and supported commands | [README](../README.md) |
-| Purpose, vocabulary, approved baseline | [PRODUCT](PRODUCT.md) |
-| Stack, system shape, security/privacy and tenant boundaries | [ARCHITECTURE](ARCHITECTURE.md) |
-| Shared visual and interaction rules | [UI](UI.md) |
-| Feature behavior, proposed targets, acceptance, implementation maps | [Feature index](features/README.md), then the owning feature |
-| Product sequence and review scope | [ROADMAP](ROADMAP.md) |
-| Plan lifecycle, approvals, open work, closure | [Plan register and standard](plans/README.md) |
-| Known unrelated findings | [Technical-debt tracker](plans/tech-debt-tracker.md) |
-| Engineering feedback loop and verification | [WORKFLOW](engineering/WORKFLOW.md) |
-| Evidence coverage and remaining verification gaps | [QUALITY](QUALITY.md) |
-| Writing, comments, maps, statuses, maintenance | [DOCUMENTATION](DOCUMENTATION.md) |
-| Reusable document shapes | [Feature template](templates/feature.md), [ExecPlan template](templates/exec-plan.md) |
-| External process reference and local adaptations | [Harness-engineering reference](references/harness-engineering.md) |
-| Existing visual reference | [Application-shell reference](references/application-shell/README.md) |
+| Need                                                                | Authoritative entry point                                                             |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Local setup and supported commands                                  | [README](../README.md)                                                                |
+| Purpose, vocabulary, approved baseline                              | [PRODUCT](PRODUCT.md)                                                                 |
+| Stack, system shape, security/privacy and tenant boundaries         | [ARCHITECTURE](ARCHITECTURE.md)                                                       |
+| Shared visual and interaction rules                                 | [UI](UI.md)                                                                           |
+| Feature behavior, proposed targets, acceptance, implementation maps | [Feature index](features/README.md), then the owning feature                          |
+| Product sequence and review scope                                   | [ROADMAP](ROADMAP.md)                                                                 |
+| Plan lifecycle, approvals, open work, closure                       | [Plan register and standard](plans/README.md)                                         |
+| Known unrelated findings                                            | [Technical-debt tracker](plans/tech-debt-tracker.md)                                  |
+| Engineering feedback loop and verification                          | [WORKFLOW](engineering/WORKFLOW.md)                                                   |
+| Evidence coverage and remaining verification gaps                   | [QUALITY](QUALITY.md)                                                                 |
+| Writing, comments, maps, statuses, maintenance                      | [DOCUMENTATION](DOCUMENTATION.md)                                                     |
+| Reusable document shapes                                            | [Feature template](templates/feature.md), [ExecPlan template](templates/exec-plan.md) |
+| External process reference and local adaptations                    | [Harness-engineering reference](references/harness-engineering.md)                    |
+| Existing visual reference                                           | [Application-shell reference](references/application-shell/README.md)                 |
 
 ## Directory responsibilities
 

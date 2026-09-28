@@ -6,16 +6,16 @@ SideWire is an independent product; PageRelay is its repository codename. Do not
 
 Read [the documentation map](docs/INDEX.md), then only the documents needed for the task. Read the nearest scoped `AGENTS.md` before editing its directory.
 
-| Task | Read next |
-| --- | --- |
-| Setup, runtime, commands | [README](README.md) |
-| Product scope and feature approval | [Product](docs/PRODUCT.md), [feature index](docs/features/README.md) |
-| Trust boundaries or backend work | [Architecture](docs/ARCHITECTURE.md), owning feature, `app/AGENTS.md` |
-| Web interface | [UI](docs/UI.md), [application shell](docs/features/application-shell.md), `resources/js/AGENTS.md` |
-| Extension | [extension specification](docs/features/browser-extension.md), `apps/extension/AGENTS.md` |
-| Planning or resuming work | [plan lifecycle and register](docs/plans/README.md) |
-| Documentation | [documentation standard](docs/DOCUMENTATION.md), `docs/AGENTS.md` |
-| Verification or finishing a change | [engineering workflow](docs/engineering/WORKFLOW.md), [quality evidence map](docs/QUALITY.md) |
+| Task                               | Read next                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Setup, runtime, commands           | [README](README.md)                                                                                 |
+| Product scope and feature approval | [Product](docs/PRODUCT.md), [feature index](docs/features/README.md)                                |
+| Trust boundaries or backend work   | [Architecture](docs/ARCHITECTURE.md), owning feature, `app/AGENTS.md`                               |
+| Web interface                      | [UI](docs/UI.md), [application shell](docs/features/application-shell.md), `resources/js/AGENTS.md` |
+| Extension                          | [extension specification](docs/features/browser-extension.md), `apps/extension/AGENTS.md`           |
+| Planning or resuming work          | [plan lifecycle and register](docs/plans/README.md)                                                 |
+| Documentation                      | [documentation standard](docs/DOCUMENTATION.md), `docs/AGENTS.md`                                   |
+| Verification or finishing a change | [engineering workflow](docs/engineering/WORKFLOW.md), [quality evidence map](docs/QUALITY.md)       |
 
 ## Working agreement
 

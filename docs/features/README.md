@@ -24,38 +24,38 @@ Feature documents own behavior and acceptance. Execution plans own implementatio
 
 ## Coverage and ownership
 
-| Capability | Documented baseline / gap | Proposed owner and scope |
-| --- | --- | --- |
-| Page identity and safe URLs | Implemented workflow documented; retain conservative identity and no passive visit logging | Core: [Page contexts](page-contexts.md) |
-| Durable Chats, cross-app linking, provenance | Implemented workflow documented; retain one history and no nonempty-history merge | Core: [Page linking](page-conversations.md) |
-| Public/private channels, General, membership, archive, announcements | Organization-wide work Chats exist; distinct audiences/admin deferred | Core: [Channels](team-conversations.md) |
-| One-to-one/group DMs and notes to self | One-to-one planned; groups deferred | Core: [Direct messages](direct-messages.md) |
-| Rich messages, reactions, edit/delete, permalinks, full history | Plain text; shell documents latest-100-message limitation | Core: [Messaging](messaging-and-composer.md) |
-| Replies, followed threads, thread unread | Deferred | Core: [Threads](threads.md) |
-| Attachments, snippets, safe links/previews | Deferred | Core files, preview expansion: [Files and links](files-and-links.md) |
-| Activity, unread, following, mark unread | Minimal work-Chat discovery/read state documented | Core: [Activity](inbox-and-unread.md) |
-| Mentions, alerts, preferences, quiet hours | In-product mentions proposed; external delivery deferred | Core controls and supported desktop delivery: [Notifications](mentions-and-notifications.md) |
-| Full-history search and filters | Basic discovery search exists; broader search proposed | Core: [Search](search.md) |
-| Persistent drafts and scheduled send | In-memory web drafts only | Core drafts; expansion scheduling: [Drafts](drafts-and-scheduled-messages.md) |
-| Saved items, reminders, favorites | Not a complete specified feature | Core: [Saved items](saved-items-and-reminders.md); shared pins belong to Channels |
-| Directory, profiles, status, typing, presence | Identity exists; collaboration behavior incomplete | Core: [Profiles and presence](profiles-and-presence.md) |
-| Standalone web and responsive shell | Shell documented as implemented; new actions absent | Core: [Application shell](application-shell.md) |
-| Mobile web, keyboard, accessibility, client continuity | Broader requirements not fully established | Core: [Clients and accessibility](clients-and-accessibility.md) |
-| Live side-panel messaging and recovery | Event-scoped loading/manual Refresh documented | Core target: [Browser extension](browser-extension.md) |
-| Tasks and lists | Page-centered proposal, not implemented | Expansion: [Tasks](tasks.md) |
-| Shared notes/canvases and templates | Not specified previously | Expansion: [Canvases](canvases.md) |
-| Audio/video, screen sharing, recorded clips | Not specified previously | Expansion: [Calls and clips](calls-and-clips.md) |
-| Webhooks, bots, integration management, slash actions | Native adapters are future direction | Expansion: [Integrations](integrations.md) |
-| Forms and workflow automation | Excluded from earlier MVP | Expansion: [Workflows](workflows-and-automation.md) |
-| Guests and shared external channels | Excluded from earlier MVP | Expansion guests, strategic cross-organization sharing: [External collaboration](guests-and-external-collaboration.md) |
-| Migration, import/export | Not specified previously | Expansion: [Imports and exports](imports-and-exports.md) |
-| Accounts, roles, invitations | Foundation exists; lifecycle decisions remain | Core: [Accounts](accounts-and-organizations.md) |
-| Security, retention, audit, enterprise controls | Complete operational policies not established | Core lifecycle, strategic enterprise controls: [Administration](administration-and-data-lifecycle.md) |
-| Workspaces and Teams/user groups | Data foundation exists, not channel permissions | Core optional grouping: [Workspaces and teams](workspaces-and-teams.md) |
-| AI summaries, answers, recaps, assistants | Not approved | Strategic: [AI assistance](ai-assistance.md) |
-| Billing and commercial rules | Existing owner retained | [Billing](billing-and-product-access.md): no new price or offer approved |
-| Customer referrals and partnerships | Existing owner retained | [Referrals](referrals-and-partnerships.md): unchanged |
-| Public positioning and availability claims | Existing owner retained | [Marketing](marketing-site.md): unchanged; proposals are not shipped claims |
+| Capability                                                           | Documented baseline / gap                                                                  | Proposed owner and scope                                                                                               |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Page identity and safe URLs                                          | Implemented workflow documented; retain conservative identity and no passive visit logging | Core: [Page contexts](page-contexts.md)                                                                                |
+| Durable Chats, cross-app linking, provenance                         | Implemented workflow documented; retain one history and no nonempty-history merge          | Core: [Page linking](page-conversations.md)                                                                            |
+| Public/private channels, General, membership, archive, announcements | Organization-wide work Chats exist; distinct audiences/admin deferred                      | Core: [Channels](team-conversations.md)                                                                                |
+| One-to-one/group DMs and notes to self                               | One-to-one planned; groups deferred                                                        | Core: [Direct messages](direct-messages.md)                                                                            |
+| Rich messages, reactions, edit/delete, permalinks, full history      | Plain text; shell documents latest-100-message limitation                                  | Core: [Messaging](messaging-and-composer.md)                                                                           |
+| Replies, followed threads, thread unread                             | Deferred                                                                                   | Core: [Threads](threads.md)                                                                                            |
+| Attachments, snippets, safe links/previews                           | Deferred                                                                                   | Core files, preview expansion: [Files and links](files-and-links.md)                                                   |
+| Activity, unread, following, mark unread                             | Minimal work-Chat discovery/read state documented                                          | Core: [Activity](inbox-and-unread.md)                                                                                  |
+| Mentions, alerts, preferences, quiet hours                           | In-product mentions proposed; external delivery deferred                                   | Core controls and supported desktop delivery: [Notifications](mentions-and-notifications.md)                           |
+| Full-history search and filters                                      | Basic discovery search exists; broader search proposed                                     | Core: [Search](search.md)                                                                                              |
+| Persistent drafts and scheduled send                                 | In-memory web drafts only                                                                  | Core drafts; expansion scheduling: [Drafts](drafts-and-scheduled-messages.md)                                          |
+| Saved items, reminders, favorites                                    | Not a complete specified feature                                                           | Core: [Saved items](saved-items-and-reminders.md); shared pins belong to Channels                                      |
+| Directory, profiles, status, typing, presence                        | Identity exists; collaboration behavior incomplete                                         | Core: [Profiles and presence](profiles-and-presence.md)                                                                |
+| Standalone web and responsive shell                                  | Shell documented as implemented; new actions absent                                        | Core: [Application shell](application-shell.md)                                                                        |
+| Mobile web, keyboard, accessibility, client continuity               | Broader requirements not fully established                                                 | Core: [Clients and accessibility](clients-and-accessibility.md)                                                        |
+| Live side-panel messaging and recovery                               | Event-scoped loading/manual Refresh documented                                             | Core target: [Browser extension](browser-extension.md)                                                                 |
+| Tasks and lists                                                      | Page-centered proposal, not implemented                                                    | Expansion: [Tasks](tasks.md)                                                                                           |
+| Shared notes/canvases and templates                                  | Not specified previously                                                                   | Expansion: [Canvases](canvases.md)                                                                                     |
+| Audio/video, screen sharing, recorded clips                          | Not specified previously                                                                   | Expansion: [Calls and clips](calls-and-clips.md)                                                                       |
+| Webhooks, bots, integration management, slash actions                | Native adapters are future direction                                                       | Expansion: [Integrations](integrations.md)                                                                             |
+| Forms and workflow automation                                        | Excluded from earlier MVP                                                                  | Expansion: [Workflows](workflows-and-automation.md)                                                                    |
+| Guests and shared external channels                                  | Excluded from earlier MVP                                                                  | Expansion guests, strategic cross-organization sharing: [External collaboration](guests-and-external-collaboration.md) |
+| Migration, import/export                                             | Not specified previously                                                                   | Expansion: [Imports and exports](imports-and-exports.md)                                                               |
+| Accounts, roles, invitations                                         | Foundation exists; lifecycle decisions remain                                              | Core: [Accounts](accounts-and-organizations.md)                                                                        |
+| Security, retention, audit, enterprise controls                      | Complete operational policies not established                                              | Core lifecycle, strategic enterprise controls: [Administration](administration-and-data-lifecycle.md)                  |
+| Workspaces and Teams/user groups                                     | Data foundation exists, not channel permissions                                            | Core optional grouping: [Workspaces and teams](workspaces-and-teams.md)                                                |
+| AI summaries, answers, recaps, assistants                            | Not approved                                                                               | Strategic: [AI assistance](ai-assistance.md)                                                                           |
+| Billing and commercial rules                                         | Existing owner retained                                                                    | [Billing](billing-and-product-access.md): no new price or offer approved                                               |
+| Customer referrals and partnerships                                  | Existing owner retained                                                                    | [Referrals](referrals-and-partnerships.md): unchanged                                                                  |
+| Public positioning and availability claims                           | Existing owner retained                                                                    | [Marketing](marketing-site.md): unchanged; proposals are not shipped claims                                            |
 
 ## Proposed defaults to review first
 

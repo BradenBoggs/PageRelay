@@ -1,66 +1,64 @@
-# Application shell
+# Application shell and standalone web experience
 
-Status: implemented for the authenticated React web application; verification is recorded in `docs/plans/003-application-shell.md`.
+Status: **Draft for owner review. Core target built on a documented existing shell.** The authenticated React shell was implemented under `docs/plans/003-application-shell.md`. New destinations/actions below are proposals; this review does not certify browser behavior or expand existing code.
 
-This document owns the web shell's regions, reusable composition, dimensions, responsive navigation, and interpretation of the September 26 visual reference. `docs/UI.md` owns shared web/extension principles. Chat ownership, linking, provenance, discovery, and read state remain in `page-conversations.md` and `inbox-and-unread.md`.
+This document owns web regions, composition, navigation, dimensions, and responsive behavior. Individual feature documents own their actions and permissions. The extension retains its separate narrow shell.
 
-## Reference and intent
+## Reference and visual continuity
 
-Use the user's September 26, 2026 screenshot and HTML as visual direction, not as a feature specification. `docs/references/application-shell/README.md` records the source and adaptations; `reference-layout.html` is an isolated structural example, not a second application. Original uploads remain conversation reference assets.
+Preserve the September 26, 2026 reference direction: compact dark header, pale navigation, restrained warm accent, dense list/detail composition, left-aligned messages, optional linked-page strip, and reachable composer. `docs/references/application-shell/README.md` and its isolated `reference-layout.html` record the reference. Do not import fictional data, CDN scripts, remote avatars, or sample controls as approved features.
 
-Retain the compact dark header, pale navigation, dense three-pane composition, restrained warm accent, persistent linked-page strip, left-aligned messages, and pinned composer. Build reusable React components around actual server data. Do not import the source HTML, CDN scripts, remote avatars, or fictional operational data into production.
+Reuse the existing React layout and semantic tokens. The broader feature scope does not call for a redesign, decorative enclosing cards, or a separate visual language for each feature.
 
-## Region contract
+## Navigation contract
 
-**Global header.** SideWire identity, the current organization label, search across authorized SideWire chats, and the existing account menu. The organization label is read-only. Search uses the existing Chats query rather than external customer records. Ctrl/Command + K focuses search.
+The web app must function as the primary communication workspace without an extension or source page. Keep a read-only Organization identity in the header; this proposal does not add organization switching. Global search searches authorized SideWire content, not only the current page or external customer records.
 
-**Primary navigation.** Activity, Chats, Overview, and Apps filters. Activity and Chats retain different relevance rules. Apps lists actual authorized source hosts when discovery data is available; it does not imply provider integration, synchronized data, external permissions, or one Workspace per domain. Non-discovery screens retain primary navigation and a Browse all chats action. Do not invent counts or status dots.
+Primary navigation should expose Activity, Chats/channels, Direct messages, and Threads as those features become usable. Favorites and joined/recent conversations provide fast access without listing every external record. Later, Drafts, Tasks, Files, and people/settings destinations appear only when implemented and entitled. Distinguish labels such as **Later** (saved items) from actual product-release status.
 
-**Discovery panel.** Current Activity or Chats results, All/Unread filters, Create chat dialog, selection, previews, linked hosts, unread labels, actual result total, and pagination. A selected row uses a durable chat route. Carry the discovery surface, filters, and result page into selection/back navigation. Filtering may exclude the selected chat from the list without silently replacing the open chat. Listing data never marks it read.
+Apps belongs in an optional filter/browse surface or channel source details, not as a required domain-based web hierarchy. No empty list of connected apps or extension installation gate may prevent communication. Avoid duplicate destinations for existing work Chats and proposed channels representing the same history.
 
-**Main content.** A feature-owned slot. Chat routes compose a header, linked-page strip, independently scrolling history, and composer. Without a selected chat, desktop shows a selection prompt. Settings and Overview use the available main width without inheriting the discovery panel or a giant enclosing card. Authentication and extension-connect layouts are unchanged.
+The discovery panel owns result selection, All/Unread and relevant filters, search, create actions, previews, actual counts, and pagination. Carry filters, selected result, and return position through navigation. A filter excluding the currently open chat must not silently replace it. Previews and list visibility do not mark history read.
 
-## Dimensions, tokens, and scrolling
+## Main content and detail surfaces
 
-The frame uses viewport height (`100dvh` with `100vh` fallback), not body scrolling. The desktop header is 48px; primary navigation is 240px; discovery is 320px; main content absorbs the remainder. `resources/css/application-shell.css` owns semantic `--sw-*` color, surface, border, radius, and dimension tokens. Use the existing application's font and icon infrastructure. No runtime Tailwind CDN, icon font, or remote avatar dependency is introduced.
+Chat detail composes title, audience/status, optional description/topic and linked pages, independently scrolling history, and composer. A thread may occupy a contextual detail pane at sufficient width; narrow layouts use a focused thread view with a clear return path. Do not create an unusable four-pane layout on ordinary laptop widths.
 
-Navigation, discovery results, history, and normal page content scroll independently. Shrinkable flex children have explicit minimum-size and overflow contracts. Discovery and history declare Inertia scroll regions. Keep the composer reachable and wrap long message text. Truncate long page labels while retaining the source host.
+Show current linked pages separately from the historical source of an individual message. A chat without pages is complete, not an error. Offer deliberate add/link source actions only to eligible actors and show access/lifecycle restrictions. General and DMs do not offer primary page linking.
 
-At 1100px and above, show all three panes. At 768–1099px, move primary navigation into the existing accessible Sheet and retain list/detail. Below 768px, show either the list or selected chat, with an explicit Back to chat list action. The narrow header is 56px; composer padding respects safe areas. The Chrome side panel remains a separate narrow surface, not a compressed desktop layout.
+Shared files/pins/canvas/list surfaces appear as contextual resources after their features exist. People, settings, and administrative pages use the main width without a forced chat discovery column or giant surrounding card. Never present inactive buttons as though the functionality ships.
 
-## Messages and composition
+## Dimensions and scrolling
 
-Render plain, escaped React text, consistently left-aligned, with author, timestamp, and optional recorded source. A source label means SideWire recorded that context when the message was sent; it does not indicate a message imported from another service. Linked pages are current routes into the shared history, not owners of the history.
+Retain viewport-height framing (`100dvh` with fallback), a 48px desktop header, 240px primary navigation, and 320px discovery width as baseline tokens. `resources/css/application-shell.css` owns semantic `--sw-*` dimensions, colors, and surfaces; adjust responsive composition rather than scattering hard-coded variants.
 
-Direct web sends use the existing endpoint with no inferred page source. Enter creates a newline; Ctrl/Command + Enter submits except during IME composition. A synchronous submit guard and processing state prevent repeated clicks; success clears the draft and rotates the idempotency key. Validation failure preserves input.
+At 1100px and above, the existing three-pane frame is the starting point. At 768–1099px, use accessible Sheet navigation with list/detail. Below 768px, show list or selected detail with a clear back action, 56px header, and safe-area composer spacing. Thread/resource panes replace or collapse another region when needed. Navigation, results, history, and ordinary page content scroll independently with defined minimum-size/overflow contracts.
 
-An in-memory shell cache preserves drafts and scroll positions by chat during in-app navigation. The provider is keyed by member and organization. Drafts do not move between chats or silently acquire an external source. This is session UI state, not a Drafts destination or a server/localStorage/cross-device feature. Full reload or logout clears it.
+The target supports all retained history with stable older-message pagination and jump-to-message context. The existing latest-100-message server limit is a documented baseline limitation, not target behavior. Preserve scroll while loading older messages; follow new arrivals only when already near the end.
 
-Realtime uses the existing private chat channel. Refresh history, the last loaded message identifier, and discovery data; do not force a reader away from older content. Follow new content only while already near the end. The existing latest-100-message server limit is unchanged; this milestone does not add older-history pagination.
+## State, composition, and accessibility
 
-Advance the read position only when the last loaded message intersects the actual history scroller and the document is visible. Background discovery and hidden history do not count. Server-owned read positions remain authoritative and monotonic.
+Common composer behavior follows [Messaging](messaging-and-composer.md); persistent drafts follow [Drafts](drafts-and-scheduled-messages.md). Preserve source/destination binding, IME-safe submission, failed input, and separate thread drafts. The current shell's in-memory cache is not proof that cross-device drafts exist.
 
-## Supported actions versus the mockup
+Read state advances only for genuinely viewed content or explicit mark-read actions, never because a notification, background tab, hidden pane, or search preview was rendered. Thread and main-chat progress remain distinct.
 
-Create chat, search, filtering, pagination, account/settings, direct sending, and linked-page return links use implemented flows. Page linking remains the existing authorized extension workflow. The mockup does not approve a new web linking endpoint.
+Use labeled regions, actual links/buttons, visible focus, skip navigation, accessible menus/dialogs, non-color unread states, reduced motion, and bounded announcements. Ctrl/Command + K should open/focus the authorized search/quick-navigation experience without conflicting with active composition. Provide keyboard access to message actions without requiring hover.
 
-Do not render inactive Mentions, Starred, Drafts, Assign, dispatch queues, participant controls, attachments, rich formatting, slash commands, notification bells, synchronization timestamps, or latency numbers merely because they appear in the reference. These remain subject to their owning feature approvals. No new database model, migration, browser permission, provider integration, or organization-switching behavior is introduced.
+Design meaningful no-selection, no-chats, empty Activity, no-match, no-unread, empty-thread, no-pages, archived, access-lost, sending, validation, reconnecting, and expired-session states. Do not fabricate online/synchronized indicators or numeric performance claims.
 
-## Accessibility and states
+## Acceptance behavior
 
-Use actual links/buttons, accessible icon names, a skip link, labeled regions, visible focus, non-color selected/unread indicators, and existing Dialog/Sheet/account-menu primitives. Keep submission/validation announcements scoped; do not announce the entire message history on every refresh. Respect reduced motion and forced colors.
+An organization can create channels, send DMs, find retained history, manage attention, and navigate on a narrow mobile browser without installing the extension. Opening a thread/resource does not lose the chat draft or collapse useful navigation unpredictably. Search, menus, uploads, history, and back navigation remain usable by keyboard and assistive technology. Private data disappears when authorization changes.
 
-Provide intentional no-selection, no-chats, empty-Activity, no-match, nothing-unread, no-messages, and no-linked-pages states. Show pending submissions and recoverable validation errors. Existing authentication/authorization errors remain server-owned. Do not fabricate an offline/synchronized indicator. Session expiry, unexpected network failure, reconnect, screen-reader behavior, zoom, and real browser navigation need end-to-end verification before release readiness is claimed.
+## Implementation map — existing shell only
 
-## Implementation map
+- Frame: `resources/js/layouts/app-layout.tsx`, selected by `resources/js/app.tsx`.
+- Global regions/cache: `resources/js/components/application-shell/`.
+- Chat composition: `resources/js/components/chats/`.
+- Pages: `resources/js/pages/chats/`, `resources/js/pages/activity/index.tsx`.
+- Types/navigation: `resources/js/types/chat.ts`, `resources/js/lib/chat-navigation.ts`.
+- Tokens: `resources/css/application-shell.css`.
+- Server composition: `app/Http/Controllers/ChatController.php`, existing `ConversationDiscovery`.
+- Existing tests: `tests/Feature/Conversations/ApplicationShellTest.php`, Conversation and Activity suites.
 
-- Active frame: `resources/js/layouts/app-layout.tsx`, selected by existing `resources/js/app.tsx`.
-- Global chrome and session UI cache: `resources/js/components/application-shell/`.
-- Discovery/header/composer: `resources/js/components/chats/`.
-- Pages: `resources/js/pages/chats/` and existing `pages/activity/index.tsx`.
-- Contracts/navigation: `resources/js/types/chat.ts`, `resources/js/lib/chat-navigation.ts`.
-- Web tokens and responsive regions: `resources/css/application-shell.css`.
-- Server composition: `app/Http/Controllers/ChatController.php`; existing `ConversationDiscovery` remains the authorization/filter source.
-- Tests: `tests/Feature/Conversations/ApplicationShellTest.php`, existing Conversation and Activity suites.
-
-The starter sidebar template is no longer the active AppLayout composition. Keep unrelated starter components rather than making this an opportunistic cleanup. New feature pages extend this frame instead of copying global chrome.
+Keep unrelated starter components; this is not approval for opportunistic cleanup. New feature pages extend this frame rather than copying it.

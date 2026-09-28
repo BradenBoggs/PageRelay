@@ -1,69 +1,47 @@
-# Workspaces and teams
+# Workspaces, Teams, and reusable member groups
 
-Status: approved data foundation; complete customer management behavior is implemented in later milestones. The September 4, 2026 product clarification retains the existing foundation rather than replacing it with per-app workspaces.
+Status: **Draft for owner review. Existing data foundation retained; optional group-management behavior is proposed Core scope.** See [review scope](README.md).
 
-This document owns the Organization, Workspace, and Team distinctions. Organization tenancy and membership belong to `accounts-and-organizations.md`. Apps grouping belongs to `page-contexts.md`; chats and linking belong to `page-conversations.md`.
+This document owns the default Workspace and Teams as member groups. Organization membership belongs to [Accounts](accounts-and-organizations.md), channel audiences to [Channels](team-conversations.md), and Apps grouping to [Page contexts](page-contexts.md).
 
-## Vocabulary
+## Distinct concepts
 
-- **Organization:** the company/customer account, tenant, billing owner, and security boundary.
-- **Workspace:** the existing organization-owned collaboration container. The MVP uses one default workspace.
-- **Team:** a named group of organization members, such as Sales, Operations, or Design.
+Organization is the tenant/customer/billing boundary. Workspace is the existing organization-owned collaboration container; the product uses one default Workspace. Team is a reusable group of members, such as Sales or Operations. Channel is a shared Chat. App is an optional grouping of safe external source contexts. These are not interchangeable names.
 
-These terms are not interchangeable. An App is a browsing group, not a Workspace. A Channel is a later named discussion space, not a Team. Never rename the paying tenant to Workspace or use the `teams` table for it.
+Retain the existing Workspace model and provisioning. Do not create a Workspace for every domain, remove the default container, or introduce user-selected page/channel/hybrid modes. A schema capable of multiple Workspaces does not approve customer workspace creation/switching or new billing boundaries.
 
-## Approved relationships
+The default Workspace contains communication and page-context records. Multiple Apps can link distinct contexts into the same authorized chat. A Chat works with no page context at all; the web application is not organized around mandatory external domains.
 
-```text
-Organization
-├── Organization memberships
-├── Default workspace
-│   ├── Page contexts, grouped by App for browsing
-│   └── Page chats, each with zero or more linked contexts
-└── Teams
-    └── Team memberships
-```
+## Team membership
 
-The existing schema may represent multiple organization-owned workspaces and teams, but the MVP provisions one default workspace. Do not add customer workspace creation, workspace switching, or page/channel/hybrid operating modes because the schema can represent them.
+A Team has one Organization and contains only people with active memberships there. Keep the existing `teams` and `team_memberships` foundation. Team manager/member roles are local responsibilities and do not grant organization-admin power, private-channel access, or page-linking rights.
 
-A user must have an active organization membership before joining one of its teams or accessing its default workspace. A team cannot contain a user from another organization.
+Proposed management includes naming/renaming a Team, managing its active membership, an optional recognizable mention handle, and archiving an unused group. Authorized organization managers may create/manage groups; delegated Team managers may update only groups they manage. Archiving stops new group mentions without deleting people's chat messages or memberships elsewhere.
 
-## Workspaces versus Apps
+The people directory may show discoverable Team membership under the approved profile policy. A Team name is not evidence that a same-named private channel exists. Deactivated organization members cannot remain effective recipients of group mentions or future invites.
 
-Retain the existing Workspace model and default-workspace provisioning. This documentation update is not a migration to remove or rename that foundation.
+## Mentions versus access
 
-Do not create a Supermove Workspace and a Docusign Workspace just to group source domains. Both apps' contexts can live in the same default workspace, and their contexts can lead to the same chat under `page-conversations.md`.
+A Team/user-group mention expands to current active members who already have access to the destination. It does not add anyone to a private channel or expose private previews to excluded recipients. Deduplicate people who also receive an individual mention or match another group. Broad mention warnings and permissions follow Notifications.
 
-Workspace public identifiers are not authorization credentials. Resolve the default workspace through the authenticated organization. Restricted workspace membership, guest access, elaborate workspace settings, and cross-workspace linking require separate approval.
+A deliberate **Invite Team to channel** convenience may create a reviewed snapshot of individual invitations. Show the actual people and history disclosure before confirmation. Later changes to Team membership must not silently add/remove channel access unless a separate dynamic-access policy is approved. Team creation does not automatically create a channel, and channel creation does not create a Team.
 
-Apps does not require a new Workspace record, extra seat, external-app login, or independent permission model. App grouping is defined only in `page-contexts.md`.
+Task assignment remains the task feature's explicit person/audience rule. A group is not automatically an assignable queue, workflow identity, or permission role.
 
-## Teams
+## Authorization and billing
 
-A team is a reusable group of organization members. It may later be used for mentions, task assignment, notification routing, or access controls, but those behaviors are not implied by its tables.
+Resolve all Team and Workspace IDs through the authenticated Organization. Default-Workspace identity is not a permission credential. Restricted workspace audiences, cross-workspace linking, guests, and organization switching remain separate proposals requiring account/security review.
 
-The foundation contains the `teams` and `team_memberships` concepts. Each team has exactly one `organization_id`. Each team membership references a user with an active membership in that same organization. Team membership does not create an additional Stripe seat.
+One active billable organization membership counts once under Billing, regardless of Teams, channels, Apps, page links, or source sites. Group changes do not directly alter subscription quantities or create separately billed containers.
 
-The initial team roles remain manager and member where a role is needed. A team manager does not automatically receive organization-administrator authority or page-linking rights. No custom permission builder is part of the foundation.
+## Acceptance behavior and decisions
 
-An organization-wide chat is not restricted to a similarly named Team. Future Sales or Announcements channels require their own approved access and posting rules; creating a Team must not silently create those channels or their permissions.
+A manager can maintain a reusable group without changing tenant or channel boundaries. Group mentions reach only authorized active people once. Team-based invitation previews its participants and does not become an undisclosed ongoing access rule. Deactivation, archive, rename, and concurrent membership changes cannot grant cross-organization access.
 
-## Billing consequence
+Owner decisions: group creation/delegation roles, mention handles, directory visibility, and whether snapshot channel invitations are useful initially. Custom permission builders, automatic department access policies, and multiple selectable Workspaces are excluded.
 
-Stripe seats are counted from active billable organization memberships only. A person in multiple teams, workspaces, apps, or chats still consumes one seat in the organization. Invitations occur at the organization level.
+## Implementation map — existing foundation only
 
-## Out of scope for the foundation
+`app/Models/Workspace.php`, `Team.php`, `TeamMembership.php`, `app/Domain/Workspaces/EnsureDefaultWorkspace.php`, `app/Domain/Teams/AddMemberToTeam.php`, and `tests/Feature/WorkspacesAndTeams/WorkspacesAndTeamsFoundationTest.php`.
 
-- organization or workspace switching;
-- per-domain workspaces or administrator-selectable product modes;
-- separate workspace, app, team, or chat billing;
-- workspace guests or external collaborators;
-- custom roles or granular permission builders;
-- cross-organization teams;
-- automatic access restrictions based on team membership.
-
-## Implementation map
-
-The current foundation includes `app/Models/Workspace.php`, `app/Models/Team.php`, `app/Models/TeamMembership.php`, `app/Domain/Workspaces/EnsureDefaultWorkspace.php`, `app/Domain/Teams/AddMemberToTeam.php`, and `tests/Feature/WorkspacesAndTeams/WorkspacesAndTeamsFoundationTest.php`.
-
-These are foundation entry points, not evidence that page contexts, shared chats, or customer management UI have shipped. Update the map when those features introduce stable boundaries; the implementation history remains in `docs/plans/000-execplan.md`.
+The map does not establish implementation of customer group-management screens or mentions. Reference coverage: [Slack user-group and collaboration help catalog](https://slack.com/help/categories/200111606-Using-Slack).

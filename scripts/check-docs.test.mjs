@@ -26,19 +26,19 @@ function fixture(t) {
     return { root, put, plan, errors: () => checkRepository(root) };
 }
 
-test('valid active layout passes', (t) =>
+await test('valid active layout passes', (t) =>
     assert.deepEqual(fixture(t).errors(), []));
-test('missing required owner fails', (t) => {
+await test('missing required owner fails', (t) => {
     const f = fixture(t);
     rmSync(join(f.root, 'docs/INDEX.md'));
     assert(f.errors().some((e) => e.includes('required documentation')));
 });
-test('broken local link fails', (t) => {
+await test('broken local link fails', (t) => {
     const f = fixture(t);
     f.put('docs/INDEX.md', '[Missing](absent.md)');
     assert(f.errors().some((e) => e.includes('missing local link target')));
 });
-test('external links, heading anchors and fenced examples are not fetched', (t) => {
+await test('external links, anchors and fenced examples are ignored', (t) => {
     const f = fixture(t);
     f.put(
         'docs/INDEX.md',
@@ -46,37 +46,37 @@ test('external links, heading anchors and fenced examples are not fetched', (t) 
     );
     assert.deepEqual(f.errors(), []);
 });
-test('unindexed feature fails', (t) => {
+await test('unindexed feature fails', (t) => {
     const f = fixture(t);
     f.put('docs/features/other.md', '# Other');
     assert(f.errors().some((e) => e.includes('feature is absent')));
 });
-test('unindexed plan fails', (t) => {
+await test('unindexed plan fails', (t) => {
     const f = fixture(t);
     f.put('docs/plans/README.md', '# Plans');
     assert(f.errors().some((e) => e.includes('plan is absent')));
 });
-test('new root-level plan is rejected', (t) => {
+await test('new root-level plan is rejected', (t) => {
     const f = fixture(t);
     f.put('docs/plans/005-wrong.md', f.plan());
     assert(f.errors().some((e) => e.includes('legacy forwarding notes')));
 });
-test('oversized root AGENTS fails', (t) => {
+await test('oversized root AGENTS fails', (t) => {
     const f = fixture(t);
     f.put('AGENTS.md', 'Instruction\n'.repeat(101));
     assert(f.errors().some((e) => e.includes('100 lines')));
 });
-test('duplicate number across lifecycle folders fails', (t) => {
+await test('duplicate number across lifecycle folders fails', (t) => {
     const f = fixture(t);
     f.put('docs/plans/completed/004-other.md', f.plan('completed'));
     assert(f.errors().some((e) => e.includes('duplicate plan number')));
 });
-test('active completed status fails', (t) => {
+await test('active completed status fails', (t) => {
     const f = fixture(t);
     f.put('docs/plans/active/004-example.md', f.plan('completed'));
     assert(f.errors().some((e) => e.includes('belongs in completed')));
 });
-test('modified legacy content needs lifecycle metadata', (t) => {
+await test('modified legacy content needs lifecycle metadata', (t) => {
     const f = fixture(t);
     f.put(
         'docs/plans/active/000-execplan.md',
@@ -84,7 +84,7 @@ test('modified legacy content needs lifecycle metadata', (t) => {
     );
     assert(f.errors().some((e) => e.includes('Lifecycle header')));
 });
-test('missing or reordered headings fail', (t) => {
+await test('missing or reordered headings fail', (t) => {
     const f = fixture(t);
     f.put(
         'docs/plans/active/004-example.md',
@@ -92,14 +92,14 @@ test('missing or reordered headings fail', (t) => {
     );
     assert(f.errors().some((e) => e.includes('section: Progress')));
 });
-test('proper completed layout passes without claiming release', (t) => {
+await test('completed layout does not imply release', (t) => {
     const f = fixture(t);
     rmSync(join(f.root, 'docs/plans/active/004-example.md'));
     f.put('docs/plans/completed/004-example.md', f.plan('completed'));
     f.put('docs/plans/README.md', '[Example](completed/004-example.md)');
     assert.deepEqual(f.errors(), []);
 });
-test('unfinished work in completed fails', (t) => {
+await test('unfinished work in completed fails', (t) => {
     const f = fixture(t);
     f.put(
         'docs/plans/completed/005-pending.md',
@@ -109,7 +109,7 @@ test('unfinished work in completed fails', (t) => {
     );
     assert(f.errors().some((e) => e.includes('unchecked work')));
 });
-test('completed placeholders and missing closure fail', (t) => {
+await test('completed placeholders and missing closure fail', (t) => {
     const f = fixture(t);
     f.put(
         'docs/plans/completed/005-no-evidence.md',
@@ -124,7 +124,7 @@ test('completed placeholders and missing closure fail', (t) => {
     assert(f.errors().some((e) => e.includes('Closure evidence')));
     assert(f.errors().some((e) => e.includes('pending placeholders')));
 });
-test('forged legacy forwarding note fails', (t) => {
+await test('forged legacy forwarding note fails', (t) => {
     const f = fixture(t);
     f.put(
         'docs/plans/000-execplan.md',
@@ -132,12 +132,12 @@ test('forged legacy forwarding note fails', (t) => {
     );
     assert(f.errors().some((e) => e.includes('legacy forwarding notes')));
 });
-test('local traversal outside repository fails', (t) => {
+await test('local traversal outside repository fails', (t) => {
     const f = fixture(t);
     f.put('docs/INDEX.md', '[Outside](../../outside.md)');
     assert(f.errors().some((e) => e.includes('leaves the repository')));
 });
-test('URL-encoded valid paths resolve and invalid encoding fails', (t) => {
+await test('encoded paths resolve and invalid encoding fails', (t) => {
     const f = fixture(t);
     f.put('docs/reference space.md', '# Reference');
     f.put('docs/INDEX.md', '[Reference](reference%20space.md)');

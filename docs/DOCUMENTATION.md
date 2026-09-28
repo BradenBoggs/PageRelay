@@ -1,148 +1,53 @@
 # SideWire documentation standard
 
-This document owns code-documentation, implementation-map, and code-to-specification reference rules. Product behavior belongs in `docs/PRODUCT.md` and `docs/features/`. Implementation history belongs in `docs/plans/`.
+This file owns document responsibilities, status/evidence language, selective code comments, implementation maps, references, and maintenance. [INDEX](INDEX.md) routes readers; [the plan standard](plans/README.md) owns the execution lifecycle.
 
-## Purpose
+## One authoritative owner
 
-Documentation should help a contributor or AI agent locate the correct code, understand non-obvious decisions, and preserve important contracts. More documentation is not automatically better. Inaccurate, repetitive, or exhaustive documentation creates context noise and can be more harmful than no documentation.
+Keep permanent product behavior in its feature document, cross-cutting system boundaries in Architecture, shared interaction rules in UI, and execution history/evidence in the relevant plan. Link rather than duplicate. README owns setup, not feature requirements. Reference mockups and external articles are inputs, not authority to ship their sample features.
 
-Document responsibilities, invariants, boundaries, and reasons that are not already obvious from names, types, framework conventions, or tests. Do not narrate straightforward code.
+The expanded feature review remains proposed until its particular behavior is accepted. Documentation structure approval does not approve every feature. Label current baseline, proposed target, open decisions, implementation evidence, and release status separately. Never describe a draft, checked box, installed package, or passed build as a released product.
 
-## Class and module documentation
+## Repository-local context
 
-Do not require a header docblock on every class or module.
+Write so a contributor can resume without previous chats. Record approved decisions, relevant constraints, source provenance, stable entry points, and observable acceptance in the repository. Do not rely on an inaccessible screenshot, linked conversation, remembered approval, or hidden personal context as the sole specification. Do not fabricate a missing reference; name the limitation.
 
-Add a class-level docblock when a class owns a non-obvious domain responsibility, security boundary, privacy boundary, integration contract, state transition, normalization rule, idempotency guarantee, or other invariant that a future contributor could accidentally violate.
+Start from [the feature template](templates/feature.md) when a new owner is needed. Keep it concise but complete enough to define permissions, states, lifecycle, and failure behavior. Do not split one feature into overlapping specification/decision/phase files to increase the document count. Use existing architecture sections for cross-cutting decisions; introduce a dedicated decision record only when a substantial approved decision needs durable rationale beyond its plan and owning doc.
 
-Strong candidates include:
+## Class and module comments
 
-- page-context resolvers and URL normalizers;
-- platform adapters and organization-created URL rules;
-- authorization policies and tenant-scoping services;
-- extension authentication and session-handoff services;
-- billing-access decisions;
-- realtime event authorization and recovery services;
-- search indexing and authorization filters;
-- notification deduplication;
-- idempotent commands, jobs, webhooks, and provider callbacks.
+Do not require a header docblock on every class. Document a non-obvious responsibility, invariant, authorization/privacy boundary, normalization rule, external contract, state transition, or idempotency guarantee. Explain why something must remain true, not what an obvious line of code does.
 
-Straightforward controllers, requests, migrations, models, jobs, events, and UI components do not need prose merely because they are classes. Their names, types, relationships, and tests should explain ordinary behavior.
+Useful boundaries include context resolution, URL safety, authorization, session handoff, billing access, retryable provider callbacks, search scoping, notification deduplication, and realtime recovery. Ordinary controllers, getters, migrations, jobs, UI wrappers, and models do not need prose just for existing.
 
-A useful class docblock is concise and records what must remain true:
+Use native PHP/TypeScript types first. Add PHPDoc, generics, array shapes, or runtime validation only when they improve enforceable contracts or actual tooling. Keep contracts synchronized with implementation and tests. Prefer clearer names and smaller functions over narrating every branch.
 
-```php
-/**
- * Resolves an organization-scoped page context from untrusted browser metadata.
- *
- * Invariants:
- * - Organization context comes from authenticated membership.
- * - URL normalization is versioned.
- * - Unknown query parameters are preserved by default.
- * - Repeated client request IDs do not create duplicate contexts.
- *
- * @see docs/features/page-contexts.md
- */
-final class ResolvePageContext
-{
-}
-```
-
-Do not write docblocks that only restate a class name, method name, signature, or framework role.
-
-## PHPDoc, types, and enforceable contracts
-
-Use native types first. Add PHPDoc when it materially improves Larastan, IDE inference, generic relationships, array shapes, template types, or another enforceable contract that native syntax cannot express.
-
-Examples include typed Eloquent relationships and structured provider or extension payloads. Keep those declarations synchronized with validation and tests.
-
-TypeScript interfaces and runtime validation schemas should serve the same purpose for web and extension code. Do not add prose comments that merely repeat a well-named type.
-
-## Comments inside code
-
-Comments should explain why a choice exists, which invariant is protected, why an apparently simpler approach is unsafe, or what external behavior constrains the code.
-
-Do not comment every branch or translate implementation line by line. Prefer clearer names, smaller functions, explicit types, and tests over explanatory comments when restructuring makes the code self-evident.
-
-Temporary workarounds must name the reason, safe removal condition, and related issue or plan when one exists. Do not leave ownerless `TODO` comments.
-
-## References from code to feature specifications
-
-Reference an owning feature specification selectively from the primary domain boundary, not from every participating file.
-
-Appropriate references include the primary domain service, aggregate or model when it owns meaningful behavior, authorization policy, platform adapter, and extension feature entry point. Use `@see docs/features/<feature>.md` or the language's normal documentation link format.
-
-Do not copy feature behavior into class comments. The feature document remains authoritative; the code reference is only a navigation aid.
+Use `@see docs/features/<feature>.md` selectively at the primary domain boundary. Do not copy the specification into class comments or add identical links throughout every participating file. Temporary workarounds identify the reason, safe removal condition, and owner/issue when known.
 
 ## Feature implementation maps
 
-When implementation of a feature begins, add an `Implementation map` section to its feature document. Do not add an empty map before code exists.
+Add a concise map once implementation exists. Do not add an empty map for an unimplemented proposal or invent planned paths as though they already exist. Existing baseline maps do not imply proposed target behavior has shipped.
 
-The map should list stable architectural entry points rather than every related file:
+List stable entry directories, primary routes/domain services, models/tables, authorization boundary, important async/provider/extension edges, and representative tests. Use predictable names and repository search to find individual helpers. The active plan owns the detailed expected/actual changed-file inventory and verification history.
 
-- primary backend and frontend directories;
-- routes or API endpoints;
-- primary domain services;
-- models and database tables;
-- authorization policies;
-- important events, jobs, listeners, or provider boundaries;
-- extension entry points when relevant;
-- test directories or principal test files;
-- directly related feature specifications.
+Update a map when its entry point moves, a feature is split, or responsibility changes. A functional change is not complete with stale navigation. Documentation should make the next search easier, not replace search with a giant manifest.
 
-Example:
+## Plans, indexes, and moves
 
-```markdown
-## Implementation map
+Use [the plan lifecycle](plans/README.md), not a second planning convention. Keep one living initiative through approval, implementation, verification, and closure. Templates are not initiatives. Completed plans are historical evidence, not instructions to repeat a past migration or override current product behavior.
 
-Primary entry points:
+When moving a document, update the canonical index and relative links. For the existing four migrated plans, small legacy forwarding notes preserve earlier references; they contain no duplicate progress or decisions. Prefer the canonical active/completed path in new references. Update its forwarding target if a migrated plan later moves again.
 
-- API route: `POST /api/v1/page-contexts/resolve`
-- Extension client: `apps/extension/src/features/page-contexts/`
-- Domain service: `app/Domain/PageContexts/ResolvePageContext.php`
-- URL normalizer: `app/Domain/PageContexts/NormalizePageUrl.php`
-- Model: `app/Models/PageContext.php`
-- Authorization: `app/Policies/PageContextPolicy.php`
-- Tests: `tests/Feature/PageContexts/`
+Use real relative Markdown links for navigation. Backticked routes, symbols, historical paths, and example commands are descriptive references rather than claims that every named file exists. Local Markdown links must resolve; external URLs require a source/access date when used for research. Keep raw credentials, live customer URLs, tokens, private messages, and sensitive screenshots out of docs and evidence.
 
-Important tables:
+## Evidence and freshness
 
-- `page_contexts`
-- `page_context_aliases`
+When claiming verification, record the source revision, date, environment/database/client, exact command or procedure, result, skipped checks, and any evidence location. Attribute older results to their original change. A declared test command is not a test run; a workflow definition is not a passing workflow.
 
-Related specifications:
+Quality tracking uses observed coverage and explicit unknowns, not invented grades or aggregate confidence numbers. Update [QUALITY](QUALITY.md) when evidence or a meaningful verification gap changes. Do not create generated schema snapshots, audit folders, or browser artifacts until a real reproducible source exists.
 
-- `docs/features/browser-extension.md`
-- `docs/features/page-conversations.md`
-```
+During each relevant change, check the touched owner's freshness, feature/plan indexes, approval language, source pointers, and implementation map. Run the structural checks in [WORKFLOW](engineering/WORKFLOW.md). Structural checks cannot certify semantic truth, current external sources, accessibility, security, or release readiness; inspect those directly.
 
-Keep the map short enough to scan. Prefer a stable directory or primary entry point over a list of every component, request, migration, test, and helper. Contributors should use `rg` and repository naming conventions to discover the rest.
+## Completion review
 
-Update the map when an architectural entry point moves, is renamed, or is removed. A feature implementation is not complete if its map points to stale paths.
-
-## ExecPlan file orientation
-
-Every substantial ExecPlan must use `Context and Orientation` to identify current relevant code, existing behavior, primary entry points, neighboring features, and existing tests. It must be sufficient for someone with no prior conversation to begin work safely.
-
-Use `Plan of Work` to name files and directories expected to be created or changed when they are known. Update those references when implementation differs from the original plan.
-
-The ExecPlan is the detailed and historical record of a particular initiative. After implementation, the feature document retains only the concise current implementation map. Do not copy the complete changed-file list or implementation history into the permanent feature specification.
-
-## Discovery and searchability
-
-Use predictable domain vocabulary and directory structure. Prefer names such as `ResolvePageContext`, `PageContextPolicy`, and `PageContextResolved` over generic names such as `Manager`, `Helper`, or `Processor`.
-
-Agents and contributors should begin from the owning feature document and its implementation map, then use `rg` to find symbols, routes, tables, events, and tests. A documented map is an entry point, not an exhaustive inventory.
-
-## Documentation completion check
-
-Before completing an implementation plan or feature change, verify:
-
-- permanent behavior is updated in the owning feature document;
-- the implementation map exists once code exists and points to current entry points;
-- the active ExecPlan records actual changed paths, decisions, and verification;
-- complex boundary classes document only meaningful responsibilities and invariants;
-- PHPDoc or TypeScript contracts improve real type information;
-- comments do not restate obvious code;
-- code-to-specification references are selective and valid;
-- renamed or removed paths are not left in documentation;
-- no verification result is claimed without being run.
+Before finishing a change, confirm that the right owner was updated, proposals were not silently promoted, code/spec boundaries agree, actual results and omissions are recorded, links and maps resolve, and unrelated findings were parked rather than opportunistically implemented. Keep historical records intact and close a plan only under its real completion gate.

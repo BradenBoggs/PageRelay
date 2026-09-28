@@ -1,0 +1,42 @@
+name: Documentation structure
+
+on:
+  push:
+    paths:
+      - '**/AGENTS.md'
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'PLANS.md'
+      - 'docs/**'
+      - 'scripts/check-docs*'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - '**/AGENTS.md'
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'PLANS.md'
+      - 'docs/**'
+      - 'scripts/check-docs*'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Use the repository Node runtime
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: Test documentation guardrails
+        run: node --test scripts/check-docs.test.mjs
+      - name: Validate documentation structure
+        run: node scripts/check-docs.mjs

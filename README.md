@@ -1,21 +1,18 @@
 # SideWire
 
-SideWire is a Chrome side-panel collaboration product that adds shared team communication and lightweight task coordination to the web tools a team already uses.
+SideWire adds shared team communication to the web tools a team already uses. Its web application and Chrome side panel share the same collaboration data; optional page context brings the relevant Chat beside external work.
 
-The repository is named `PageRelay`; SideWire is the current product name. Treat PageRelay as a repository codename unless the product is renamed again.
+The repository is named `PageRelay`; SideWire is the product name. Its feature-review proposals are not claims that every described capability has shipped.
 
-Before implementing application code, read:
+## Documentation and agents
 
-- `AGENTS.md`
-- `docs/PRODUCT.md`
-- `docs/ARCHITECTURE.md`
-- `docs/UI.md` for interface work
-- the relevant file under `docs/features/`
-- the active plan under `docs/plans/`
+Start with [AGENTS.md](AGENTS.md) and [docs/INDEX.md](docs/INDEX.md). Read only the relevant product, architecture, UI, feature, and scoped agent guidance before changing code.
 
-Foundation implementation is tracked in `docs/plans/000-execplan.md`. Page contexts, page chats, manual linking, Activity, Chats discovery, Apps filtering, and unread state through milestone 4 are tracked in `docs/plans/001-page-chats-and-linking.md`.
+[The feature index](docs/features/README.md) separates documented baseline behavior from proposed communication features. [The plan register](docs/plans/README.md) owns open work, approval, and closure. Living plans are in `docs/plans/active/`; verified finished plans belong in `docs/plans/completed/`. Existing plans 000-003 still record verification gaps.
 
-Use Chat and Activity in the interface. Existing specification filenames and internal `Conversation` terminology remain valid. Product vocabulary and feature ownership are indexed in `docs/PRODUCT.md`.
+[WORKFLOW](docs/engineering/WORKFLOW.md) owns the engineering/verification loop and [QUALITY](docs/QUALITY.md) maps recorded evidence. Root `PLANS.md` remains a stable pointer to the canonical planning standard.
+
+Use Chat and Activity in the interface. Existing internal `Conversation` terminology remains valid. Do not introduce a rename-only migration or another product's assumptions.
 
 ## Local development with Sail
 
@@ -94,7 +91,7 @@ client reloads its server inventory.
 
 ## Verification
 
-Run the repository checks through Sail:
+Run the application checks through Sail:
 
 ```bash
 ./vendor/bin/sail composer validate --strict
@@ -104,3 +101,15 @@ Run the repository checks through Sail:
 ./vendor/bin/sail npm run types:check
 ./vendor/bin/sail npm run build
 ```
+
+Documentation-only checks do not require application dependencies:
+
+```bash
+node --test scripts/check-docs.test.mjs
+node scripts/check-docs.mjs
+git diff --check
+```
+
+Use the repository Node runtime, directly or through Sail. The documentation
+workflow runs these Node checks separately from application CI. Structural
+success does not establish browser behavior, security, or release readiness.

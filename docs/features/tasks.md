@@ -1,51 +1,43 @@
-# Page-aware tasks
+# Tasks, shared lists, and action tracking
 
-Status: proposed Phase 3 feature; not implemented.
+Status: **Draft for owner review. Expansion target; not established as implemented.** The baseline proposed simple page-related tasks. This revision makes a page optional and defines shared lists without making a project-management suite a launch requirement. See [review scope](README.md).
 
-This document owns SideWire's lightweight task records, assignment, status, due dates, and relationship to page contexts and conversations.
+This document owns task/list records, assignment, status, due dates, and resource permissions. Personal reminders belong to [Saved items](saved-items-and-reminders.md); automated forms and recurring actions belong to [Workflows](workflows-and-automation.md).
 
-## Purpose
+## Purpose and ownership
 
-A team should be able to turn a conversation beside any web tool into a clear action without relying on that tool to have its own task system. Tasks make SideWire useful across tools while remaining lighter than a complete project-management platform.
+Turn a discussion into an accountable action, whether it started beside a work page or entirely in SideWire. A task belongs to one Organization and either a personal scope or one owning shared list/conversation. A shared list has one explicit audience, normally inherited from its channel or DM. Do not combine independent permission systems or infer access from a source URL.
 
-## Proposed first version
+A task may reference a message and safe page contexts without being owned by a page. Linking or unlinking chat pages never moves tasks, changes assignees, shares a private task, or duplicates it under each App. An original message reference remains a reference, not a permanently copied private quote.
 
-A task belongs to one organization and normally one page context. It includes an opaque identifier, required title, optional description, creator, optional assignee, open or completed status, optional due date, completion metadata, and timestamps.
+## Basic actions
 
-Authorized organization members may:
+Create an action from a message, channel/DM resource view, My Tasks, or an authorized linked page. Show the destination and audience before saving. Include a required title, optional description, creator, optional single active assignee, open/completed status, optional due date, and completion metadata. An unassigned task is valid. Creation does not send a chat message unless the user explicitly shares its reference.
 
-- create a task from the current page context;
-- assign it to an active organization member or leave it unassigned;
-- edit title, description, assignee, and due date;
-- complete and reopen it;
-- view open and completed tasks for the current context;
-- navigate from the task to the source page and related conversation.
+Editors may update details, assign/reassign, complete, reopen, and archive tasks according to the owning resource's permissions. List managers control list settings and restore archived items. Assignment is responsibility, not an access grant or exclusive edit lock. Reject an assignee who cannot read the task; offer a separate authorized invitation workflow rather than silently changing audience.
 
-Creating a task from a message may preserve a reference to that message without copying mutable message content into the task.
+Use date-only due dates initially. Display a date, not a fabricated midnight deadline in another timezone. Time-specific reminders, if enabled, show an explicit time and timezone. Due-date changes do not rewrite creation/completion history. Deactivation preserves the former assignee in history and marks open work as needing reassignment.
 
-## Status and lifecycle
+## Lists and views
 
-Begin with `open` and `completed`. Do not add boards, custom statuses, priorities, dependencies, subtasks, recurring tasks, effort estimates, sprints, or workflow automation until usage requires them.
+Provide a shared table/list with title, assignee, status, and due date, plus sorting and filters. My Tasks combines only tasks assigned to or personally owned by the viewer; it cannot disclose tasks in inaccessible channels. A source page may filter related tasks without becoming a second task store.
 
-Completion records who completed the task and when. Archive or soft deletion requires a deliberate recovery policy; permanent deletion should not be the default.
+Optional enhancements include saved views, a basic status board, bounded custom fields, subtasks, and item discussion. They are reviewable expansions, not requirements for basic assignment and completion. Any custom status must clearly map to open/completed behavior so reminders and counts remain understandable.
 
-## Assignment and notifications
+Item discussion inherits the task/list audience. It must not expose the originating private message to people who only have task access. Posting a list reference elsewhere does not share the list automatically. Copying a list requires an explicit audience preview and must not copy private comments, assignments, credentials, or completed history by default.
 
-Assignment does not create page-specific access. The assignee must already have access through the organization. Assigning or reassigning creates one deduplicated notification when notifications exist. Removing a member must preserve task history and safely unassign or label affected open tasks according to an approved policy.
+## Attention and lifecycle
 
-## Cross-tool task view
+Assignment/reassignment and due reminders create deduplicated events only for eligible recipients. Own assignments need not interrupt their author. Completion, archive, and access removal cancel pending due alerts; reopening does not replay old events. Creating from a mentioned message must not cause unexplained duplicate alerts.
 
-The current page shows its tasks in the panel. A later My Tasks view combines assigned work across all source tools and provides open/completed and due-date filters. It must retain recognizable source site/context and a safe return link.
+Archiving a conversation makes attached lists/tasks read-only under the proposed default. Restoring it re-enables authorized editing; unrelated/personal lists are unaffected. Task archive is recoverable under the approved lifecycle policy. Completion does not imply deletion. Search, exports, notifications, and later AI enforce the current resource audience.
 
-## Open decisions
+## Acceptance behavior
 
-- Whether tasks can exist without a page context.
-- Task comments versus using the associated page conversation.
-- Due-time and timezone behavior versus date-only due dates.
-- Who can edit or complete another person's task.
-- Task deletion, retention, and removed-member behavior.
-- Whether team and direct conversations can create tasks.
+A teammate can create and complete an assigned action without a page. Several linked pages show one referenced task without duplicate counts. Assignment cannot grant access, and private-message previews remain private. Concurrent completion/reassignment has a coherent visible result, retained actor history, and no duplicate alerts. Archive, deactivation, due-date changes, and timezone display have predictable outcomes.
 
-## Out of scope
+## Owner decisions
 
-Gantt charts, kanban boards, workload planning, time tracking, approvals, forms, automations, custom fields, dependencies, portfolios, and bidirectional sync with every external task system are not part of the lightweight feature.
+Confirm shared-task editing roles, whether list editors differ from channel posting roles, and whether boards/custom fields/subtasks belong in the first task release. Approve reminder timing, archive recovery, and list/item limits. Gantt charts, portfolios, time tracking, resource planning, and synchronization with every external task system remain outside this feature.
+
+Reference coverage: [Slack lists](https://slack.com/help/articles/27452748828179-Use-lists-in-Slack). SideWire's simplified scope and permission defaults are proposals.

@@ -1,49 +1,43 @@
-# SideWire contributor guide
+# SideWire agent entry point
 
-Read `README.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, the relevant `docs/features/<feature>.md`, and the active execution plan before making changes. Read `docs/DOCUMENTATION.md` before adding documentation, class or module comments, implementation maps, or code-to-specification references. For browser-extension or web-interface work, also read `docs/UI.md`. Do not read or update unrelated documents.
+SideWire is an independent product; PageRelay is its repository codename. Do not import another product's models, billing decisions, or assumptions.
 
-## Product identity
+## Start here
 
-SideWire is a standalone product. The GitHub repository is named `PageRelay`, which is a legacy codename. Use SideWire in user-facing copy unless the product is explicitly renamed.
+Read [the documentation map](docs/INDEX.md), then only the documents needed for the task. Read the nearest scoped `AGENTS.md` before editing its directory.
 
-Do not reference, import assumptions from, integrate with, or couple SideWire to any of the owner's other products. SideWire must remain useful to teams regardless of which CRM, project-management tool, design tool, or website they use.
+| Task                               | Read next                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Setup, runtime, commands           | [README](README.md)                                                                                 |
+| Product scope and feature approval | [Product](docs/PRODUCT.md), [feature index](docs/features/README.md)                                |
+| Trust boundaries or backend work   | [Architecture](docs/ARCHITECTURE.md), owning feature, `app/AGENTS.md`                               |
+| Web interface                      | [UI](docs/UI.md), [application shell](docs/features/application-shell.md), `resources/js/AGENTS.md` |
+| Extension                          | [extension specification](docs/features/browser-extension.md), `apps/extension/AGENTS.md`           |
+| Planning or resuming work          | [plan lifecycle and register](docs/plans/README.md)                                                 |
+| Documentation                      | [documentation standard](docs/DOCUMENTATION.md), `docs/AGENTS.md`                                   |
+| Verification or finishing a change | [engineering workflow](docs/engineering/WORKFLOW.md), [quality evidence map](docs/QUALITY.md)       |
 
-## Sources of truth
+## Working agreement
 
-`README.md` owns local setup and repository entry points. `docs/PRODUCT.md` owns the product purpose, audience, boundaries, vocabulary, and approved MVP. `docs/ARCHITECTURE.md` owns the technology choices and application-wide engineering, privacy, and security rules. `docs/UI.md` owns shared user-interface and extension interaction rules. `docs/DOCUMENTATION.md` owns code-documentation, implementation-map, and code-to-specification reference rules. Each file under `docs/features/` owns the complete approved behavior of one feature. `PLANS.md` owns the roadmap and execution-plan standard. Each file under `docs/plans/` owns one initiative's implementation sequence, decisions, progress, and verification.
+1. Inspect the branch, current code/tests, owning specification, and relevant active plan. Do not treat a prior conversation or historical plan as the current implementation.
+2. Identify the approved outcome and non-goals. Feature-review drafts are proposals, not implementation authorization. A request for documentation does not authorize building its features.
+3. For substantial behavior, migration, security, permission, or refactor work, maintain one approved living plan in `docs/plans/active/`. Small documentation fixes need a bounded change summary, not ceremonial plans.
+4. Work on one coherent outcome. Record unrelated findings in [the debt tracker](docs/plans/tech-debt-tracker.md), then return to the task. Do not opportunistically refactor neighboring features.
+5. Reuse existing components, domain boundaries, and locked dependencies. Add an abstraction or dependency only when an actual requirement justifies it.
+6. Validate with real checks and inspect the diff. Record the revision, environment, commands, results, and omissions. Never convert skipped or unavailable verification into a pass.
+7. Update the owning feature and its concise implementation map when behavior or entry points change. Keep decisions and progress in the same active plan.
+8. Move a plan to `completed/` only after its completion gate is satisfied. Code written, CI passing, browser verified, and released are separate states.
 
-Update the one document that owns changed behavior. Do not duplicate a feature specification across product, architecture, UI, and plan documents. When work spans features, read only the directly affected feature files and name which document owns each resulting behavior. The user's latest explicit direction overrides repository guidance.
+## Non-negotiable boundaries
 
-## Communication vocabulary and scope
+Derive Organization access from active server-owned membership. Validate the full chat/context relationship, not just individual IDs. A page link never grants conversation access. Preserve one durable history, explicit source attribution, safe retries, and the existing default Workspace; Apps is not tenancy.
 
-Use the interface terms Chat, Activity, and Apps from `docs/PRODUCT.md`. Existing `Conversation` symbols and the `page-conversations.md` and `inbox-and-unread.md` filenames are internal names for those same concepts, not competing entities. Do not undertake a rename-only schema or code migration. Thread is reserved for message-level replies, which remain deferred.
+The extension must not modify or read host-page contents, capture screens, enumerate background tabs, retain passive browsing history, or broaden permissions without an explicitly approved feature. Treat URLs and titles as private data. The complete web experience does not require page context or extension installation.
 
-Read `docs/features/page-contexts.md` for URL identity and Apps grouping, `docs/features/page-conversations.md` for shared chats and linking, and `docs/features/inbox-and-unread.md` for Activity and chat-level read state. Linking distinct contexts is not identity normalization or history merging. Say a context has no chat or an empty chat, not that the external page is unused.
+Use disposable data for destructive tests. Never reset shared databases, publish credentials/customer data, force-push over another contributor, deploy, or merge without the relevant authorization. Do not weaken tests or permissions to obtain a green result.
 
-Retain authoritative `organization_memberships` and the existing default Workspace foundation. Apps are not per-domain workspaces, Teams are not Channels, and flexible tables do not approve switching, custom channels, automatic matching, or alternative product modes. The current communication implementation proposal is `docs/plans/001-page-chats-and-linking.md`; documentation approval alone is not implementation approval.
+## When instructions or evidence disagree
 
-## How to work
+The latest explicit user direction controls intended scope. Approved specifications own intended behavior; code/tests and dated evidence establish actual behavior. Proposed features and old plans cannot override that distinction. Surface material conflicts, fix the owning document, and request a decision only where genuinely needed.
 
-For a substantial feature, security-sensitive change, data migration, extension-permission change, or significant refactor, create or update one living ExecPlan under `docs/plans/` using `PLANS.md`. Obtain explicit implementation approval before changing application code. Update the same plan throughout implementation and record real verification results.
-
-Keep changes scoped to the approved milestone. Do not add speculative integrations, AI features, billing rules, referral systems, browser permissions, data collection, or enterprise controls.
-
-SideWire's defining constraint is that it augments existing websites without interfering with them. Never alter the host page, inject content scripts, read page contents, capture screenshots, or request broader Chrome permissions unless an approved feature requires it. A URL, page title, and favicon are still potentially sensitive workplace data and must be handled as private organization data.
-
-Every organization-owned record must be isolated and authorized on the server. Never trust a client-supplied organization identifier, role, page-context identifier, URL, or extension state. Normalize page identities consistently on the server and make retries safe to repeat.
-
-For UI work, reuse shared components and layouts before introducing a new pattern. The extension side panel is narrow and persistent; test it at realistic panel widths as well as in the full web application. Do not make the extension a cramped copy of a desktop dashboard.
-
-Do not claim that a command, provider, browser behavior, migration, or test was verified unless it was actually run. If the repository has not yet established a command, update the active plan when the command is chosen rather than inventing a result.
-
-## Documentation rules
-
-Do not add a header docblock to every class. Document a class or module only when it owns a non-obvious responsibility, invariant, security or privacy boundary, external contract, normalization rule, state transition, or idempotency guarantee. Comments explain why or what must remain true; they do not narrate obvious code.
-
-Use native types first. Add PHPDoc, TypeScript types, or runtime schemas when they provide meaningful type information or enforceable contracts that the language cannot otherwise express.
-
-When feature implementation begins, add a concise `Implementation map` to the owning feature document. List stable entry points, directories, routes, domain services, models/tables, policies, important async or provider boundaries, and tests. Do not attempt to list every related file. Use `rg` and predictable names to discover the rest.
-
-An active ExecPlan must identify current relevant files in `Context and Orientation` and expected changed paths in `Plan of Work`. Update both the plan and the feature implementation map when paths change. Reference the owning feature document selectively from primary domain boundary classes with `@see`; do not repeat the same reference throughout the codebase.
-
-Before completing implementation, follow the documentation completion check in `docs/DOCUMENTATION.md`.
+Keep this file a map, not a product encyclopedia. Detailed documentation and verification rules belong in their linked owners. There is no requirement to add a header docblock to every class, create an agent roster, or load every feature document.

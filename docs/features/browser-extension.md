@@ -1,96 +1,62 @@
-# Chrome browser extension
+# Chrome side panel and page-aware collaboration
 
-Status: the extension shell and secure authentication handoff are implemented by `docs/plans/000-execplan.md`; This Page, page-chat, manual linking, Activity, Chats discovery, shared unread behavior, lookup-only resolution, explicit manual chat creation, and event-scoped loading are implemented through milestone 5 of `docs/plans/001-page-chats-and-linking.md`. Direct durable work-Chat creation and use in the panel are implemented by `docs/plans/002-durable-work-chats.md`. Manual Chrome verification remains pending.
+Status: **Draft for owner review. Core target.** Baseline docs describe the shell, authentication handoff, This Page, explicit creation/linking, Activity, Chats, and read state as implemented through plans `000`, `001`, and `002`. They deliberately use event-scoped loading/manual Refresh rather than extension realtime. Manual Chrome verification remained pending; this review does not change that status.
 
-This document owns the extension shell, side-panel lifecycle, permissions, authentication surface, active-tab awareness, and navigation between extension views. Page identity and Apps grouping belong to `page-contexts.md`; shared chats belong to `page-conversations.md`.
+This document owns extension permissions, authentication, active-tab lifecycle, and the narrow panel experience. Common messaging, audience, identity, and source attribution belong to their feature owners.
 
-## Purpose
+## Role beside the complete web app
 
-The extension makes SideWire available beside the website where work is happening. It should feel like a persistent collaboration utility, not an overlay that takes control of the host application.
+The extension brings the same authorized chats beside work pages; it is not required to use SideWire. This Page is the extension's contextual entry point. Chats, channels, DMs, Activity, search, and followed threads remain accessible without associating the current tab. Wider workflows can open an exact authorized destination in the web app, preserving the user's place.
 
-## MVP surface
+Do not compress every desktop pane into the panel. Use focused list/detail/thread states, a reachable composer, compact source and audience labels, accessible back navigation, and explicit loading/offline/access states. Apps is an optional source-site filter, not a Workspace selector.
 
-Use Chrome Manifest V3 and the native side-panel API. The panel provides:
+## Permissions and privacy boundary
 
-- signed-out and session-expired states;
-- This Page with the current supported page context and its associated Chat, if any;
-- an inline **Create chat for this page** form when the active page has no persisted context/chat;
-- eligible linking controls and a visible list of linked source pages;
-- compact Activity and Chats views with all/unread and Apps filters, durable Chat creation, and direct in-panel Chat history and sending;
-- compact navigation to Activity, Chats, organization chat, DMs, and later tasks as those features ship;
-- account and organization identity;
-- clear offline, reconnecting, permission-denied, unresolved, conflict, and unsupported-page states.
+Retain Manifest V3 and the native side panel. The approved `tabs` capability is used only to read the active tab's URL, browser-provided title, and favicon while the user-invoked panel is open. Chrome's capability warning does not authorize browsing-history collection.
 
-Apps is a browsing/filtering aid, not a workspace or tenant selector. Opening SideWire is intentional; the extension does not continuously record background browsing or import every external record.
+Do not enumerate background tabs, retain visit logs, inject content scripts, modify host pages, read DOM/forms/cookies/local storage, capture screenshots, intercept network requests, or request `<all_urls>` for convenience. A new recording or other capability requires separate approval and disclosure. SideWire API host permissions must be narrowly scoped to the deployed API origin.
 
-## Permissions and host-page behavior
+Unsupported schemes, browser-internal pages, local files, new tabs, denied permissions, missing metadata, and credential-bearing URLs are normal unsupported states. They must not create false identities or persistent collaboration records.
 
-Request minimum Chrome permissions for approved behavior. The persistent panel uses `tabs` to read only the active tab's URL, title, and favicon when it opens and as the user changes tabs. Chrome may describe this capability with a browsing-activity warning, but SideWire does not enumerate background tabs or retain browsing history. Phase 0 does not require a content script, DOM access, scripting permission, network interception, or broad host access.
+## Tab and context transitions
 
-The extension must not alter the page, inject widgets, read forms, copy page content, access host cookies or local storage, capture screens, or execute source-page scripts. Any such future capability requires separate feature and permission/privacy approval.
+Resolve when the panel opens or the active supported URL changes while it is open. Deduplicate repeated title/favicon/loading events and unchanged URLs. Resolution is read-only. Unknown pages remain ephemeral until explicit creation/linking; do not persist descriptors in durable extension storage or turn them into Apps/Activity entries.
 
-Restricted pages, local files, extension pages, new-tab pages, unsupported schemes, unavailable metadata, and denied permissions are normal states. They must not create false contexts. Unsafe temporary or credential-bearing URLs follow `page-contexts.md` and must not become stored source links.
+The no-chat form retains editable safe Page title, Page URL, and Chat name and discloses the proposed audience. Only successful explicit creation/linking exposes the This Page composer. A hidden private mapping cannot be overwritten or named in an error.
 
-## Tab and panel lifecycle
+Distinguish a changed tab, changed context, and changed chat. Two contexts may route to the same chat: update the current-page indicator without duplicating history, subscriptions, or unread counts. Keep drafts bound to their original chat/thread/source. Navigation must not silently relabel an existing draft or submit it to a newly mapped destination.
 
-When the panel opens or the active tab's URL changes while it is open, SideWire may resolve the newly active supported page. Deduplicate resolution by active tab and URL; repeated `tabs.onUpdated` events for title, favicon, loading state, or the same URL must not cause another request. Resolution is a read-only lookup and must not persist a page context, request key, browsing event, visible chat, subscription, or notification.
+Opening a chat directly does not attach the active page. Returning to This Page performs its normal lookup. Automatic page following must not interrupt direct chat/thread work or steal focus from a draft; where following would change the destination, show the new-page state and require a deliberate navigation choice. More elaborate follow/pin preferences are optional and must preserve these invariants.
 
-If no persisted context exists, keep only the validated ephemeral page descriptor needed for the current This Page state. Show an inline creation form with editable Page title, Page URL, and Chat name fields prefilled from the active tab; do not show a message composer. **Create chat** or an eligible manager's **Link to existing chat** action resubmits the page metadata to the server, which revalidates it and creates the context atomically with the chosen action. Do not put ephemeral page descriptors into Apps, Chats, Activity, search, or durable extension storage.
+## Live delivery target and recovery
 
-Do not run periodic page-chat, Activity, or Chats refresh timers in the MVP panel. Load the current page once when the panel connects, load Activity or Chats when the user enters that view or changes its filters/search, reload affected data after a successful mutation, and provide a clear user-triggered **Refresh** action for current server state. A future realtime extension connection requires separate approval; unrelated Chrome activity must never refresh SideWire data.
+The target is live authorized messaging while the panel is open, not a manual-refresh-only primary experience. Connect only for the current user's authorized collaboration state; page associations must not multiply subscriptions. Reconnect after interruption, revalidate membership, and reconcile persisted history/read state without duplicate messages or stale private content.
 
-A new tab may resolve to a different context but the same shared chat. Keep the current source context visually accurate without duplicating history, realtime subscriptions, or chat-level unread state.
+This replaces the baseline transport limitation only when separately implemented and verified. Do not reintroduce undocumented periodic polling or continuously monitor browsing to simulate realtime. Keep a manual Refresh action as recovery, not the normal mechanism for receiving coworkers' messages.
 
-A member may open a durable work Chat directly from Chats without changing the active browser tab. Direct Chat messages carry no source page. Returning to This Page resolves the active tab normally and must not silently attach it to the Chat that was most recently open. An eligible manager links the current page only through the explicit linking action.
+Closing the panel is not a promise of a persistent browser process or closed-browser delivery. Supported notification/background behavior belongs to [Notifications](mentions-and-notifications.md) and requires its own capability review. Permission denial or suspended browser operation must be stated honestly.
 
-Preserve drafts with their intended chat and source context when practical. Do not automatically send a draft to a newly selected page, relabel its source, or follow a changed association on submit. A send includes its explicit chat and selected source context; the server validates their current authorized relationship. Conflicts require a clear reload/retry path.
+## Authentication and session lifecycle
 
-A message composed from Activity or another non-page view has no inferred source unless the user explicitly selects one. Never use the last active tab as hidden message metadata.
+Preserve the documented short-lived, one-time PKCE-bound web handoff. The confirmation URL exposes only an opaque request identifier; a signed-in verified active member explicitly approves before a scoped expiring Sanctum token is issued. Normal host pages never receive SideWire credentials.
 
-## Authentication
+Store only approved token/session material and minimum identity in extension-owned storage. Sign-out/disconnect revokes the session server-side and clears sensitive local state; when offline, local credentials must still be cleared and the user must be told if server revocation remains unconfirmed. Expired/revoked/removed sessions fail closed, clear visible/cached private data, and provide a safe reconnect path. Draft storage follows its separate privacy rules, not unrestricted local history caching.
 
-The implemented browser-to-web handoff uses a short-lived, one-time request bound to a PKCE verifier. The extension creates the verifier and keeps the handoff secret; the browser confirmation URL contains only an opaque public identifier. A signed-in, verified user with an active organization membership must explicitly approve the connection before the extension can exchange the secret and verifier for a scoped, expiring Sanctum token.
+## Distribution and acceptance
 
-The extension stores only that token, expiry, and minimum user and organization display identity in `chrome.storage.local`. Disconnect revokes the current token on the server before clearing local state. Expired, revoked, unverified, or removed accounts fail closed on the next authenticated request. Never expose tokens or handoff secrets to the host page, browser URLs, analytics, or logs.
+Development remains an unpacked extension unless store distribution is separately completed. Production API origin, supported Chrome versions, store disclosures/review, privacy policy, update behavior, and browser compatibility must be verified before release claims. Other browsers and native apps are separate decisions.
 
-## Distribution and compatibility
+Acceptance requires live delivery/reconnect across two authorized clients, safe tab changes with drafts, supported narrow widths, correct same-chat/different-source behavior, no visit-only persistence, no hidden-audience leakage, and session revocation without host-page credentials or expanded browsing collection.
 
-Development begins as a loadable unpacked extension. Chrome Web Store packaging, disclosures, screenshots, privacy-policy requirements, review, update signing, release channels, and minimum Chrome versions must be completed before public pilot distribution.
+## Implementation map — documented baseline only
 
-Firefox, Safari, Edge-specific packaging, native mobile apps, and install-free embed scripts remain later possibilities.
+- Workspace/manifest/build: `apps/extension/`, `public/manifest.json`, `vite.config.ts`.
+- UI/client: `apps/extension/src/sidepanel/main.tsx`, `src/components/ui/`, `src/styles/app.css`, `src/page-chat/api.ts`.
+- Session/background: `apps/extension/src/auth/session.ts`, `src/background/service-worker.ts`.
+- Direct chat API: `app/Http/Controllers/Api/V1/WorkChatController.php`, `/api/v1/extension/work-chats`.
+- Handoff/session: `POST/PUT /api/v1/extension/handoffs`, `GET/DELETE /api/v1/extension/session`, `app/Domain/Extension/`, `app/Models/ExtensionHandoff.php`, `extension_handoffs`.
+- Web approval: `app/Http/Controllers/ExtensionConnectionController.php`, `resources/js/pages/extension/connect.tsx`.
+- Authorization: `app/Http/Middleware/EnsureExtensionAccessToken.php`.
+- Existing tests: `tests/Feature/Api/ExtensionHandoffTest.php`, `ExtensionConnectionPageTest.php`, `ExtensionSessionTest.php`, `tests/Feature/Broadcasting/OrganizationChannelAuthorizationTest.php`, and PageContexts/Conversations/Activity suites.
 
-## Acceptance behavior
-
-The panel opens reliably at narrow/resized widths, survives browser and extension restarts as designed, handles active-tab and shared-chat transitions, authenticates safely, identifies unsupported or unsafe pages, protects draft attribution, avoids duplicate resolution requests for an unchanged URL, does not react to unrelated tabs or windows, uses no background refresh timer, persists no visit-only context, and never requires host-page modification for the MVP workflow. The prefilled creation form remains usable with detected values unchanged or with deliberate manual corrections.
-
-## Implementation map
-
-Primary entry points:
-
-- Extension workspace: `apps/extension/`
-- Manifest: `apps/extension/public/manifest.json`
-- Side-panel entry: `apps/extension/src/sidepanel/main.tsx`
-- Authentication client: `apps/extension/src/auth/session.ts`
-- Extension UI boundary: `apps/extension/src/components/ui/`
-- Background service worker: `apps/extension/src/background/service-worker.ts`
-- Extension styles: `apps/extension/src/styles/app.css`
-- Page-chat API client: `apps/extension/src/page-chat/api.ts`
-- Direct work-Chat API: `app/Http/Controllers/Api/V1/WorkChatController.php` under `/api/v1/extension/work-chats`
-- This Page and chat interface: `apps/extension/src/sidepanel/main.tsx`
-- Build configuration: `apps/extension/vite.config.ts`
-- Handoff API: `POST` and `PUT /api/v1/extension/handoffs`
-- Scoped session API: `GET` and `DELETE /api/v1/extension/session`
-- Browser confirmation: `app/Http/Controllers/ExtensionConnectionController.php` and `resources/js/pages/extension/connect.tsx`
-- Authentication domain: `app/Domain/Extension/`
-- Handoff model/table: `app/Models/ExtensionHandoff.php` and `extension_handoffs`
-- Token boundary: `app/Http/Middleware/EnsureExtensionAccessToken.php`
-- Tests: `tests/Feature/Api/ExtensionHandoffTest.php`, `tests/Feature/Api/ExtensionConnectionPageTest.php`, `tests/Feature/Api/ExtensionSessionTest.php`, and `tests/Feature/Broadcasting/OrganizationChannelAuthorizationTest.php`
-- Page workflow tests: `tests/Feature/PageContexts/` and `tests/Feature/Conversations/`
-- Activity/read tests: `tests/Feature/Activity/`
-
-The development manifest adds only the exact `http://localhost:8000/*` host permission needed to call the local SideWire API. Its approved `tabs` permission supplies active-tab URL, title, and favicon metadata across standard HTTP and HTTPS work pages; the side panel queries only the active tab. A production API origin and its disclosure require distribution approval; no broad host permission or content script is present.
-
-Related specifications:
-
-- `docs/features/page-contexts.md`
-- `docs/features/page-conversations.md`
+The documented development API permission is `http://localhost:8000/*`; it is not a production deployment configuration or proof that the new live-delivery target is implemented.

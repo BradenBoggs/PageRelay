@@ -1,41 +1,55 @@
-# Mentions and notifications
+# Mentions, notifications, and interruption controls
 
-Status: proposed Phase 2 feature; not implemented. Implementation requires a separately approved ExecPlan.
+Status: **Draft for owner review. Core target.** Baseline mentions/in-product delivery were proposed, not implemented; browser/email delivery had been deferred. This document specifies target behavior without claiming notification infrastructure exists. See [review scope](README.md).
 
-This document owns `@` mentions, in-product notification records, delivery preferences, and later external notification channels. Activity ordering and chat read position belong to `inbox-and-unread.md`; task assignment belongs to its own specification.
+This document owns recipient selection, durable attention events, delivery preferences, notification channels, quiet hours, and deduplication. Chat/thread unread progress belongs to [Activity](inbox-and-unread.md) and [Threads](threads.md).
 
-## Purpose
+## Mentions and audience
 
-Mentions direct a teammate's attention without requiring them to monitor every chat. Notifications communicate important activity without turning SideWire into a constant interruption.
+Support stable-ID mentions of active eligible members in channels and DMs. Suggestions reveal only people the actor may discover; recipients must already be able to access the destination. Mentioning someone does not invite them to a private channel or grant access. Display a clear unavailable-recipient explanation without exposing hidden people.
 
-## Mentions
+An `@channel`-style mention targets eligible joined members, not every person able to discover a public channel. Broad mentions require permission and a recipient-count warning. An `@here`-style active-member mention is optional and must use approximate supported presence, never silent browsing surveillance. Team/user-group mentions expand only to active members who can access the destination; group membership does not grant channel access.
 
-The proposed first version supports mentioning an active organization member in an authorized page or organization chat. DMs already identify their recipients and do not require mention semantics for basic delivery.
+Text that looks like a mention but has no resolved identity is ordinary text. Renaming a person/group does not reinterpret historical recipients. Importing old messages, relinking pages, and editing plain text cannot replay a conversation's old mentions.
 
-Resolve stable member identifiers rather than trusting display-name text. Renaming a member must not change the historical recipient. Suggestions reveal only discoverable members; removed members cannot be newly mentioned.
+## Event defaults
 
-Mention identity follows the original message and recipient, not each linked page context. Retried messages or a chat linked to several apps must not produce duplicate mentions or deliveries.
+Proposed defaults surface DMs, direct mentions, followed-thread replies, and personal reminders in Activity. Broader channel-message alerts are opt-in. Task assignments/due reminders, calls, workflow events, and invitation updates are added only when their owning features ship. Own messages do not notify their author as incoming communication.
 
-## In-product notifications
+Create one recipient attention event per underlying message or other event, with multiple reasons attached where relevant. A reply that is both a mention and a followed-thread update is not two alerts. A message linked to multiple source pages remains one event. Retry-safe identities cover in-product records and external delivery attempts.
 
-A notification belongs to one recipient and organization and references an authorized source event. Types may include mention, DM, task assignment, task due soon, and invitation status only when those features exist.
+Newly added eligible mentions in an edit may create one event for newly mentioned recipients. Editing must not replay delivery to unchanged recipients. Removing a mention cancels unsent mention-only delivery; it cannot retract an already delivered alert. Deleted content and lost access are removed from pending previews/delivery. A restored message is not automatically a new mention event.
 
-Use durable notification read state, creation time, safe destination, and deduplication. Deduplicate by the relevant event/message, recipient, and notification type rather than source-page association. Linking or unlinking a page does not replay old messages, issue a new mention, or reset read state.
+## Preferences and precedence
 
-Navigate to durable chat/message identity. The original message may include its safe historical source page; do not substitute a newly linked page as the event's origin. Recheck authorization at delivery and navigation, including DM participation. Losing access must not expose content through stale previews.
+Offer per-user defaults and per-conversation controls: all messages, mentions/relevant replies, or no proactive alerts. Followed threads have explicit controls. Muting suppresses interruptions, including broad mentions, while Activity can still retain authorized direct-mention records. Explain the difference between hiding badges, muting delivery, and leaving a destination.
 
-## Delivery channels
+Quiet hours use the user's chosen timezone and days; temporary pause shows its end time. Organization defaults cannot silently override a personal pause. No emergency/VIP bypass is included initially. Optional custom keyword alerts must match only authorized content, be rate-limited, and never become organization-wide monitoring.
 
-Start with in-product delivery through Activity or a notification view. Browser notifications, email, digests, Slack/Teams forwarding, SMS, mobile push, and per-channel rules require separate approval and opt-in behavior.
+Provide sound on/off and content-preview controls. Privacy-friendly previews can show only that there is activity, rather than a message body or private channel name. Do not put secret source URLs or attachment access credentials into lock-screen or email previews.
 
-Request browser notification permission in context after explaining the benefit, not during installation simply because it might be useful later.
+## Delivery surfaces
 
-## Preferences and noise control
+In-product Activity is the durable source. Provide desktop/browser alerts on supported active clients after an explanatory, user-initiated permission request. Do not request permissions at installation merely because they might be useful. A test-notification action should explain denied, unsupported, disconnected, or suppressed states.
 
-The initial direction is mentions and DMs by default, with broader chat activity opt-in. Exact notification and subscription defaults remain open. Merely visiting a page or adding a link must not subscribe every organization member.
+Coalesce web/extension delivery for the same person/event so multiple open surfaces do not all play a sound or display the same toast. If the person is actively viewing the actual destination, suppress redundant desktop interruption without assuming all its content is read. A foreground chat and a hidden browser tab are not equivalent.
 
-Respect membership removal, muted destinations, source authorization, and user timezone for any later digest behavior. Permission to discover a chat is distinct from subscription to its notifications.
+Email fallback/digests are an expansion with explicit preferences, an approved delay, and cancellation when the event is already handled. Recheck access immediately before composing/sending. Links require authentication; default to minimal content because email cannot be recalled reliably. No SMS or unrestricted forwarding to other chat services is proposed.
+
+Closed-browser push, extension-background alerts, and native mobile push are separate capabilities. Do not promise them until the browser/OS support, delivery path, permission needs, and duplicate-handling behavior are approved and verified. A suspended browser cannot be described as reliably online.
+
+## Delivery and read state
+
+Queued, delivered, failed, and suppressed are delivery states, not proof that a person read a message. Notification read/dismissed state is distinct from chat/thread progress. Opening a notification navigates to its durable message/thread and rechecks authorization; it does not depend on a source page still being linked.
+
+Quiet-hour release and reconnect must coalesce stale activity rather than flood the user. Rate-limit broad bursts and surface recoverable delivery failures without exposing sensitive payloads in logs. Pending events for deactivated users, expired guests, inaccessible channels, or removed DM participants must fail closed.
 
 ## Acceptance behavior
 
-An authorized mention creates one durable recipient notification and navigates to authorized content without alerting unrelated members. Multiple linked contexts, retries, later edits/deletion, unlinking, and access removal must not create duplicate or leaking notifications. Chat-level unread state remains consistent with `inbox-and-unread.md`.
+One mentioned recipient receives one relevant event across retry, thread overlap, multiple pages, and simultaneous clients. Quiet hours, mute, and preview privacy hold across all supported delivery channels. New membership/linking does not replay old alerts. Access revoked while delivery waits prevents content disclosure. A test notification explains why the actual device can or cannot receive it.
+
+## Owner decisions
+
+Confirm broad-mention roles, group/keyword alert scope, muted-direct-mention badge behavior, desktop delivery support, email fallback/digest timing, and any notification-volume limits. These choices must be visible product settings, not hidden assumptions.
+
+Reference coverage: [Slack notification preferences](https://slack.com/help/articles/201355156-Configure-your-Slack-notifications), [Slack reminders](https://slack.com/help/articles/208423427-Set-a-reminder). SideWire defaults above are proposed, not a reproduction of Slack defaults.

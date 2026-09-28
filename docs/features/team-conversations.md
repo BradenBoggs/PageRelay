@@ -1,43 +1,53 @@
-# Organization chat and future channels
+# Channels and organization-wide communication
 
-Status: one organization-wide general Chat remains a later milestone. Durable named organization-wide work Chats that accept page links are approved under `docs/plans/002-durable-work-chats.md`. Slack-style custom channel audiences and administration remain deferred.
+Status: **Draft for owner review. Core target.** The documented baseline provides named organization-wide work Chats; the default organization Chat and Slack-style membership/administration were not implemented by this feature. This proposal does not claim otherwise. See [review scope](README.md).
 
-This document owns the default organization-wide general Chat and future channel-specific audiences. Durable named work Chats and their page links belong to `page-conversations.md`; private one-to-one communication belongs to `direct-messages.md`. The existing filename is retained; user-facing labels use Chat.
+This document owns channel audience, membership, discovery, management, archive, posting restrictions, and shared channel resources. [Messaging](messaging-and-composer.md) owns messages; [page linking](page-conversations.md) owns page associations. The legacy filename and internal `Conversation` names remain valid.
 
-## Purpose
+## Purpose and model
 
-Keep general communication alongside page-aware work Chats. The default organization Chat is distinct from the multiple named work Chats governed by `page-conversations.md`.
+A channel is a durable shared Chat for a topic, team, project, customer, or other work, whether or not any external page is linked. It belongs to the Organization and existing default Workspace, not to an App or Team. Channels and DMs use shared messaging behavior but different access policies.
 
-## MVP boundary
+The proposed channel experience evolves existing work Chats rather than creating a second parallel history system. Existing identifiers, links, authors, and read positions must survive adoption. Existing organization-wide work Chats remain organization-visible unless an authorized person deliberately restricts them. Merely approving this document does not prescribe a schema migration or silently enroll everyone in notifications.
 
-Provide one default organization-wide chat when this milestone ships. All active organization members may view and send its messages. It has no required source URL and is not the chat of a particular Team membership group.
+## Creation and visibility
 
-Use the same durable plain-text messaging, idempotency, pagination, safe rendering, realtime recovery, and failed-send guarantees as work Chats. Include it in Activity, unread state, mentions, notifications, and search as those features ship.
+Any active full member may create a channel under the proposed default; an organization policy may limit creation. Creation asks for a name, optional description/topic, and public or private visibility. Explain the audience before confirmation. A source URL is optional and never an onboarding requirement.
 
-The initial organization chat does not imply an admin-only announcements stream, custom channel creation, private channel memberships, archive management, or a configurable operating mode.
+**Public** means discoverable by active full members inside the organization, not accessible on the internet. They may inspect retained public history and explicitly join to participate. Creating a channel joins its creator. Opening a channel or resolving a linked page does not silently join or subscribe the viewer.
 
-## Relationship to page contexts
+**Private** means visible only to its active channel members. Invitations disclose that joining grants access to its retained history and shared resources. Names, existence, membership, files, source URLs, counts, search suggestions, and realtime events must not leak to nonmembers. An organization administrator is not automatically a private-channel reader.
 
-A message in the organization Chat may contain a link to a work Chat, but must not absorb or copy that Chat's messages.
+## Membership and management
 
-The MVP page-linking operation targets work Chats only, not this organization Chat or a DM. Do not place automatically generated page contexts in Chat navigation.
+Channel managers may rename, update topic/description, invite eligible members, manage posting policy, and archive/restore channels they can access. Managers cannot add people from another organization or grant organization-admin authority. Ownership/management must remain recoverable when a manager leaves, through an explicit auditable process that does not grant hidden access to content.
 
-## Work Chats are not full custom channels
+Joining, following notifications, starring, and organizational membership are distinct. Leaving a private channel removes future content access; leaving a public channel stops membership-based attention while its public history remains discoverable. Removal revokes subscriptions, previews, file access, and pending deliveries. A historical author remains identifiable under the account policy.
 
-The MVP may provide multiple durable named work Chats to all active organization members and allow page contexts to route into them. These Chats are channel-like because they persist independently and appear in Chats, but they have no separate membership, visibility, posting-role, or archive model. They remain governed by `page-conversations.md`.
+Allow a confirmed public-to-private change with clear warnings about prior exposure and changes for nonmembers. Do not claim previously read or downloaded content can be recalled. Initial private-to-public history conversion is excluded; creating a separate public channel must not copy private content implicitly.
 
-## Later custom channels
+## General and announcements
 
-Channels such as Sales and Announcements are a possible next expansion for ongoing topics that do not map to one external record. They can reuse messaging infrastructure but require separately approved behavior for creation, naming, membership, visibility, posting, archive/restore, and notifications.
+Provide one recognizable default General channel for active full members, independent of pages and Teams. Full members join automatically as a disclosed organization default. General cannot be left, archived, or deleted through ordinary channel controls, but it can be muted. Guest membership, when available, must not auto-enroll guests in General.
 
-An Announcements name alone does not create restricted posting permissions. A Sales Team alone does not create a Sales channel or determine its audience.
+A posting policy may allow all members or channel managers only, making an announcements channel explicit rather than inferring it from its name. Restrictions apply to replies, uploads, scheduled sends, bots, and workflows as well as the main composer; reactions may remain allowed. Show why posting is unavailable.
 
-Custom channels are not required for the MVP and are not an alternative page/channel/hybrid setup selected during onboarding.
+## Archive and shared resources
 
-## Open decisions for later work
+Archiving makes a channel read-only, preserves authorized history/search/links, and stops new posts, replies, scheduled deliveries, and automation writes. An authorized manager may restore it. Archive is not deletion. A linked archived channel opens a clear read-only view; it does not cause a new chat to be created automatically.
 
-Channel creation and management roles, public versus private channels, archive/restore, announcement posting restrictions, and retention/moderation remain open. Message editing/deletion, reactions, threads, and attachments are not implicitly approved here.
+Members with posting permission may pin authorized messages and add labeled safe links; managers may remove shared pins/resources. These are shared channel references, not copies or private saved items. Deleted or inaccessible targets show a neutral unavailable state. Canvases, lists, and files appear only once their owning features exist.
 
-## Out of scope
+## Page-context relationship
 
-Cross-organization communities, customer channels, federated chat, voice/video meetings, Slack import, bots, apps inside channels, enterprise compliance, and mandatory channel-per-project workflows are not approved.
+Eligible ordinary channels can have zero or many page links under the page-linking rules. DMs and protected General are not primary page-link targets. A page link never joins a user, widens a channel's audience, or imports outside records. Avoid automatically creating a channel for every visited lead or record; discovery should favor favorites, joined channels, recency, and search.
+
+## Acceptance behavior
+
+A member can create/use a channel with no page, discover and join a public channel, accept a private invitation with a clear history boundary, and leave without deleting history. A nonmember cannot learn private metadata through any discovery or linked-page surface. Archive and posting restrictions hold across web, extension, replies, files, scheduled messages, and integrations. Existing work-Chat IDs/history remain intact when this target is implemented.
+
+## Owner decisions
+
+Confirm member-created channels, channel-manager powers, public-history access before joining, default General behavior, visibility-conversion restrictions, and whether future team-based invitation should be a one-time action or a maintained access rule. No automatic Team-to-channel access is proposed.
+
+Reference coverage: [Slack channels and messaging catalog](https://slack.com/help/categories/200111606-Using-Slack). SideWire's permission defaults above are proposals, not assertions about Slack defaults.

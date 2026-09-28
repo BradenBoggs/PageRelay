@@ -1,84 +1,59 @@
-# Accounts and organizations
+# Accounts, organizations, and membership lifecycle
 
-Status: approved for the foundation; implementation is tracked in `docs/plans/000-execplan.md`.
+Status: **Draft for owner review. Existing foundation retained; collaboration/lifecycle additions are proposed Core scope.** Foundation implementation is tracked in `docs/plans/000-execplan.md`; this review is not a fresh code audit. See [review scope](README.md).
 
-This document owns authentication, organization tenancy, organization membership, roles, invitations, and account lifecycle. Workspace and team behavior is defined in `workspaces-and-teams.md`. Billing consequences belong to `billing-and-product-access.md`.
+This document owns authentication, tenant membership, roles, invitations, and account lifecycle. Teams/Workspace belong to [Workspaces and teams](workspaces-and-teams.md), billing consequences to [Billing](billing-and-product-access.md), and data retention/security administration to [Administration](administration-and-data-lifecycle.md).
 
-## Purpose
+## Retained foundation
 
-An organization is the private tenant, customer account, and security boundary for SideWire. It normally represents a company. Users authenticate individually and collaborate only through an active organization membership.
+An Organization is the private tenant, customer account, and billing owner. People authenticate individually and receive access through active organization membership. It is not a Workspace, Team, App, or channel. The first organization creator becomes its owner.
 
-An organization is not a workspace and is not a team. It may own workspaces and teams without changing which customer owns the data or subscription.
+Keep the approved one-Organization-per-user foundation. There is no organization switcher, personal/fallback organization, stored current-organization preference, switch endpoint, or hidden alternative tenant mode. Multi-organization membership and external shared channels require explicit account-model approval, not dormant switching functionality.
 
-## Approved foundation behavior
+Retain `organizations`, `organization_memberships`, `organization_invitations`, and `users`. Membership is authoritative for role, lifecycle, and billable status; do not add `users.organization_id` as a second synchronized authority. Existing invited, active, and removed concepts remain compatibility names; this review does not prescribe a status/schema rename. Constraints must enforce the approved membership relationship and prevent duplicate activation.
 
-- A user registers, verifies an email address, signs in, signs out, resets a password, and can revoke active web and extension sessions.
-- The first user creating an organization becomes its owner.
-- A foundation user belongs to exactly one organization.
-- There is no organization-switching interface, route, service, stored current-organization preference, personal organization, or fallback organization.
-- The initial organization roles are owner, administrator, and member.
-- An owner can invite members by email, view pending invitations, resend or revoke them, update eligible roles, and remove members.
-- An administrator can manage ordinary memberships and invitations but cannot transfer ownership, delete the organization, or take owner-only billing actions.
-- An invited user joins the inviting organization rather than silently creating another organization.
-- Membership status is invited, active, or removed. Only active membership authorizes product access.
-- Ownership must be transferred before the only owner can leave or be removed.
+The historical starter-kit rule remains: remove generated tenant switching/personal-team behavior before renaming that tenant concept to Organization. Do not reintroduce `current_team_id`, equivalent current-tenant columns/helpers, switch routes, fallback teams, or tenant-selected URL defaults. SideWire's actual Team model is a separate group of people.
 
-Supporting multiple organizations per user is a future migration, not dormant switching functionality. It requires separately approved product behavior, database changes, UI, billing rules, extension-session behavior, and cross-organization security tests.
+## Authentication and roles
 
-## Removal-before-rename rule
+Retain registration, verified email, sign-in/out, password reset, and secure web/extension session revocation. The target includes accessible session management, optional two-factor enrollment and recovery, and explicit confirmation for sensitive account/ownership changes. These additions are not assertions that every security screen already exists.
 
-The official Laravel React starter's Teams scaffold may be used as source material, but its tenant-switching behavior must be removed before the generated tenant concept is renamed to Organization.
+Organization roles remain owner, administrator, and member. Owners manage eligible roles and ownership. Administrators manage ordinary members/invitations but cannot transfer ownership, delete the Organization, or take owner-only billing actions. Ordinary members do not gain administrative authority by creating a channel or managing a Team.
 
-Removal includes:
+Organization authority does not automatically grant private-channel or DM content access. Every content request, search, preview, file download, broadcast, job, export, and AI operation still checks its feature's audience. Internal SideWire operators use a distinct disclosed audited boundary, not an ordinary customer role.
 
-- `current_team_id` and all equivalent current-tenant columns or properties;
-- switch routes, controller actions, methods, menus, selectors, and keyboard commands;
-- `switchTeam`, `currentTeam`, `isCurrentTeam`, `fallbackTeam`, and equivalent state helpers;
-- personal-team creation and `is_personal` behavior;
-- URL defaults or route prefixes that derive from a selected current team;
-- frontend data structures that exist only to present alternative tenant choices.
+## Invitations and onboarding
 
-After those removals, the remaining membership, invitation, role, policy, and tenant-scoping concepts may be renamed from Team to Organization. Only after that rename is complete may SideWire's actual `Team` model be introduced.
+Authorized managers can invite by email, view pending invitations, resend, and revoke. Invitations have bounded expiry, an intended Organization/role, and safe one-time acceptance. Resending or concurrent acceptance must not create duplicate users, memberships, seats, or notifications. Pending invites are not active product access.
 
-## Data model
+Show the inviting Organization, inviter, intended role, and explicit channel invitations before acceptance. Verify recipient identity; possession of an invitation URL alone must not activate a different account. Joining an existing Organization must not silently create another one. An account already attached to a different Organization receives a clear unsupported-account-model outcome, not an automatic transfer.
 
-The foundation uses these concepts:
+Onboarding can begin completely in the web app. Introduce General and optional invited channels without requiring the extension, an external website, or a domain workspace. An invitation to a private channel discloses retained-history access through the channel feature. Guest invitations remain separately gated.
 
-```text
-organizations
-organization_memberships
-organization_invitations
-users
-```
+## Deactivation, reactivation, and ownership
 
-`organization_memberships` is the authoritative connection between a user and the tenant. It records organization role, status, invitation or activation timestamps, removal state, and whether the active membership is billable.
+Removing/deactivating a membership revokes product access, sessions, private broadcasts, calls, and pending protected deliveries. Preserve historical author identity and organization-owned content; do not cascade-delete messages because employment ends. Billing timing and proration are governed only by Billing, not invented here.
 
-Retain this existing model. A single-organization foundation does not require removing the membership table, and eliminating one table does not justify moving its lifecycle and role fields onto users. Do not add `users.organization_id` as a second authority that must remain synchronized. This is a decision to keep the existing design, not approval of multiple organizations per user.
+Reactivation is an explicit authorized action with reviewed role/channel access. It must not restore revoked sessions or every old private-group membership automatically. Outstanding task ownership and workflow sponsorship must have visible reassignment/review states. Ordinary member management does not delete a person's authored history.
 
-Database constraints must prevent duplicate active membership and enforce the approved one-organization-per-user foundation. Do not use a nullable `current_organization_id` on `users` as a substitute for authorization.
+The sole owner cannot leave, deactivate themselves, or be removed without a valid ownership handoff. A transfer identifies an eligible active recipient, requires current-owner confirmation and recipient acceptance, and preserves an owner throughout. Admins cannot silently promote themselves through a recovery route.
 
-## Authorization and isolation
+Personal account deletion, Organization deletion, export, and recovery are distinct actions requiring the approved data-lifecycle policy. They must explain effects on shared content and retained authorship. Exact recovery periods are intentionally undecided; no automatic destructive cleanup is approved by this feature review.
 
-The server derives organization context from authenticated active membership. Client-provided organization identifiers are never proof of access. Enforce isolation in queries, policies, route binding, API endpoints, broadcasts, jobs, search, notifications, Filament actions, and provider events.
+## Extension and tenancy boundaries
 
-Users from another organization must not discover record existence, titles, URLs, people, counts, billing state, or timing information. Opaque public identifiers do not weaken this rule.
+Preserve the scoped expiring Sanctum session and explicit PKCE-bound handoff. A source website never receives SideWire credentials. Revoked, unverified, expired, and removed sessions fail closed. Organization context comes from authenticated membership, never a submitted organization/workspace/chat identifier.
 
-A request may contain a workspace, team, chat/conversation, or page-context identifier, but the server must resolve it through the authenticated user's organization. Do not first retrieve a global record and authorize it later when an organization-scoped relationship can perform both operations.
+Use organization-scoped relationships and current feature authorization before exposing existence, titles, people, counts, URLs, or billing state. Apps, Teams, and page links neither add seats nor authorize another tenant.
 
-Apps grouping and page-to-chat linking do not change organization membership, grant access to another tenant, or create additional billable seats. Feature-specific linking permissions belong to `page-conversations.md`.
+## Acceptance behavior and decisions
 
-## Extension sessions
+An invited verified person joins exactly the intended Organization without duplicate membership or hidden switching. Role boundaries hold across web/extension and asynchronous delivery. Deactivation revokes future access while preserving others' history. Ownership cannot become absent or be seized through ordinary admin actions. Reactivation reviews access instead of reviving old sessions.
 
-The extension uses the approved secure handoff and Sanctum-backed session mechanism from the foundation plan. A normal website must never receive SideWire credentials. Users must be able to see and revoke extension sessions. Expired, revoked, removed, or unverified accounts fail closed and present a recoverable sign-in state.
+Owner decisions: two-factor/recovery requirements, invitation expiry, private-channel reactivation policy, ownership transfer UX, and account/organization deletion recovery. Commercial policy remains in Billing.
 
-## Account lifecycle
+## Implementation map — existing foundation only
 
-The foundation includes safe sign-out and session revocation. Self-service organization deletion, personal data export, ownership transfer UI, account deletion, retention after removal, and recovery windows require explicit decisions before pilot launch.
+`app/Models/Organization.php`, `OrganizationMembership.php`, `OrganizationInvitation.php`, `app/Concerns/HasOrganization.php`, `app/Policies/OrganizationPolicy.php`, `app/Http/Middleware/EnsureOrganizationMembership.php`, `app/Http/Controllers/Organizations/`, and `tests/Feature/Organizations/OrganizationFoundationTest.php`.
 
-Deletion must account for organization-owned collaboration history. Do not cascade-delete an organization's history or a member's authored messages merely because an account is removed.
-
-## Implementation map
-
-Primary foundation entry points include `app/Models/Organization.php`, `app/Models/OrganizationMembership.php`, `app/Models/OrganizationInvitation.php`, `app/Concerns/HasOrganization.php`, `app/Policies/OrganizationPolicy.php`, `app/Http/Middleware/EnsureOrganizationMembership.php`, `app/Http/Controllers/Organizations/`, and `tests/Feature/Organizations/OrganizationFoundationTest.php`.
-
-Billing synchronization remains governed by `billing-and-product-access.md` and the foundation plan. This map identifies existing entry points; it does not certify complete implementation or test results.
+These are existing documented entry points, not evidence that proposed lifecycle additions or private audiences are implemented. Reference coverage: [Slack administration and security catalog](https://slack.com/enterprise).

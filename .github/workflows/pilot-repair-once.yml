@@ -1,0 +1,83 @@
+name: Apply reviewed pilot recovery fixes once
+on:
+  push:
+    branches: ['work/gps-communication-pilot-20261008']
+    paths: ['.github/workflows/pilot-repair-once.yml']
+permissions:
+  contents: read
+jobs:
+  repair:
+    if: github.repository == 'BradenBoggs/PageRelay'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      SESSION_DRIVER: array
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the reviewed parent and exact patch scope
+        run: |
+          test "$(git rev-parse HEAD^)" = 778677f242569e390c536ed4acd6b4fce4807ab9
+          git apply --check .github/pilot-repair.patch
+          git apply .github/pilot-repair.patch
+          python3 - <<'PY'
+          import subprocess
+          expected={'apps/extension/src/background/service-worker.ts','apps/extension/src/sidepanel/main.tsx','resources/js/components/collaboration/client.ts','resources/js/components/collaboration/workspace.tsx'}
+          changed=set(subprocess.check_output(['git','diff','--name-only']).decode().splitlines())
+          if changed!=expected: raise SystemExit('Unexpected repair paths')
+          PY
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - run: composer install --no-interaction --prefer-dist --no-progress >/tmp/install-php.log 2>&1 && npm ci --no-audit --no-fund >/tmp/install-node.log 2>&1
+      - name: Apply locked formatting only to pilot-owned files
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          paths=subprocess.check_output(['git','diff','--name-only','--diff-filter=AM','89c27d8e01393c7f85268fbcf8fd43bab0526749','HEAD']).decode().splitlines()
+          php=[p for p in paths if p.endswith('.php')]
+          other=[p for p in paths if not p.startswith('.github/') and p.endswith(('.ts','.tsx','.css','.mjs','.cjs','.json','.md'))]
+          if php: subprocess.run(['vendor/bin/pint',*php],check=True)
+          if other: subprocess.run(['node_modules/.bin/vp','fmt',*other],check=True)
+          subprocess.run(['git','diff','--check'],check=True)
+          PY
+      - name: Commit reviewed fixes and remove this one-shot workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,json,os,pathlib,subprocess,urllib.request
+          repo='BradenBoggs/PageRelay'; branch='work/gps-communication-pilot-20261008'; sha=os.environ['GITHUB_SHA']
+          def api(path,data=None,method=None):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=None if data is None else json.dumps(data).encode(),method=method or ('GET' if data is None else 'POST'),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req) as result: return json.load(result)
+          allowed=set(subprocess.check_output(['git','diff','--name-only','89c27d8e01393c7f85268fbcf8fd43bab0526749','HEAD']).decode().splitlines())
+          changed=subprocess.check_output(['git','diff','--name-only']).decode().splitlines()
+          if any(p not in allowed or p.startswith('.github/') for p in changed): raise SystemExit('Out-of-scope write rejected')
+          if api('git/ref/heads/'+branch)['object']['sha']!=sha: raise SystemExit('Branch advanced; refusing to overwrite it')
+          entries=[]
+          for p in changed:
+              blob=api('git/blobs',{'content':base64.b64encode(pathlib.Path(p).read_bytes()).decode(),'encoding':'base64'})['sha']
+              entries.append({'path':p,'mode':'100644','type':'blob','sha':blob})
+          for p in ['.github/pilot-repair.patch','.github/workflows/pilot-repair-once.yml']:
+              entries.append({'path':p,'mode':'100644','type':'blob','sha':None})
+          parent=api('git/commits/'+sha)
+          tree=api('git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})['sha']
+          commit=api('git/commits',{'message':'fix: apply reviewed client recovery safeguards and locked formatting','tree':tree,'parents':[sha]})['sha']
+          api('git/refs/heads/'+branch,{'sha':commit,'force':False},'PATCH')
+          print('Applied reviewed fixes and removed one-shot authoring files: '+commit)
+          PY

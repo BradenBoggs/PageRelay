@@ -1,0 +1,176 @@
+diff --git a/apps/extension/src/background/service-worker.ts b/apps/extension/src/background/service-worker.ts
+index 9df9ee1..e3d0832 100644
+--- a/apps/extension/src/background/service-worker.ts
++++ b/apps/extension/src/background/service-worker.ts
+@@ -73,12 +73,12 @@ async function check() {
+             linksKey,
+         ]);
+         const session = stored[sessionKey] as ExtensionSession | undefined;
+-        if (
+-            !session ||
+-            !stored[enabledKey] ||
+-            new Date(session.expiresAt).getTime() <= Date.now()
+-        )
++        if (!session || !stored[enabledKey]) return;
++        if (new Date(session.expiresAt).getTime() <= Date.now()) {
++            await chrome.storage.local.remove([sessionKey, enabledKey, linksKey]);
++            await chrome.alarms.clear(alarm);
+             return;
++        }
+         if (
+             !(await chrome.permissions.contains({
+                 permissions: ['notifications'],
+@@ -138,17 +138,17 @@ chrome.sidePanel
+     .setPanelBehavior({ openPanelOnActionClick: true })
+     .catch(() => {});
+ chrome.runtime.onInstalled.addListener(() => {
+-    void syncAlarm();
++    void syncAlarm().catch(() => {});
+ });
+ chrome.runtime.onStartup.addListener(() => {
+-    void syncAlarm();
++    void syncAlarm().catch(() => {});
+ });
+ chrome.alarms.onAlarm.addListener((event) => {
+     if (event.name === alarm) void check();
+ });
+ chrome.storage.onChanged.addListener((changes, area) => {
+     if (area === 'local' && (changes[sessionKey] || changes[enabledKey]))
+-        void syncAlarm();
++        void syncAlarm().catch(() => {});
+ });
+ chrome.runtime.onMessage.addListener((message: unknown, sender, reply) => {
+     if (
+diff --git a/apps/extension/src/sidepanel/main.tsx b/apps/extension/src/sidepanel/main.tsx
+index b115ed9..50b6c2f 100644
+--- a/apps/extension/src/sidepanel/main.tsx
++++ b/apps/extension/src/sidepanel/main.tsx
+@@ -99,8 +99,10 @@ function SidePanel() {
+         let sequence = 0;
+         let windowId: number | undefined;
+         let lastKey = '';
++        let lookup = 0;
+         const resolve = async () => {
+-            const version = ++sequence;
++            const lookupId = ++lookup;
++            let version = sequence;
+             try {
+                 if (windowId === undefined)
+                     windowId = (await chrome.windows.getCurrent()).id;
+@@ -108,10 +110,11 @@ function SidePanel() {
+                     active: true,
+                     windowId,
+                 });
+-                if (!active || version !== sequence) return;
++                if (!active || lookupId !== lookup) return;
+                 const key = `${tab?.id}:${tab?.url}`;
+                 if (key === lastKey) return;
+                 lastKey = key;
++                version = ++sequence;
+                 setResolving(true);
+                 setPage(null);
+                 setPageError('');
+diff --git a/resources/js/components/collaboration/client.ts b/resources/js/components/collaboration/client.ts
+index f740532..83fb7be 100644
+--- a/resources/js/components/collaboration/client.ts
++++ b/resources/js/components/collaboration/client.ts
+@@ -62,6 +62,7 @@ export type Draft = {
+     mentions: Person[];
+     key: string;
+     source: Source | null;
++    attempted?: boolean;
+ };
+ 
+ export class CollaborationError extends Error {
+diff --git a/resources/js/components/collaboration/workspace.tsx b/resources/js/components/collaboration/workspace.tsx
+index d58dc26..9fde00f 100644
+--- a/resources/js/components/collaboration/workspace.tsx
++++ b/resources/js/components/collaboration/workspace.tsx
+@@ -54,6 +54,7 @@ export function CollaborationProvider({
+     const [expired, setExpired] = useState(false);
+     const refresh = () => setRevision((value) => value + 1);
+     useEffect(() => {
++        if (expired) return;
+         client.onAuthLost = () => {
+             setAttention(null);
+             setExpired(true);
+@@ -137,7 +138,7 @@ export function CollaborationProvider({
+             window.removeEventListener('focus', focused);
+             client.onAuthLost = () => {};
+         };
+-    }, [client, userId, organizationId, backgroundCheck]);
++    }, [client, userId, organizationId, backgroundCheck, expired]);
+     if (expired)
+         return (
+             <section className="sw-collaboration">
+@@ -604,6 +605,8 @@ export function ConversationView({
+     const history = useRef<HTMLDivElement>(null);
+     const loadedRevision = useRef(-1);
+     const readIds = useRef(new Set<string>());
++    const historyRequest = useRef<AbortController | null>(null);
++    useEffect(() => () => historyRequest.current?.abort(), []);
+     useEffect(() => {
+         const abort = new AbortController();
+         const container = history.current;
+@@ -714,6 +717,7 @@ export function ConversationView({
+         };
+     }, [data, client, chatId]);
+     function openThread(id: string | null) {
++        historyRequest.current?.abort();
+         loadedRevision.current = -1;
+         setData(null);
+         setThread(id);
+@@ -725,11 +729,16 @@ export function ConversationView({
+         setError('');
+         const query = new URLSearchParams({ before: data.older_cursor });
+         if (thread) query.set('thread', thread);
++        historyRequest.current?.abort();
++        const abort = new AbortController();
++        historyRequest.current = abort;
+         const previousHeight = history.current?.scrollHeight ?? 0;
+         try {
+             const result = await client.request<MessagePage>(
+                 `/chats/${chatId}/messages?${query}`,
++                { signal: abort.signal },
+             );
++            if (abort.signal.aborted) return;
+             setData((current) =>
+                 current
+                     ? {
+@@ -754,16 +763,18 @@ export function ConversationView({
+                         history.current.scrollHeight - previousHeight;
+             });
+         } catch (failure) {
++            if (abort.signal.aborted) return;
+             setError(
+                 failure instanceof Error
+                     ? failure.message
+                     : 'Could not load earlier messages.',
+             );
+         } finally {
+-            setLoading(false);
++            if (!abort.signal.aborted) setLoading(false);
+         }
+     }
+     function latest() {
++        historyRequest.current?.abort();
+         loadedRevision.current = -1;
+         setTarget(null);
+         setReload((value) => value + 1);
+@@ -925,7 +936,7 @@ function Composer({
+     const [suggestions, setSuggestions] = useState<Person[]>([]);
+     const [busy, setBusy] = useState(false);
+     const [error, setError] = useState('');
+-    const [attempted, setAttempted] = useState(false);
++    const [attempted, setAttempted] = useState(Boolean(draft.attempted));
+     const input = useRef<HTMLTextAreaElement>(null);
+     const mentionQuery = draft.body.match(/(?:^|\s)@([^@\n]{0,60})$/)?.[1];
+     function update(next: Draft) {
+@@ -968,6 +979,7 @@ function Composer({
+     async function send() {
+         if (busy || !draft.body.trim()) return;
+         setBusy(true);
++        update({ ...draft, attempted: true });
+         setAttempted(true);
+         setError('');
+         try {

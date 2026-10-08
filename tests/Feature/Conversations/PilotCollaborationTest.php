@@ -78,7 +78,7 @@ class PilotCollaborationTest extends TestCase
     {
         $owner = User::factory()->create();
         $member = $this->coworker($owner);
-        $admin = $this->coworker($owner, OrganizationRole::Admin);
+        $admin = $this->coworker($owner, OrganizationRole::Administrator);
         $id = $this->direct($owner, $member);
         $this->actingAs($admin)->getJson('/collaboration/chats?kind=direct')->assertOk()->assertJsonCount(0, 'data');
         $this->actingAs($admin)->getJson('/collaboration/chats/'.$id.'/messages')->assertNotFound();

@@ -16,7 +16,7 @@ class MessageNotificationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $input = $request->validate(['page' => ['nullable', 'integer', 'min:1']]);
+        $request->validate(['page' => ['nullable', 'integer', 'min:1']]);
         $query = $this->visible($request)->whereNull('read_at');
         $page = (clone $query)->with(['message.author', 'message.threadRoot', 'conversation'])->latest('id')->paginate(30);
         $preference = $this->preference($request)->first();
@@ -45,7 +45,7 @@ class MessageNotificationController extends Controller
             ]);
             $existing = $this->preference($request)->lockForUpdate()->first();
             $this->preference($request)->update([
-                'enabled_at' => $input['enabled'] ? ($existing?->enabled_at ?? now()) : null,
+                'enabled_at' => $input['enabled'] ? ($existing->enabled_at ?? now()) : null,
             ]);
         });
 
@@ -80,11 +80,14 @@ class MessageNotificationController extends Controller
     public function delivered(Request $request, string $notification): JsonResponse
     {
         $input = $request->validate(['claim' => ['required', 'uuid']]);
-        $item = $this->visible($request)->where('public_id', $notification)->firstOrFail();
-        abort_unless($item->desktop_claim === $input['claim'], 409);
-        $item->forceFill(['delivered_at' => now(), 'claim_expires_at' => null])->save();
 
-        return response()->json(['ok' => true]);
+        return DB::transaction(function () use ($request, $notification, $input): JsonResponse {
+            $item = $this->visible($request)->where('public_id', $notification)->lockForUpdate()->firstOrFail();
+            abort_unless($item->desktop_claim === $input['claim'], 409);
+            $item->forceFill(['delivered_at' => now(), 'claim_expires_at' => null])->save();
+
+            return response()->json(['ok' => true]);
+        });
     }
 
     /** @return Builder<MessageNotification> */

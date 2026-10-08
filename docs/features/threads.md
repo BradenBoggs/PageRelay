@@ -1,41 +1,39 @@
 # Message threads and followed replies
 
-Status: **Draft for owner review. Core target; not established as implemented.** Earlier specifications explicitly deferred threads. See [review scope](README.md).
+Status: **GPS pilot reply slice approved October 8, 2026; implementation candidate under validation.** Manual following and other expansions below remain proposals. Actual verification is recorded in [plan 005](../plans/active/005-gps-communication-pilot.md), not implied by implementation.
 
-This document owns message-level reply grouping, thread navigation, following, and thread-specific read behavior. A Chat is the full conversation; a Thread is one root message and its replies. Common message delivery/actions belong to [Messaging](messaging-and-composer.md).
+This document owns message-level reply grouping, navigation, participation and thread-specific read behavior. A Chat is the full conversation; a Thread is a root message and its replies. Common sending belongs to [Messaging](messaging-and-composer.md).
 
-## Reply behavior
+## Approved reply behavior
 
-A member with posting access may reply to a message in a channel or DM. Use one level of replies, not an indefinitely nested discussion tree. Each reply has its own stable identity, author, time, reactions, edits, attachments, and optional independently selected source context. Replying to a message with a page source does not automatically attribute the reply to that page.
+A member with posting access may reply to a top-level message in the same authorized work Chat or one-to-one DM. There is one reply level, not an indefinitely nested discussion tree. A cross-chat root or a reply used as another root must be rejected.
 
-The main history shows the root with reply count, recent participants, latest-reply time, and unread indication. Opening it shows the root and retained replies in order. Web may use a contextual thread pane; the extension and narrow web use a focused thread view with an obvious return action. Preserve separate main-chat and thread drafts/scroll positions.
+Each reply has a stable identity, author, timestamp, plain-text body, selected mentions and optional independently selected page source. Replying to a source-attributed message does not automatically use the root's page as the reply source. DM replies cannot acquire page context.
 
-Permalinks open the correct reply and sufficient surrounding/root context, including replies older than the most recent history batch. Switching between source pages linked to the same chat must not create another thread or lose the current reply draft.
+Main history shows roots with reply counts. Opening a thread shows its root and retained replies in order. The pilot uses a focused thread view with a clear return action on both web and extension. Main-chat and reply drafts remain separate and in memory. Loading earlier replies and exact-message navigation must not silently change the draft destination.
 
-## Following and attention
+## Participation and attention
 
-The root author, reply authors, and explicitly mentioned recipients follow under the proposed defaults; anyone with access may follow or unfollow deliberately. A user who unfollows is not automatically resubscribed merely because they open the thread. A new explicit reply may offer or clearly restore following; this behavior must be consistent and visible.
+For this pilot, the root author and previous reply authors receive subsequent reply attention while still authorized. An explicit eligible mention also creates attention. A reply that is both a mention and a DM/thread update creates one durable event per recipient, not duplicate alerts. Authoring does not notify oneself.
 
-Followed-thread activity appears in Threads/Activity across authorized conversations. Notifications depend on personal channel settings, quiet hours, and current access. A reply that both mentions and follows a person creates one attention event for that person, not duplicate alerts. Joining another linked page does not replay replies.
+Activity lists relevant replies across accessible conversations. Desktop opt-in and delivery rules belong to [Notifications](mentions-and-notifications.md). Joining another linked page does not replay a thread's notifications.
 
 ## Read state
 
-Track thread progress independently enough that viewing the main timeline does not mark unseen replies read. Reading replies does not imply the user read later main-chat messages. Counts must deduplicate by actual message/event, not count the same reply once as a mention and again as a thread update.
+Only replies actually visible in a focused, visible client are marked read automatically. Viewing the main history does not clear unseen reply attention. Reading replies does not claim later main-chat messages were read. Dismissing or delivering a desktop alert is not proof of reading.
 
-Explicit mark-read and mark-unread actions follow the snapshot/revisit rules in [Activity](inbox-and-unread.md). Dismissing a notification alone is not proof that the thread was viewed. Losing access removes thread titles, counts, previews, cached content, and pending delivery.
+Opening an Activity item navigates to the exact root/reply after reauthorization. Removing access clears visible private content and prevents future authorized fetches. Older-history responses must not populate a different thread after navigation.
 
-## Broadcast and lifecycle
+## Draft expansions
 
-An optional **Also show in channel** action may surface a reference to a reply in the main timeline. It must reference the same underlying reply, with one author/time and one notification identity; do not create a copied second message. This is a convenience expansion, not necessary for the first thread experience.
+Manual follow/unfollow, automatic following for mention-only recipients, a dedicated Threads navigation area, recent-participant/latest-reply metadata and explicit mark-unread controls remain proposals. A future unfollow must not be reversed merely by opening a thread.
 
-Deleting a root with replies leaves a neutral root tombstone and authorized replies. Do not retain its deleted body in thread previews. Deleting a reply updates counts without deleting unrelated replies. Archiving a channel or restricting posting applies to its threads as well. Retention/purge follows the owning policy and cannot orphan accessible content without a meaningful state.
+An optional Also show in channel action would reference the same reply, never copy it into a second message or duplicate attention. Rich text, files, reactions, editing, deletion and tombstones follow their separate feature owners when approved. A deleted root with replies should leave a neutral tombstone rather than exposing its old body; purging and channel archival must preserve meaningful authorized states.
 
 ## Acceptance behavior
 
-A user can follow a discussion, leave, receive one relevant alert, and return to the exact unread reply on web or extension. Main-chat viewing does not clear unseen thread activity. Root/reply deletion, missed events, multiple linked pages, mention overlap, archive, and participant removal preserve accurate counts and authorization. One reply broadcast into the main chat remains one message.
+Two authorized users can exchange replies from web and panel, receive one relevant attention item and return to the exact reply. Main-chat viewing does not clear unseen replies. Cross-chat roots, nested roots and unauthorized DM replies are rejected. Same-chat page transitions preserve draft source and destination.
 
-## Owner decisions
+## Implementation map — GPS pilot candidate
 
-Confirm follow/unfollow defaults and whether reply broadcast belongs in the initial release. Nested replies and independently private subthreads are excluded; a thread inherits its parent conversation's audience.
-
-Reference coverage: [Slack threads](https://slack.com/help/articles/115000769927-Use-threads-to-organize-discussions).
+`messages.thread_root_id`, `Message::threadRoot/replies`, `SendCollaborationMessage`, `RecordMessageAttention`, `CollaborationController::messages/read`, and shared `ConversationView`/composer own the slice. `PilotCollaborationTest` covers root validation, overlapping attention and visible-ID read behavior. [Plan 005](../plans/active/005-gps-communication-pilot.md) owns execution evidence.

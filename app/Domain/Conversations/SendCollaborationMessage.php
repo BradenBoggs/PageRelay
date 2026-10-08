@@ -83,6 +83,7 @@ class SendCollaborationMessage
                 ]);
                 MessageCreated::dispatch($message);
             }
+            $authorized->touch();
             $message->mentionedUsers()->sync($mentions);
             app(RecordMessageAttention::class)->handle($message);
 

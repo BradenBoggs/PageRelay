@@ -56,6 +56,7 @@ class CollaborationController extends Controller
         $chat = isset($input['chat']) ? $this->chat($request, $input['chat']) : null;
         $users = User::query()->whereIn('id', OrganizationMembership::query()->active()
             ->where('organization_id', $organization->id)->select('user_id'))
+            ->when($chat === null, fn ($q) => $q->where('id', '!=', $request->user()->id))
             ->when($chat?->type === ConversationType::Direct, fn ($q) => $q->whereIn('id',
                 DB::table('conversation_participants')->where('conversation_id', $chat->id)->select('user_id')))
             ->when($input['query'] ?? null, fn ($q, $term) => $q->where('name', 'like', '%'.$term.'%'))
@@ -97,10 +98,11 @@ class CollaborationController extends Controller
         } else {
             $messages = $query->latest('id')->limit(51)->get()->sortBy('id')->values();
         }
-        $more = $messages->count() > 50;
-        if ($more) {
+        if ($messages->count() > 50) {
             $messages = $messages->slice(1)->values();
         }
+        $first = $messages->first();
+        $more = $first !== null && $chat->messages()->where('thread_root_id', $root?->id)->where('id', '<', $first->id)->exists();
 
         return response()->json([
             'chat' => $this->describe($chat, $request->user()),
@@ -167,7 +169,7 @@ class CollaborationController extends Controller
         if ($chat->type === ConversationType::Direct) {
             $participants = DB::table('conversation_participants')->where('conversation_id', $chat->id)->pluck('user_id');
             $other = User::query()->whereIn('id', $participants)->where('id', '!=', $user->id)->first();
-            $title = $other?->name ?? 'Former coworker';
+            $title = $other->name ?? 'Former coworker';
             $canSend = $canSend && OrganizationMembership::query()->active()->where('organization_id', $chat->organization_id)
                 ->whereIn('user_id', $participants)->count() === 2;
         }

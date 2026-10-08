@@ -108,7 +108,8 @@ jobs:
           touch "$DB_DATABASE"
           php artisan migrate --force >/tmp/pilot-browser-migrations.log 2>&1
           php tests/Browser/seed-pilot.php >/tmp/pilot-browser-seed.log 2>&1
-          php artisan reverb:start --host=0.0.0.0 --port=8080 >/tmp/pilot-reverb.log 2>&1 &
+          EXTENSION_ID=$(node tests/Browser/extension-origin.cjs)
+          REVERB_ALLOWED_ORIGINS="localhost,$EXTENSION_ID" php artisan reverb:start --host=0.0.0.0 --port=8080 >/tmp/pilot-reverb.log 2>&1 &
           php artisan serve --host=0.0.0.0 --port=8000 >/tmp/pilot-server.log 2>&1 &
           trap 'kill $(jobs -pr) 2>/dev/null || true' EXIT
           for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8000/login && break; sleep 1; done

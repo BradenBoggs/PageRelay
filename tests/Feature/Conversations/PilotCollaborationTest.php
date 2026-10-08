@@ -84,9 +84,28 @@ class PilotCollaborationTest extends TestCase
         $this->actingAs($admin)->getJson('/collaboration/chats/'.$id.'/messages')->assertNotFound();
         $this->actingAs($admin)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertNotFound();
         $this->actingAs($admin)->getJson('/collaboration/members?chat='.$id)->assertNotFound();
-        $this->actingAs($admin)->postJson('/broadcasting/auth', [
-            'socket_id' => '123.456', 'channel_name' => 'private-organizations.'.$owner->organization()->firstOrFail()->id.'.conversations.'.$id,
-        ])->assertForbidden();
+
+        // The null broadcaster does not run channel authorization callbacks.
+        // Exercise the actual signing driver, as the baseline broadcast tests do.
+        config()->set('broadcasting.default', 'reverb');
+        config()->set('broadcasting.connections.reverb.key', 'test-key');
+        config()->set('broadcasting.connections.reverb.secret', 'test-secret');
+        config()->set('broadcasting.connections.reverb.app_id', 'test-app');
+        config()->set('broadcasting.connections.reverb.options', [
+            'host' => 'localhost',
+            'port' => 8080,
+            'scheme' => 'http',
+            'useTLS' => false,
+        ]);
+        app(\Illuminate\Broadcasting\BroadcastManager::class)->forgetDrivers();
+        require base_path('routes/channels.php');
+
+        $channel = [
+            'socket_id' => '123.456',
+            'channel_name' => 'private-organizations.'.$owner->organization()->firstOrFail()->id.'.conversations.'.$id,
+        ];
+        $this->actingAs($admin)->postJson('/broadcasting/auth', $channel)->assertForbidden();
+        $this->actingAs($member)->postJson('/broadcasting/auth', $channel)->assertOk();
     }
 
     public function test_cross_organization_history_and_notification_reads_are_blocked(): void

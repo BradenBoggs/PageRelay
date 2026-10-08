@@ -12,6 +12,7 @@ use App\Models\Message;
 use App\Models\MessageNotification;
 use App\Models\OrganizationMembership;
 use App\Models\User;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -97,7 +98,7 @@ class PilotCollaborationTest extends TestCase
             'scheme' => 'http',
             'useTLS' => false,
         ]);
-        app(\Illuminate\Broadcasting\BroadcastManager::class)->forgetDrivers();
+        app(BroadcastManager::class)->forgetDrivers();
         require base_path('routes/channels.php');
 
         $channel = [

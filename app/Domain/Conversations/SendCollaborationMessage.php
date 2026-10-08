@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Extends the existing page send transaction, rather than replacing URL/link safety.
  * MessageCreated dispatches after the outer commit, including reply/mention metadata.
+ *
  * @see docs/features/threads.md
  */
 class SendCollaborationMessage

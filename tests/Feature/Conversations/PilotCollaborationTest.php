@@ -13,7 +13,6 @@ use App\Models\MessageNotification;
 use App\Models\OrganizationMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -169,7 +168,8 @@ class PilotCollaborationTest extends TestCase
     public function test_reply_cannot_target_another_chat_or_another_reply(): void
     {
         $owner = User::factory()->create();
-        $first = $this->workChat($owner); $second = $this->workChat($owner);
+        $first = $this->workChat($owner);
+        $second = $this->workChat($owner);
         $root = $this->actingAs($owner)->postJson('/collaboration/chats/'.$first->public_id.'/messages', $this->payload())->assertCreated()->json('data.id');
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$second->public_id.'/messages', $this->payload(['thread_root_id' => $root]))->assertNotFound();
         $reply = $this->actingAs($owner)->postJson('/collaboration/chats/'.$first->public_id.'/messages', $this->payload(['thread_root_id' => $root]))->assertCreated()->json('data.id');
@@ -178,7 +178,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_viewing_main_message_does_not_read_unseen_thread_reply(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $chat = $this->workChat($owner);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $chat = $this->workChat($owner);
         $root = $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload())->assertCreated()->json('data.id');
         $reply = $this->actingAs($member)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload(['thread_root_id' => $root]))->assertCreated()->json('data.id');
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat->public_id.'/read', ['messages' => [$root]])->assertOk();
@@ -189,7 +191,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_removed_dm_participant_cannot_read_and_remaining_member_has_read_only_history(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
         OrganizationMembership::query()->where('user_id', $member->id)->update(['status' => OrganizationMembershipStatus::Removed->value, 'removed_at' => now()]);
         $this->actingAs($member)->getJson('/collaboration/chats/'.$id.'/messages')->assertForbidden();
@@ -199,7 +203,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_extension_and_web_share_dm_history_and_attention(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
         $this->app['auth']->forgetGuards();
         $token = $member->createToken('Chrome extension', [ApiTokenAbility::ExtensionAccess->value], now()->addDay());
@@ -209,7 +215,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_notification_requires_opt_in_and_does_not_replay_old_backlog(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
         $this->actingAs($member)->getJson('/collaboration/notifications')->assertOk()->assertJsonPath('enabled', false)->assertJsonPath('desktop_candidates', []);
         $this->travel(2)->minutes();
@@ -219,13 +227,16 @@ class PilotCollaborationTest extends TestCase
 
     public function test_desktop_claim_deduplicates_open_clients_and_uses_private_preview(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
         $this->travel(1)->seconds();
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload(['body' => 'Secret quote 482: customer balance $125,000']))->assertCreated();
         $notice = MessageNotification::query()->sole();
         $claim = $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->json('data');
-        $this->assertNotNull($claim); $this->assertSame('SideWire', $claim['title']);
+        $this->assertNotNull($claim);
+        $this->assertSame('SideWire', $claim['title']);
         $this->assertStringNotContainsString('482', $claim['body']);
         $this->assertStringNotContainsString($owner->name, $claim['body']);
         $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->assertJsonPath('data', null);
@@ -237,7 +248,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_failed_desktop_delivery_can_retry_after_lease_and_pause_stops_claims(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true]);
         $this->travel(1)->seconds();
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
@@ -253,7 +266,8 @@ class PilotCollaborationTest extends TestCase
 
     public function test_history_pagination_can_reach_messages_beyond_latest_hundred(): void
     {
-        $owner = User::factory()->create(); $chat = $this->workChat($owner);
+        $owner = User::factory()->create();
+        $chat = $this->workChat($owner);
         for ($i = 0; $i < 125; $i++) {
             Message::query()->create(['organization_id' => $chat->organization_id, 'workspace_id' => $chat->workspace_id, 'conversation_id' => $chat->id, 'author_id' => $owner->id, 'body' => 'Message '.$i, 'idempotency_key' => (string) Str::uuid()]);
         }
@@ -264,7 +278,9 @@ class PilotCollaborationTest extends TestCase
 
     public function test_broadcasts_never_include_dm_content_or_an_organization_wide_dm_event(): void
     {
-        $owner = User::factory()->create(); $member = $this->coworker($owner); $id = $this->direct($owner, $member);
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $id = $this->direct($owner, $member);
         $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
         $event = new MessageCreated(Message::query()->sole());
         $this->assertSame(['changed' => true], $event->broadcastWith());

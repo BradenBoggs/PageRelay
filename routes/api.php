@@ -18,7 +18,9 @@ Route::prefix('v1/extension')->middleware('throttle:extension-handoff')->group(f
 });
 Route::prefix('v1/extension')->middleware(['auth:sanctum', 'verified', 'extension.token', 'organization.member', 'throttle:extension-api'])
     ->group(function (): void {
-        Route::prefix('collaboration')->group(function (): void { require __DIR__.'/collaboration.php'; });
+        Route::prefix('collaboration')->group(function (): void {
+            require __DIR__.'/collaboration.php';
+        });
         Route::get('session', [ExtensionSessionController::class, 'show'])->name('api.extension.session.show');
         Route::delete('session', [ExtensionSessionController::class, 'destroy'])->name('api.extension.session.destroy');
         Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate'])->name('api.extension.broadcasting.auth');

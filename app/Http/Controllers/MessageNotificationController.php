@@ -120,6 +120,8 @@ class MessageNotificationController extends Controller
 
     private function reason(string $reason): string
     {
-        return match ($reason) { 'mention' => 'mention', 'thread' => 'thread reply', default => 'direct message' };
+        return match ($reason) {
+            'mention' => 'mention', 'thread' => 'thread reply', default => 'direct message'
+        };
     }
 }

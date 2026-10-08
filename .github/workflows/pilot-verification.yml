@@ -1,0 +1,69 @@
+name: GPS pilot verification
+
+on:
+  push:
+    branches: ['work/gps-communication-pilot-20261008']
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'routes/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'apps/extension/**'
+      - 'tests/**'
+      - '.github/workflows/pilot-verification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BROADCAST_CONNECTION: 'null'
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: composer install --no-interaction --prefer-dist && npm ci
+      - name: Backend tests including pilot privacy and delivery
+        run: php artisan test
+      - name: Static PHP checks
+        if: ${{ !cancelled() }}
+        run: composer types:check
+      - name: Frontend type checks
+        if: ${{ !cancelled() }}
+        run: php artisan wayfinder:generate --with-form && npm run types:check
+      - name: Web and extension builds
+        if: ${{ !cancelled() }}
+        run: npm run build
+      - name: Full frontend lint and formatting
+        if: ${{ !cancelled() }}
+        run: npm run check
+      - name: Documentation checks
+        if: ${{ !cancelled() }}
+        run: node --test scripts/check-docs.test.mjs && node scripts/check-docs.mjs
+      - name: Validate packaged extension icon and permission boundary
+        if: ${{ !cancelled() }}
+        run: |
+          php -r '$i=getimagesize("apps/extension/dist/notification.png"); if (!$i || $i[0]!==64 || $i[1]!==64) exit(1);'
+          node --input-type=module -e 'import fs from "node:fs"; const m=JSON.parse(fs.readFileSync("apps/extension/dist/manifest.json")); if(m.host_permissions.length!==1 || m.content_scripts || !m.optional_permissions.includes("notifications")) process.exit(1); console.log(JSON.stringify(m));'

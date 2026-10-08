@@ -2,16 +2,15 @@
 
 namespace App\Policies;
 
-use App\Enums\ConversationType;
+use App\Domain\Conversations\ConversationAccess;
 use App\Models\Conversation;
 use App\Models\User;
 
-/** @see docs/features/page-conversations.md */
+/** @see docs/features/direct-messages.md */
 class ConversationPolicy
 {
     public function view(User $user, Conversation $conversation): bool
     {
-        return $conversation->type === ConversationType::Page
-            && $user->organization()->whereKey($conversation->organization_id)->exists();
+        return ConversationAccess::query($user)->whereKey($conversation->id)->exists();
     }
 }

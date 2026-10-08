@@ -1,18 +1,13 @@
 {
     "manifest_version": 3,
     "name": "SideWire",
-    "description": "Team collaboration beside the work already open in Chrome.",
-    "version": "0.1.0",
-    "action": {
-        "default_title": "Open SideWire"
-    },
-    "background": {
-        "service_worker": "service-worker.js",
-        "type": "module"
-    },
-    "host_permissions": ["http://localhost:8001/*"],
-    "permissions": ["sidePanel", "tabs", "storage"],
-    "side_panel": {
-        "default_path": "sidepanel.html"
-    }
+    "description": "Team conversations, mentions and replies beside your work.",
+    "version": "0.2.0",
+    "minimum_chrome_version": "120",
+    "action": { "default_title": "Open SideWire" },
+    "background": { "service_worker": "service-worker.js", "type": "module" },
+    "host_permissions": ["http://localhost:8000/*"],
+    "permissions": ["sidePanel", "tabs", "storage", "alarms"],
+    "optional_permissions": ["notifications"],
+    "side_panel": { "default_path": "sidepanel.html" }
 }

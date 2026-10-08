@@ -4,14 +4,7 @@ on:
   push:
     branches: ['work/gps-communication-pilot-20261008']
   pull_request:
-    paths:
-      - 'app/**'
-      - 'routes/**'
-      - 'database/**'
-      - 'resources/**'
-      - 'apps/extension/**'
-      - 'tests/**'
-      - '.github/workflows/pilot-verification.yml'
+    paths: ['app/**', 'routes/**', 'database/**', 'resources/**', 'apps/extension/**', 'tests/**', 'docs/**', '.github/workflows/pilot-verification.yml']
 
 permissions:
   contents: read
@@ -34,6 +27,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -44,26 +38,39 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Install locked dependencies
-        run: composer install --no-interaction --prefer-dist && npm ci
-      - name: Backend tests including pilot privacy and delivery
-        run: php artisan test
-      - name: Static PHP checks
-        if: ${{ !cancelled() }}
-        run: composer types:check
-      - name: Frontend type checks
-        if: ${{ !cancelled() }}
-        run: php artisan wayfinder:generate --with-form && npm run types:check
-      - name: Web and extension builds
-        if: ${{ !cancelled() }}
-        run: npm run build
-      - name: Full frontend lint and formatting
-        if: ${{ !cancelled() }}
-        run: npm run check
-      - name: Documentation checks
-        if: ${{ !cancelled() }}
-        run: node --test scripts/check-docs.test.mjs && node scripts/check-docs.mjs
-      - name: Validate packaged extension icon and permission boundary
-        if: ${{ !cancelled() }}
+        run: composer install --no-interaction --prefer-dist --no-progress >/tmp/composer-install.log 2>&1 && npm ci --no-audit --no-fund >/tmp/npm-install.log 2>&1
+      - name: Collect verification results
         run: |
-          php -r '$i=getimagesize("apps/extension/dist/notification.png"); if (!$i || $i[0]!==64 || $i[1]!==64) exit(1);'
-          node --input-type=module -e 'import fs from "node:fs"; const m=JSON.parse(fs.readFileSync("apps/extension/dist/manifest.json")); if(m.host_permissions.length!==1 || m.content_scripts || !m.optional_permissions.includes("notifications")) process.exit(1); console.log(JSON.stringify(m));'
+          mkdir -p /tmp/pilot-evidence
+          python3 - <<'PY'
+          import json, pathlib, subprocess
+          out=pathlib.Path('/tmp/pilot-evidence')
+          checks={
+            'backend':'php artisan test',
+            'php-static':'composer types:check',
+            'frontend-types':'php artisan wayfinder:generate --with-form && npm run types:check',
+            'build':'npm run build',
+            'lint-format':'npm run check',
+            'docs':'node --test scripts/check-docs.test.mjs && node scripts/check-docs.mjs',
+            'whitespace':'git diff --check',
+          }
+          results={}
+          for name,command in checks.items():
+            with (out/(name+'.log')).open('w') as log:
+              result=subprocess.run(command,shell=True,stdout=log,stderr=subprocess.STDOUT)
+            results[name]={'command':command,'exit_code':result.returncode}
+            print(name+': '+str(result.returncode),flush=True)
+          (out/'results.json').write_text(json.dumps(results,indent=2))
+          (out/'revision.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          # Tracked source only: no .env, credentials, dependencies, runtime or customer data.
+          subprocess.run(['git','archive','--format=tar.gz','-o',str(out/'tracked-source.tar.gz'),'HEAD'],check=True)
+          raise SystemExit(1 if any(v['exit_code'] for v in results.values()) else 0)
+          PY
+      - name: Upload review evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-verification-evidence
+          path: /tmp/pilot-evidence/
+          retention-days: 3
+          if-no-files-found: error

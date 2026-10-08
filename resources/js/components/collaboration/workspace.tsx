@@ -54,6 +54,7 @@ export function CollaborationProvider({
     const [expired, setExpired] = useState(false);
     const refresh = () => setRevision((value) => value + 1);
     useEffect(() => {
+        if (expired) return;
         client.onAuthLost = () => {
             setAttention(null);
             setExpired(true);
@@ -137,7 +138,7 @@ export function CollaborationProvider({
             window.removeEventListener('focus', focused);
             client.onAuthLost = () => {};
         };
-    }, [client, userId, organizationId, backgroundCheck]);
+    }, [client, userId, organizationId, backgroundCheck, expired]);
     if (expired)
         return (
             <section className="sw-collaboration">
@@ -604,6 +605,8 @@ export function ConversationView({
     const history = useRef<HTMLDivElement>(null);
     const loadedRevision = useRef(-1);
     const readIds = useRef(new Set<string>());
+    const historyRequest = useRef<AbortController | null>(null);
+    useEffect(() => () => historyRequest.current?.abort(), []);
     useEffect(() => {
         const abort = new AbortController();
         const container = history.current;
@@ -714,6 +717,7 @@ export function ConversationView({
         };
     }, [data, client, chatId]);
     function openThread(id: string | null) {
+        historyRequest.current?.abort();
         loadedRevision.current = -1;
         setData(null);
         setThread(id);
@@ -725,11 +729,16 @@ export function ConversationView({
         setError('');
         const query = new URLSearchParams({ before: data.older_cursor });
         if (thread) query.set('thread', thread);
+        historyRequest.current?.abort();
+        const abort = new AbortController();
+        historyRequest.current = abort;
         const previousHeight = history.current?.scrollHeight ?? 0;
         try {
             const result = await client.request<MessagePage>(
                 `/chats/${chatId}/messages?${query}`,
+                { signal: abort.signal },
             );
+            if (abort.signal.aborted) return;
             setData((current) =>
                 current
                     ? {
@@ -754,16 +763,18 @@ export function ConversationView({
                         history.current.scrollHeight - previousHeight;
             });
         } catch (failure) {
+            if (abort.signal.aborted) return;
             setError(
                 failure instanceof Error
                     ? failure.message
                     : 'Could not load earlier messages.',
             );
         } finally {
-            setLoading(false);
+            if (!abort.signal.aborted) setLoading(false);
         }
     }
     function latest() {
+        historyRequest.current?.abort();
         loadedRevision.current = -1;
         setTarget(null);
         setReload((value) => value + 1);
@@ -925,7 +936,7 @@ function Composer({
     const [suggestions, setSuggestions] = useState<Person[]>([]);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
-    const [attempted, setAttempted] = useState(false);
+    const [attempted, setAttempted] = useState(Boolean(draft.attempted));
     const input = useRef<HTMLTextAreaElement>(null);
     const mentionQuery = draft.body.match(/(?:^|\s)@([^@\n]{0,60})$/)?.[1];
     function update(next: Draft) {
@@ -968,6 +979,7 @@ function Composer({
     async function send() {
         if (busy || !draft.body.trim()) return;
         setBusy(true);
+        update({ ...draft, attempted: true });
         setAttempted(true);
         setError('');
         try {

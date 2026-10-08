@@ -99,8 +99,10 @@ function SidePanel() {
         let sequence = 0;
         let windowId: number | undefined;
         let lastKey = '';
+        let lookup = 0;
         const resolve = async () => {
-            const version = ++sequence;
+            const lookupId = ++lookup;
+            let version = sequence;
             try {
                 if (windowId === undefined)
                     windowId = (await chrome.windows.getCurrent()).id;
@@ -108,10 +110,11 @@ function SidePanel() {
                     active: true,
                     windowId,
                 });
-                if (!active || version !== sequence) return;
+                if (!active || lookupId !== lookup) return;
                 const key = `${tab?.id}:${tab?.url}`;
                 if (key === lastKey) return;
                 lastKey = key;
+                version = ++sequence;
                 setResolving(true);
                 setPage(null);
                 setPageError('');

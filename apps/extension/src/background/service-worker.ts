@@ -73,12 +73,16 @@ async function check() {
             linksKey,
         ]);
         const session = stored[sessionKey] as ExtensionSession | undefined;
-        if (
-            !session ||
-            !stored[enabledKey] ||
-            new Date(session.expiresAt).getTime() <= Date.now()
-        )
+        if (!session || !stored[enabledKey]) return;
+        if (new Date(session.expiresAt).getTime() <= Date.now()) {
+            await chrome.storage.local.remove([
+                sessionKey,
+                enabledKey,
+                linksKey,
+            ]);
+            await chrome.alarms.clear(alarm);
             return;
+        }
         if (
             !(await chrome.permissions.contains({
                 permissions: ['notifications'],
@@ -138,17 +142,17 @@ chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
     .catch(() => {});
 chrome.runtime.onInstalled.addListener(() => {
-    void syncAlarm();
+    void syncAlarm().catch(() => {});
 });
 chrome.runtime.onStartup.addListener(() => {
-    void syncAlarm();
+    void syncAlarm().catch(() => {});
 });
 chrome.alarms.onAlarm.addListener((event) => {
     if (event.name === alarm) void check();
 });
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && (changes[sessionKey] || changes[enabledKey]))
-        void syncAlarm();
+        void syncAlarm().catch(() => {});
 });
 chrome.runtime.onMessage.addListener((message: unknown, sender, reply) => {
     if (

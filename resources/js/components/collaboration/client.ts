@@ -62,6 +62,7 @@ export type Draft = {
     mentions: Person[];
     key: string;
     source: Source | null;
+    attempted?: boolean;
 };
 
 export class CollaborationError extends Error {

@@ -85,6 +85,12 @@ Documentation structure/tests, source syntax and patch applicability are recorde
 
 The browser test source now waits for the loaded extension page before using storage, instead of the previous service-worker startup assumption. It also targets the new accessible UI and asserts independent drafts. These are candidate test corrections, not evidence that the prior fixture issue or the new full app test has passed. Existing hosted CI stays read-only; the new pure-helper check is added without authoring/deployment permissions.
 
+### October 9 bounded sidebar correction
+
+User requested that Activity retain the larger sidebar icons. On local `main` at `07fa6668364d8205c3b8b78d04522acd2dbfd2ee` plus this working-tree patch, the shell stylesheet now applies the existing 82px rail (76px at tablet widths) across authenticated routes. Mobile retains Sheet navigation; discovery pages retain their linked-work shortcuts with bounded labels. No routes or permission behavior changed.
+
+Checks on macOS with Node 24.14.1: `node scripts/check-docs.mjs` passed; `node --test scripts/check-docs.test.mjs` passed all 18 tests; `git diff --check` passed. Reviewed the CSS diff and responsive selector precedence. Compiled-app, authenticated Activity navigation, keyboard and wide/narrow browser verification remain pending: local locked npm/vendor dependencies are absent, and `docker ps` could not access the Docker socket under the sandbox. This correction is not deployed or certified by the earlier pilot evidence.
+
 ## Idempotence and Recovery
 
 The migration is additive. Back up before deployment; rollback removes new collaboration/attention metadata and is not automatic production recovery. Prefer a forward fix. Retries preserve a request UUID, fingerprint and uncertain draft payload. Direct pairs have a database uniqueness constraint. Failed display/acknowledgement claims expire after 45 seconds for a later attempt.

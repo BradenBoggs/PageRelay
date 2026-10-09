@@ -9,12 +9,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('messages', function (Blueprint $table): void {
-            $table->unique(
-                ['id', 'organization_id', 'workspace_id', 'conversation_id'],
-                'messages_id_organization_workspace_conversation_unique',
-            );
-        });
+        if (! Schema::hasIndex('messages', 'messages_id_organization_workspace_conversation_unique')) {
+            Schema::table('messages', function (Blueprint $table): void {
+                $table->unique(
+                    ['id', 'organization_id', 'workspace_id', 'conversation_id'],
+                    'messages_id_organization_workspace_conversation_unique',
+                );
+            });
+        }
 
         Schema::create('conversation_reads', function (Blueprint $table): void {
             $table->id();
@@ -55,8 +57,10 @@ return new class extends Migration
 
         Schema::dropIfExists('conversation_reads');
 
-        Schema::table('messages', function (Blueprint $table): void {
-            $table->dropUnique('messages_id_organization_workspace_conversation_unique');
-        });
+        if (Schema::hasIndex('messages', 'messages_id_organization_workspace_conversation_unique')) {
+            Schema::table('messages', function (Blueprint $table): void {
+                $table->dropUnique('messages_id_organization_workspace_conversation_unique');
+            });
+        }
     }
 };

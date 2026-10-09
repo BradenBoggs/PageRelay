@@ -6,9 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExtensionConnectionController;
 use App\Http\Controllers\Organizations\OrganizationInvitationController;
 use App\Http\Middleware\EnsureOrganizationMembership;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', function (Request $request): RedirectResponse {
+    return to_route($request->user() ? 'dashboard' : 'login');
+})->name('home');
 Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 Route::middleware(['auth'])->group(function () {
     Route::post('invitations/{invitation}/accept', [OrganizationInvitationController::class, 'accept'])->name('invitations.accept');

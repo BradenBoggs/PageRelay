@@ -7,3 +7,5 @@ Use [the plan register and completion gate](../README.md) before moving a finish
 This directory contains verified execution history, not product specifications, abandoned work presented as done, or evidence that every completed change has been deployed.
 
 - [006 — Conversation-read migration recovery](006-conversation-read-migration-recovery.md): verified on disposable SQLite/MySQL databases October 9, 2026; deployment remains outside scope.
+
+- [007 — Closed registration and owner bootstrap](007-closed-registration-and-owner-bootstrap.md): verified in an isolated application/browser runtime October 9, 2026; deployment and live provisioning remain outside scope.

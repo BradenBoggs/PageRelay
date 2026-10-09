@@ -59,6 +59,18 @@ flag only for an existing account:
 ./vendor/bin/sail artisan sidewire:admin developer@example.com --revoke
 ```
 
+## Initialize the first owner
+
+Public registration is disabled. After applying migrations, run this command from the deployed application directory to initialize an installation with no users or Organizations:
+
+```bash
+php artisan sidewire:bootstrap owner@example.com --name="Owner Name" --organization="Company Name"
+```
+
+Enter and confirm the password at the hidden prompts. The command creates a verified owner, one Organization, and its Main default Workspace. It accepts at least eight password characters for trusted initial provisioning; production web password/reset validation retains its existing stronger policy. It refuses to overwrite or add accounts when users or Organizations already exist. Concurrent bootstrap commands must use the same configured cache lock store. Internal operator access remains the separate `sidewire:admin` command.
+
+For local development, prefix the Artisan command with `./vendor/bin/sail`. Deploy through the normal configuration/route cache rebuild before using the command. Invitations no longer enable signup; existing recipients can still log in and accept eligible invitations.
+
 ## Load the Chrome extension
 
 In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load

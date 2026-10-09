@@ -1,6 +1,6 @@
 # Accounts, organizations, and membership lifecycle
 
-Status: **Draft for owner review. Existing foundation retained; collaboration/lifecycle additions are proposed Core scope.** Foundation implementation is tracked in `docs/plans/000-execplan.md`; this review is not a fresh code audit. See [review scope](README.md).
+Status: **Public registration closure and initial owner bootstrap approved October 9, 2026; other collaboration/lifecycle additions remain proposed Core scope.** Foundation implementation is tracked in `docs/plans/000-execplan.md`; this review is not a fresh code audit. See [review scope](README.md).
 
 This document owns authentication, tenant membership, roles, invitations, and account lifecycle. Teams/Workspace belong to [Workspaces and teams](workspaces-and-teams.md), billing consequences to [Billing](billing-and-product-access.md), and data retention/security administration to [Administration](administration-and-data-lifecycle.md).
 
@@ -16,7 +16,7 @@ The historical starter-kit rule remains: remove generated tenant switching/perso
 
 ## Authentication and roles
 
-Retain registration, verified email, sign-in/out, password reset, and secure web/extension session revocation. The target includes accessible session management, optional two-factor enrollment and recovery, and explicit confirmation for sensitive account/ownership changes. These additions are not assertions that every security screen already exists.
+Public account registration is disabled by the October 9 owner direction, including invitation signup. Retain verified email, sign-in/out, password reset, and secure web/extension session revocation. A trusted server operator can initialize an empty installation through `sidewire:bootstrap`: one verified user, active billable owner membership, Organization and the existing default Workspace are created transactionally. This bootstrap never grants internal SideWire operator access and refuses initialized installations rather than changing existing accounts. Password input and confirmation use hidden console prompts; the explicitly requested bootstrap password is allowed under a command-only eight-character minimum without changing production web recovery rules. The target includes accessible session management, optional two-factor enrollment and recovery, and explicit confirmation for sensitive account/ownership changes. These additions are not assertions that every security screen already exists.
 
 Organization roles remain owner, administrator, and member. Owners manage eligible roles and ownership. Administrators manage ordinary members/invitations but cannot transfer ownership, delete the Organization, or take owner-only billing actions. Ordinary members do not gain administrative authority by creating a channel or managing a Team.
 
@@ -26,7 +26,7 @@ Organization authority does not automatically grant private-channel or DM conten
 
 Authorized managers can invite by email, view pending invitations, resend, and revoke. Invitations have bounded expiry, an intended Organization/role, and safe one-time acceptance. Resending or concurrent acceptance must not create duplicate users, memberships, seats, or notifications. Pending invites are not active product access.
 
-Show the inviting Organization, inviter, intended role, and explicit channel invitations before acceptance. Verify recipient identity; possession of an invitation URL alone must not activate a different account. Joining an existing Organization must not silently create another one. An account already attached to a different Organization receives a clear unsupported-account-model outcome, not an automatic transfer.
+Show the inviting Organization, inviter, intended role, and explicit channel invitations before acceptance. Verify recipient identity; possession of an invitation URL alone must not activate a different account. Joining an existing Organization must not silently create another one. An account already attached to a different Organization receives a clear unsupported-account-model outcome, not an automatic transfer. With registration closed, invitation mail directs recipients to sign in and asks people without an account to contact their administrator; an invitation does not reopen signup. Creating additional accounts is outside the initial bootstrap command scope.
 
 Onboarding can begin completely in the web app. Introduce General and optional invited channels without requiring the extension, an external website, or a domain workspace. An invitation to a private channel discloses retained-history access through the channel feature. Guest invitations remain separately gated.
 
@@ -52,8 +52,10 @@ An invited verified person joins exactly the intended Organization without dupli
 
 Owner decisions: two-factor/recovery requirements, invitation expiry, private-channel reactivation policy, ownership transfer UX, and account/organization deletion recovery. Commercial policy remains in Billing.
 
-## Implementation map — existing foundation only
+## Implementation map — existing foundation and approved closed registration
 
 `app/Models/Organization.php`, `OrganizationMembership.php`, `OrganizationInvitation.php`, `app/Concerns/HasOrganization.php`, `app/Policies/OrganizationPolicy.php`, `app/Http/Middleware/EnsureOrganizationMembership.php`, `app/Http/Controllers/Organizations/`, and `tests/Feature/Organizations/OrganizationFoundationTest.php`.
+
+Registration configuration: `config/fortify.php`; initial provisioning: `app/Console/Commands/BootstrapSidewire.php`, reusing `app/Actions/Organizations/CreateOrganization.php`. Verification: `tests/Feature/Auth/RegistrationTest.php`, `tests/Feature/Console/BootstrapSidewireTest.php`; execution evidence belongs to [plan 007](../plans/active/007-closed-registration-and-owner-bootstrap.md).
 
 These are existing documented entry points, not evidence that proposed lifecycle additions or private audiences are implemented. Reference coverage: [Slack administration and security catalog](https://slack.com/enterprise).

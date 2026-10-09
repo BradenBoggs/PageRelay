@@ -22,6 +22,8 @@ The September 27 migration classified the four legacy plans against revision `2c
 
 - [006 — Conversation-read migration recovery](completed/006-conversation-read-migration-recovery.md): scoped recovery verified October 9 on SQLite/MySQL; not deployed.
 
+- [007 — Closed registration and owner bootstrap](active/007-closed-registration-and-owner-bootstrap.md): approved October 9; implementation and isolated verification in progress.
+
 Initiative 004 belongs to the separate unmerged URL-selector branch; it is not imported or renumbered by this pilot. No earlier plan is marked complete by the new work. See [completed plans](completed/README.md). A later general test run does not silently close every earlier plan.
 
 ## When a plan is required

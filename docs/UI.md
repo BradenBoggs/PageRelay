@@ -6,6 +6,12 @@ SideWire has one design system expressed through a narrow Chrome side panel and 
 
 This document owns application-wide interface rules. Feature-specific screens and states belong in their owning feature documents.
 
+## Approved GPS UI refinement — October 8, 2026
+
+Braden requested a substantial UI/UX overhaul and a more polished app after the pilot implementation. This approves the presentation and navigation refinement of the existing GPS communication slice, not the remaining Slack-style proposals. The candidate is prepared against `1e6ba769f4d5e6674e4103b61312746f0e9d9014`; its execution and verification status belong to [plan 005](plans/active/005-gps-communication-pilot.md).
+
+Use warm neutral surfaces, dark readable text, restrained terracotta emphasis, consistent initials avatars, and fine dividers. Prefer a quiet, light header over the historical dark-header reference. No gradients, decorative grids, fabricated online indicators, or inactive feature toolbars. Shared palette, typography and dimensions live in `resources/css/sidewire-tokens.css`; the existing shell and shared messaging components consume them.
+
 ## Experience principles
 
 SideWire should feel calm, lightweight, and native beside a team's tools. The source website remains the primary work surface; SideWire provides context without competing for attention.
@@ -20,7 +26,7 @@ SideWire should feel calm, lightweight, and native beside a team's tools. The so
 
 ## Vocabulary and navigation
 
-Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. Thread is reserved for separately approved message replies.
+Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. The GPS pilot uses **Messages**, **Direct**, and **Thread** for its approved messaging destinations and one-level replies. **Work chats** labels the retained source-aware discovery screen, not a second copy of history.
 
 Activity is for catching up; Chats is for finding a discussion; Apps groups or filters existing contexts/chats. Do not create one workspace per domain, one mandatory channel per external record, an expanded tree of every CRM lead, or a page/channel/hybrid onboarding selector.
 
@@ -36,9 +42,9 @@ Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do 
 
 The panel must work at realistic narrow widths and variable heights; it is not a desktop dashboard squeezed into a column.
 
-The normal This Page view has a compact current-page header, safe source-page action, and compact navigation to Activity, Chats, and account state as those features ship. When a Chat is linked, its history is the main scroll region and the composer stays reachable. When no Chat is linked, replace the history and composer with compact actions to create a Chat for the page or, for eligible managers, link an existing work Chat.
+The normal This Page view has a compact current-page header and safe source-page action. The two primary tabs are **This Page** and **Messages & DMs**. The latter includes shared work Chats, private one-to-one DMs and **Mentions & replies**. Notification preferences live behind a labeled bell button; account/disconnect actions are separate. When a Chat is linked, its history is the main scroll region and the composer stays reachable. When no Chat is linked, replace the history and composer with compact actions to create a Chat for the page or, for eligible managers, link an existing work Chat.
 
-The Chats view lists durable named work Chats, including newly created empty Chats. Selecting one opens its history and composer inside the panel without requiring an external page. A direct Chat send has no inferred source-page attribution. Provide a clear return to Chats and preserve the separate This Page destination.
+The Messages & DMs directory lists durable named work Chats, including newly created empty Chats, and authorized one-to-one conversations. Selecting one opens its history and composer inside the panel without requiring an external page. A direct Chat send has no inferred source-page attribution. Provide a clear return to Chats and preserve the separate This Page destination.
 
 For a work Chat with linked pages, show its recognizable title and linked-page list without implying that the current app owns the history. Show per-message source attribution when recorded. A message sent while viewing Docusign remains attributed to Docusign even when read beside Supermove.
 
@@ -67,6 +73,16 @@ Show linking controls only to eligible roles. Do not expose inaccessible chat ti
 Messages prioritize author, time, content, recorded source, and delivery state. Do not add reactions, nested threads, rich-text toolbars, attachments, or AI actions before approval.
 
 The creation form uses explicit labels, identifies which page information was detected automatically, allows deliberate edits, explains that submission stores organization data, and retains input after validation or network failure. Its primary action is **Create chat**. The composer appears only for an existing or explicitly created chat and needs an accessible name, clear multiline/submission behavior, duplicate prevention, sending/failure states, and recoverable draft text. Drafts remain bound to their intended chat and source context; navigating to another linked page must not silently relabel a draft.
+
+## Message and attention presentation
+
+Use a legible left-aligned message timeline, date separators and restrained author grouping. Group consecutive messages only when author, source, thread and calendar day match and the timestamps are close. Keep timestamps available on hover and keyboard focus. Highlight only recipients resolved by the server; plain @text and email addresses must not acquire mention semantics through styling.
+
+Keep the conversation visible beside a thread when the message stage has at least 760px; otherwise show a focused thread with a clear back action. Main-chat and thread composers keep separate source-bound in-memory drafts. A hidden main pane must not mark its messages read. Refresh merges already loaded history rather than dropping earlier pages, and new messages do not force a reader away from older content.
+
+The composer provides an eligible-coworker mention picker, recipient chips, a clear send action, sending/retry feedback and source disclosure when relevant. Enter inserts a newline; Ctrl/Command + Enter sends, except during IME composition. Mention suggestions support arrows, Enter and Escape. Pending uncertain sends retain the same immutable payload and request identity.
+
+Desktop permission/test/pause controls belong in an accessible notification dialog, not a persistent full-width control block above every conversation. Display the real connection and preference states. This UI change does not change desktop delivery, privacy, notification scope or server claims.
 
 ## Responsive and accessible behavior
 

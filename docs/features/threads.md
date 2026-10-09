@@ -10,7 +10,7 @@ A member with posting access may reply to a top-level message in the same author
 
 Each reply has a stable identity, author, timestamp, plain-text body, selected mentions and optional independently selected page source. Replying to a source-attributed message does not automatically use the root's page as the reply source. DM replies cannot acquire page context.
 
-Main history shows roots with reply counts. Opening a thread shows its root and retained replies in order. The pilot uses a focused thread view with a clear return action on both web and extension. Main-chat and reply drafts remain separate and in memory. Loading earlier replies and exact-message navigation must not silently change the draft destination.
+Main history shows roots with reply counts. Opening a thread shows its root and retained replies in order. The refined pilot shows the thread beside the main history when the message stage has at least 760px. Narrow web and extension layouts use a focused thread with a clear return action; hidden main-history content does not advance read state. Main-chat and reply drafts remain separate and in memory. Loading earlier replies and exact-message navigation must not silently change the draft destination.
 
 ## Participation and attention
 

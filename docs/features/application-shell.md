@@ -1,20 +1,20 @@
 # Application shell and standalone web experience
 
-Status: **Draft for owner review. Core target built on a documented existing shell.** The authenticated React shell was implemented under `docs/plans/003-application-shell.md`. New destinations/actions below are proposals; this review does not certify browser behavior or expand existing code.
+Status: **GPS messaging UI refinement approved October 8, 2026; implementation candidate on the GPS pilot review branch, not released.** The historical shell remains the foundation. The approved refinement covers the existing pilot messages, DMs, mentions, threads and notification controls under [plan 005](../plans/active/005-gps-communication-pilot.md). Other channel/resource/draft expansions below remain proposals.
 
 This document owns web regions, composition, navigation, dimensions, and responsive behavior. Individual feature documents own their actions and permissions. The extension retains its separate narrow shell.
 
 ## Reference and visual continuity
 
-Preserve the September 26, 2026 reference direction: compact dark header, pale navigation, restrained warm accent, dense list/detail composition, left-aligned messages, optional linked-page strip, and reachable composer. `docs/references/application-shell/README.md` and its isolated `reference-layout.html` record the reference. Do not import fictional data, CDN scripts, remote avatars, or sample controls as approved features.
+The October 8 UI approval supersedes the September 26 dark-header treatment for the messaging pilot: use a light compact header, pale navigation, restrained warm accent, list/detail composition, left-aligned messages, optional linked-page strip, and reachable composer. `docs/references/application-shell/README.md` and its isolated `reference-layout.html` record the reference. Do not import fictional data, CDN scripts, remote avatars, or sample controls as approved features.
 
-Reuse the existing React layout and semantic tokens. The broader feature scope does not call for a redesign, decorative enclosing cards, or a separate visual language for each feature.
+Reuse the existing React layout and shared semantic tokens. This approved UI overhaul does not authorize decorative enclosing cards, unimplemented feature controls or separate visual languages for each feature.
 
 ## Navigation contract
 
-The web app must function as the primary communication workspace without an extension or source page. Keep a read-only Organization identity in the header; this proposal does not add organization switching. Global search searches authorized SideWire content, not only the current page or external customer records.
+The web app must function as the primary communication workspace without an extension or source page. Keep a read-only Organization identity in the header; this proposal does not add organization switching. The existing global search remains authorized work-chat/source discovery. It is not claimed to search DM bodies or all retained messages. The messaging directory has a clearly labeled current-page filter, not a second universal search.
 
-Primary navigation should expose Activity, Chats/channels, Direct messages, and Threads as those features become usable. Favorites and joined/recent conversations provide fast access without listing every external record. Later, Drafts, Tasks, Files, and people/settings destinations appear only when implemented and entitled. Distinguish labels such as **Later** (saved items) from actual product-release status.
+The implemented candidate uses one primary rail on messaging routes: **Messages**, **Direct**, **Activity**, **Work chats**, and **Overview**. Messages opens the all-conversation directory; Direct and Activity are query views of the same communication surface. Work chats retains the existing source-aware discovery route. Remove the old duplicate Messages text link and expanded notification banner. A dedicated Threads destination and channels remain expansions. Favorites and joined/recent conversations provide fast access without listing every external record. Later, Drafts, Tasks, Files, and people/settings destinations appear only when implemented and entitled. Distinguish labels such as **Later** (saved items) from actual product-release status.
 
 Apps belongs in an optional filter/browse surface or channel source details, not as a required domain-based web hierarchy. No empty list of connected apps or extension installation gate may prevent communication. Avoid duplicate destinations for existing work Chats and proposed channels representing the same history.
 
@@ -30,11 +30,11 @@ Shared files/pins/canvas/list surfaces appear as contextual resources after thei
 
 ## Dimensions and scrolling
 
-Retain viewport-height framing (`100dvh` with fallback), a 48px desktop header, 240px primary navigation, and 320px discovery width as baseline tokens. `resources/css/application-shell.css` owns semantic `--sw-*` dimensions, colors, and surfaces; adjust responsive composition rather than scattering hard-coded variants.
+Retain viewport-height framing (`100dvh` with fallback). The candidate uses a 60px header, an 82px labeled messaging rail (76px on tablet), a 300px conversation directory (270px in narrower compositions), and a 340px thread pane only when the conversation stage is at least 760px. Non-messaging routes retain the expanded navigation. `resources/css/sidewire-tokens.css` owns shared semantic `--sw-*` dimensions, colors and surfaces; `application-shell.css` and the messaging stylesheet own their respective compositions.
 
-At 1100px and above, the existing three-pane frame is the starting point. At 768–1099px, use accessible Sheet navigation with list/detail. Below 768px, show list or selected detail with a clear back action, 56px header, and safe-area composer spacing. Thread/resource panes replace or collapse another region when needed. Navigation, results, history, and ordinary page content scroll independently with defined minimum-size/overflow contracts.
+At wide widths use rail, directory, conversation and, only when it fits, a contextual thread. At 768–1099px the messaging rail remains compact while other web pages use the existing accessible Sheet navigation. Below 768px the primary navigation uses the Sheet, and messaging shows either the directory or selected conversation with a clear back action and safe-area composer spacing. Thread/resource panes replace or collapse another region when needed. Navigation, results, history, and ordinary page content scroll independently with defined minimum-size/overflow contracts.
 
-The target supports all retained history with stable older-message pagination and jump-to-message context. The existing latest-100-message server limit is a documented baseline limitation, not target behavior. Preserve scroll while loading older messages; follow new arrivals only when already near the end.
+The target supports all retained history with stable older-message pagination and jump-to-message context. The GPS pilot provides older-message pagination; the historical latest-100 limit is not the candidate UI contract. Preserve scroll while loading older messages; follow new arrivals only when already near the end.
 
 ## State, composition, and accessibility
 
@@ -50,14 +50,18 @@ Design meaningful no-selection, no-chats, empty Activity, no-match, no-unread, e
 
 An organization can create channels, send DMs, find retained history, manage attention, and navigate on a narrow mobile browser without installing the extension. Opening a thread/resource does not lose the chat draft or collapse useful navigation unpredictably. Search, menus, uploads, history, and back navigation remain usable by keyboard and assistive technology. Private data disappears when authorization changes.
 
-## Implementation map — existing shell only
+## Implementation map — existing shell and GPS UI candidate
 
 - Frame: `resources/js/layouts/app-layout.tsx`, selected by `resources/js/app.tsx`.
 - Global regions/cache: `resources/js/components/application-shell/`.
 - Chat composition: `resources/js/components/chats/`.
 - Pages: `resources/js/pages/chats/`, `resources/js/pages/activity/index.tsx`.
 - Types/navigation: `resources/js/types/chat.ts`, `resources/js/lib/chat-navigation.ts`.
-- Tokens: `resources/css/application-shell.css`.
+- Shared tokens: `resources/css/sidewire-tokens.css`; shell composition: `resources/css/application-shell.css`.
+- Messaging page: `resources/js/pages/collaboration/index.tsx`.
+- Shared UI: `resources/js/components/collaboration/board.tsx`, `conversation.tsx`, `composer.tsx`, `notifications.tsx`, `ui.tsx`, and `workspace.css`.
+- Delivery/provider: `provider.tsx`; existing API and draft store: `client.ts`; pure display helpers: `presentation.ts`. The `workspace.tsx` barrel preserves existing import entry points.
+- Display-helper tests: `scripts/collaboration-ui.test.mjs`; authenticated pilot scenario: `tests/Browser/pilot.cjs`. The latter is updated but has not run against this candidate.
 - Server composition: `app/Http/Controllers/ChatController.php`, existing `ConversationDiscovery`.
 - Existing tests: `tests/Feature/Conversations/ApplicationShellTest.php`, Conversation and Activity suites.
 

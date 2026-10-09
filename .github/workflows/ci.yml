@@ -66,6 +66,9 @@ jobs:
       - name: Check frontend types
         run: npm run types:check
 
+      - name: Check collaboration presentation helpers
+        run: node --test scripts/collaboration-ui.test.mjs
+
       - name: Build web application and extension
         run: npm run build
 

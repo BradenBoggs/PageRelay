@@ -10,6 +10,12 @@ The extension brings the same authorized conversations beside work pages; it is 
 
 Use focused list/detail/thread states, a reachable composer, visible audience/source labels, return navigation, and explicit loading/offline/access states rather than compressing several desktop panes into the panel. Group DMs, private channels, files, manual thread-follow controls and other expansion features are not part of this pilot.
 
+## Approved pilot UI refinement
+
+The October 8 refinement uses the shared messaging palette and components with a compact extension header, two primary tabs, and a bell-triggered notification dialog. Each panel destination fills the available height with one independently scrolling timeline and a reachable composer. Narrow threads replace the main timeline without reassigning its draft or reading hidden messages.
+
+New work-chat creation is a short dialog available from the directory; the existing explicit page creation/linking and manager-only rules remain unchanged. Detected URL/title fields are reviewable details, not persistent raw-URL clutter. Disconnect remains an explicit account action. No background-worker, permission, API, or authentication semantics change with the redesign. See [UI](../UI.md) for shared behavior and [plan 005](../plans/active/005-gps-communication-pilot.md) for validation limits.
+
 ## Permissions and privacy
 
 Retain Manifest V3 and the native side-panel API. The tabs capability reads only the active tab's URL, browser title and favicon while the user-invoked panel is running. It does not authorize browsing-history collection.

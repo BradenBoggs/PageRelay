@@ -12,6 +12,10 @@ Reviewed: September 27, 2026, against the plan records at `2cbc88eb2ff5d974367de
 | Documentation harness                               | [Workflow](engineering/WORKFLOW.md)                                                           | Structural checker and tests define automated coverage. Actual run results belong to the documentation PR; do not infer that hosted CI passed. |
 | Production release, store approval, operations      | [Extension](features/browser-extension.md), [billing](features/billing-and-product-access.md) | Not established by this review. Release/provider/store checks require their own evidence.                                                      |
 
+## GPS pilot and UI follow-up
+
+[Plan 005](plans/active/005-gps-communication-pilot.md) owns the pilot's revision-specific hosted evidence and the October 8 UI candidate. The new presentation-helper and synthetic-preview checks do not extend the prior backend/browser passes to the rewritten React UI. The candidate is published for review on the GPS pilot branch; locked formatting/lint, full type checks, builds and authenticated/native client acceptance remain pending for the redesigned UI. Nothing in this evidence map certifies a GPS rollout.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

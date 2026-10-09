@@ -1,3 +1,4 @@
+import { ExternalLink, Globe2, LogOut, MessagesSquare, Plus, RefreshCw, Unplug } from 'lucide-react';
 import { StrictMode, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -10,6 +11,7 @@ import {
     ConversationView,
     NotificationControls,
 } from '../../../../resources/js/components/collaboration/workspace';
+import { CollaborationDialog, EmptyState, IconButton, InlineError, PersonAvatar } from '../../../../resources/js/components/collaboration/ui';
 import {
     connect,
     disconnect,
@@ -66,6 +68,7 @@ function SidePanel() {
     const [refresh, setRefresh] = useState(0);
     const [chatName, setChatName] = useState('');
     const [creating, setCreating] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
     const [creationKey, setCreationKey] = useState(crypto.randomUUID());
     const connection = useRef<AbortController | null>(null);
     const client = useMemo(
@@ -209,6 +212,7 @@ function SidePanel() {
                 idempotencyKey: creationKey,
             });
             setChatName('');
+            setCreateOpen(false);
             setCreationKey(crypto.randomUUID());
             setSelectedChat(chat.id);
             setView('messages');
@@ -225,27 +229,14 @@ function SidePanel() {
     }
     if (!session)
         return (
-            <main className="sw-collaboration sw-extension-shell">
-                <h1>SideWire</h1>
-                <p>Team conversations beside your work.</p>
-                {error && <p role="alert">{error}</p>}
-                <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => {
-                        void signIn();
-                    }}
-                >
-                    {loading ? 'Connecting…' : 'Connect to SideWire'}
-                </button>
-                {loading && (
-                    <button
-                        type="button"
-                        onClick={() => connection.current?.abort()}
-                    >
-                        Cancel
-                    </button>
-                )}
+            <main className="sw-collaboration sw-extension-shell sw-extension-welcome">
+                <div className="sw-extension-brand"><span className="sw-extension-mark"><Unplug aria-hidden="true" /></span><strong>SideWire</strong></div>
+                <div className="sw-extension-signin"><span className="sw-section-kicker">RIGHT WHERE YOU WORK</span><h1>Your team.<br />Beside every page.</h1><p>Connect your workspace to bring chats, mentions, and private messages alongside your tools.</p>
+                    {error && <InlineError>{error}</InlineError>}
+                    <button type="button" className="sw-button-primary" disabled={loading} onClick={() => { void signIn(); }}>{loading ? 'Connecting…' : 'Connect to SideWire'}<ExternalLink aria-hidden="true" /></button>
+                    {loading && <button type="button" className="sw-button-text" onClick={() => connection.current?.abort()}>Cancel</button>}
+                    <small>Sign in securely in the web app. Your browser page stays untouched.</small>
+                </div>
             </main>
         );
     const source: Source | null =
@@ -266,135 +257,25 @@ function SidePanel() {
             backgroundCheck={notifyCheck}
         >
             <main className="sw-collaboration sw-extension-shell">
-                <header className="sw-actions">
-                    <strong>SideWire</strong>
-                    <span>{session.organization.name}</span>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            void signOut();
-                        }}
-                    >
-                        Disconnect
-                    </button>
+                <header className="sw-extension-topbar">
+                    <div className="sw-extension-brand"><span className="sw-extension-mark"><Unplug aria-hidden="true" /></span><div><strong>SideWire</strong><span title={session.organization.name}>{session.organization.name}</span></div></div>
+                    <NotificationControls enableExtension={enableAlerts} testExtension={testAlerts} />
+                    <a className="sw-icon-button" href={`${appUrl}/messages`} target="_blank" rel="noreferrer" aria-label="Open web app" title="Open web app"><ExternalLink aria-hidden="true" /></a>
+                    <details className="sw-extension-account"><summary aria-label="Account and connection" title="Account and connection"><PersonAvatar name={session.user.name} small /></summary><div><strong>{session.user.name}</strong><span>{session.organization.name}</span><button type="button" onClick={() => { void signOut(); }}><LogOut aria-hidden="true" />Disconnect</button></div></details>
                 </header>
-                <nav className="sw-actions" aria-label="Side panel">
-                    <button
-                        type="button"
-                        aria-pressed={view === 'page'}
-                        onClick={() => {
-                            setView('page');
-                            setRefresh((value) => value + 1);
-                        }}
-                    >
-                        This Page
-                    </button>
-                    <button
-                        type="button"
-                        aria-pressed={view === 'messages'}
-                        onClick={() => {
-                            setSelectedChat(null);
-                            setView('messages');
-                        }}
-                    >
-                        Messages & DMs
-                    </button>
-                    <a
-                        href={`${appUrl}/messages`}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Open web app
-                    </a>
-                </nav>
-                <NotificationControls
-                    enableExtension={enableAlerts}
-                    testExtension={testAlerts}
-                />
-                {error && <p role="alert">{error}</p>}
-                {view === 'messages' ? (
-                    <>
-                        <details>
-                            <summary>New work chat</summary>
-                            <form
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    void createChat();
-                                }}
-                            >
-                                <label>
-                                    Chat name
-                                    <input
-                                        required
-                                        maxLength={255}
-                                        value={chatName}
-                                        disabled={creating}
-                                        onChange={(event) =>
-                                            setChatName(event.target.value)
-                                        }
-                                    />
-                                </label>
-                                <p>
-                                    Shared with your organization. Use a direct
-                                    message for a private discussion.
-                                </p>
-                                <button type="submit" disabled={creating}>
-                                    Create chat
-                                </button>
-                            </form>
-                        </details>
-                        <CollaborationBoard
-                            key={selectedChat ?? 'board'}
-                            initialChat={selectedChat}
-                        />
-                    </>
-                ) : (
-                    <>
-                        {resolving && (
-                            <p role="status">
-                                Finding this page’s conversation…
-                            </p>
-                        )}
-                        {pageError && <p role="alert">{pageError}</p>}
-                        {page && (
-                            <>
-                                <header>
-                                    <strong>{page.title}</strong>
-                                    <p>
-                                        <a
-                                            href={page.url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {page.host}
-                                        </a>
-                                    </p>
-                                </header>
-                                <PageActions
-                                    key={`${page.url}:${page.association_version}`}
-                                    session={session}
-                                    page={page}
-                                    changed={() =>
-                                        setRefresh((value) => value + 1)
-                                    }
-                                />
-                                {page.chat && (
-                                    <ConversationView
-                                        key={page.chat.id}
-                                        chatId={page.chat.id}
-                                        source={source}
-                                    />
-                                )}
-                            </>
-                        )}
-                        <button
-                            type="button"
-                            onClick={() => setRefresh((value) => value + 1)}
-                        >
-                            Refresh this page
-                        </button>
-                    </>
-                )}
+                <nav className="sw-extension-tabs" aria-label="Side panel"><button type="button" aria-pressed={view === 'page'} onClick={() => { setView('page'); setRefresh((value) => value + 1); }}><Globe2 aria-hidden="true" />This Page</button><button type="button" aria-pressed={view === 'messages'} onClick={() => { setSelectedChat(null); setView('messages'); }}><MessagesSquare aria-hidden="true" />Messages & DMs</button></nav>
+                {error && !createOpen && <InlineError>{error}</InlineError>}
+                {view === 'messages' ? <CollaborationBoard key={selectedChat ?? 'board'} initialChat={selectedChat} onCreateChat={() => setCreateOpen(true)} /> : <div className="sw-page-home">
+                    {resolving && <p className="sw-page-loading" role="status">Finding this page’s conversation…</p>}
+                    {pageError && <EmptyState icon={Globe2} title="Your messages are still here">{pageError}</EmptyState>}
+                    {page && <>
+                        <header className="sw-current-page"><span className="sw-current-page-icon"><Globe2 aria-hidden="true" /></span><div><a href={page.url} target="_blank" rel="noreferrer">{page.host}<ExternalLink aria-hidden="true" /></a><strong title={page.title}>{page.title}</strong></div><IconButton icon={RefreshCw} label="Refresh this page" onClick={() => setRefresh((value) => value + 1)} /></header>
+                        <div className={`sw-page-actions-container${page.chat ? ' sw-page-actions-linked' : ''}`}><PageActions key={`${page.url}:${page.association_version}`} session={session} page={page} changed={() => setRefresh((value) => value + 1)} /></div>
+                        {page.chat && <ConversationView key={page.chat.id} chatId={page.chat.id} source={source} />}
+                    </>}
+                    {!page && !resolving && <button type="button" className="sw-button-secondary sw-page-retry" onClick={() => setRefresh((value) => value + 1)}><RefreshCw aria-hidden="true" />Retry page lookup</button>}
+                </div>}
+                <CollaborationDialog open={createOpen} onOpenChange={setCreateOpen} title="New work chat" description="A shared conversation for your team. A page link is optional."><form className="sw-extension-create" onSubmit={(event) => { event.preventDefault(); void createChat(); }}><label>Chat name<input required maxLength={255} value={chatName} disabled={creating} placeholder="e.g. Quote reviews" onChange={(event) => setChatName(event.target.value)} /></label><p>Everyone in your organization can access this chat. Use a direct message for a private discussion.</p>{error && <InlineError>{error}</InlineError>}<button type="submit" className="sw-button-primary" disabled={creating || !chatName.trim()}><Plus aria-hidden="true" />{creating ? 'Creating…' : 'Create chat'}</button></form></CollaborationDialog>
             </main>
         </CollaborationProvider>
     );
@@ -470,8 +351,8 @@ function PageActions({
         }
     }
     return (
-        <div>
-            {error && <p role="alert">{error}</p>}
+        <div className="sw-page-actions">
+            {error && <InlineError>{error}</InlineError>}
             {!page.chat && (
                 <form
                     onSubmit={(event) => {
@@ -479,11 +360,18 @@ function PageActions({
                         void action('create');
                     }}
                 >
-                    <h2>Create chat for this page</h2>
-                    <p>
-                        These detected values are editable. Saving creates a
-                        chat shared with your organization.
-                    </p>
+                    <h2>Start a conversation here</h2>
+                    <p>Create a shared chat for this page, or link one your team already uses.</p>
+                    <label>
+                        Chat name
+                        <input
+                            required
+                            value={name}
+                            disabled={busy}
+                            onChange={(event) => setName(event.target.value)}
+                        />
+                    </label>
+                    <details className="sw-page-metadata"><summary>Review detected page details</summary>
                     <label>
                         Page title
                         <input
@@ -503,23 +391,15 @@ function PageActions({
                             onChange={(event) => setUrl(event.target.value)}
                         />
                     </label>
-                    <label>
-                        Chat name
-                        <input
-                            required
-                            value={name}
-                            disabled={busy}
-                            onChange={(event) => setName(event.target.value)}
-                        />
-                    </label>
-                    <button type="submit" disabled={busy}>
+                    </details>
+                    <button type="submit" className="sw-button-primary" disabled={busy}>
                         Create chat
                     </button>
                 </form>
             )}
             {session.organization.canManagePageLinks && (
                 <details>
-                    <summary>Page linking</summary>
+                    <summary><Globe2 aria-hidden="true" />Page linking</summary>
                     <p>
                         Link this page to a shared chat, not a private DM.
                         Separate nonempty histories cannot be merged.

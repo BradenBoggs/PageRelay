@@ -4,7 +4,7 @@ on:
   push:
     branches: ['work/gps-communication-pilot-20261008']
   pull_request:
-    paths: ['app/**', 'routes/**', 'database/**', 'resources/**', 'apps/extension/**', 'tests/**', 'docs/**', '.github/workflows/pilot-verification.yml']
+    paths: ['app/**', 'routes/**', 'database/**', 'resources/**', 'apps/extension/**', 'tests/**', 'scripts/**', 'docs/**', '.github/workflows/pilot-verification.yml']
 
 permissions:
   contents: read
@@ -78,6 +78,7 @@ jobs:
             'php-format':'composer lint:check',
             'frontend-types':'php artisan wayfinder:generate --with-form && npm run types:check',
             'lint-format':'npm run check',
+            'collaboration-ui':'node --test scripts/collaboration-ui.test.mjs',
             'docs':'node --test scripts/check-docs.test.mjs && node scripts/check-docs.mjs',
             'boundaries':'npm run foundation:check',
           }

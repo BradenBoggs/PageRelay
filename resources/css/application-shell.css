@@ -1,33 +1,10 @@
 /* Authenticated web shell. The extension keeps its own narrow layout. */
+@import './sidewire-tokens.css';
+
 .sw-shell,
 .sw-nav-sheet {
-    --sw-header: #1c1e21;
-    --sw-header-text: #f5f6f8;
-    --sw-surface: #ffffff;
-    --sw-panel: #f8f9fb;
-    --sw-tint: #eef1f5;
-    --sw-text: #20252c;
-    --sw-muted: #616b78;
-    --sw-border: #e2e4e8;
-    --sw-accent: #b64d29;
-    --sw-accent-soft: #fdf3ed;
-    --sw-radius: 5px;
-    --sw-nav-width: 240px;
-    --sw-list-width: 320px;
-    --sw-header-height: 48px;
     color: var(--sw-text);
     background: var(--sw-surface);
-}
-.dark .sw-shell,
-.dark .sw-nav-sheet {
-    --sw-surface: #202328;
-    --sw-panel: #25292f;
-    --sw-tint: #30363e;
-    --sw-text: #edf0f4;
-    --sw-muted: #b6bfca;
-    --sw-border: #3d444e;
-    --sw-accent: #edaa8e;
-    --sw-accent-soft: #3b2d27;
 }
 .sw-shell {
     height: 100vh;
@@ -35,8 +12,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    font-size: 13px;
-    line-height: 1.5;
+    font: 14px/1.55 var(--sw-font);
+    -webkit-font-smoothing: antialiased;
 }
 .sw-shell *,
 .sw-nav-sheet * {
@@ -90,7 +67,7 @@
     padding: 0 16px;
     background: var(--sw-header);
     color: var(--sw-header-text);
-    border-bottom: 1px solid #353a42;
+    border-bottom: 1px solid var(--sw-border);
 }
 .sw-brand {
     display: flex;
@@ -102,7 +79,7 @@
     white-space: nowrap;
 }
 .sw-brand svg {
-    color: #efaa8d;
+    color: var(--sw-accent);
 }
 .sw-organization {
     display: flex;
@@ -110,9 +87,9 @@
     gap: 8px;
     padding: 4px 9px;
     max-width: 220px;
-    border: 1px solid #454b54;
+    border: 1px solid var(--sw-border);
     border-radius: var(--sw-radius);
-    background: #282d34;
+    background: var(--sw-surface);
     font-size: 12px;
 }
 .sw-global-search {
@@ -124,26 +101,26 @@
     margin: 0 auto;
     padding: 0 8px;
     height: 32px;
-    border: 1px solid #4b515c;
+    border: 1px solid var(--sw-border);
     border-radius: var(--sw-radius);
-    background: #272c33;
-    color: #c8ced7;
+    background: var(--sw-surface);
+    color: var(--sw-muted);
 }
 .sw-global-search input {
     border: 0;
     min-width: 0;
     width: 100%;
     background: transparent;
-    color: #f5f6f8;
+    color: var(--sw-header-text);
     font-size: 12px;
     outline: 0;
     box-shadow: none;
 }
 .sw-global-search input::placeholder {
-    color: #bbc2cc;
+    color: var(--sw-muted);
 }
 .sw-global-search:focus-within {
-    outline: 2px solid #efaa8d;
+    outline: 2px solid var(--sw-accent);
     outline-offset: 1px;
 }
 .sw-global-search button {
@@ -162,8 +139,8 @@
 }
 .sw-account:hover,
 .sw-menu-toggle:hover {
-    background: #363d48;
-    color: #fff;
+    background: var(--sw-tint);
+    color: var(--sw-text);
 }
 .sw-account-name {
     max-width: 140px;
@@ -247,7 +224,7 @@
 }
 .sw-menu-toggle {
     display: none;
-    color: #f5f6f8;
+    color: var(--sw-header-text);
 }
 .sw-nav-sheet {
     gap: 0;
@@ -292,13 +269,13 @@
 }
 .sw-primary {
     border-radius: 5px;
-    background: #b64d29;
+    background: var(--sw-accent);
     color: #fff;
     font-size: 12px;
     box-shadow: none;
 }
 .sw-primary:hover {
-    background: #993d20;
+    background: var(--sw-accent-hover);
     color: #fff;
 }
 .sw-segments {
@@ -833,4 +810,38 @@
     .sw-segments button[aria-pressed='true'] {
         outline: 2px solid Highlight;
     }
+}
+
+/* Communication workspace: a compact app rail replaces the old double sidebar. */
+.sw-messaging-main { overflow: hidden; }
+.sw-shell[data-messaging='true'] .sw-sidebar { width: 82px; background: var(--sw-canvas); }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-navigation { min-height: 100%; }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-section { padding: 16px 8px; border: 0; }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-eyebrow,
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-note,
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-hint,
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-apps-section { display: none; }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-link { flex-direction: column; gap: 6px; padding: 11px 4px; margin: 4px 0; min-height: 58px; font-size: 10px; color: var(--sw-muted); text-align: center; }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-link svg { width: 19px; height: 19px; }
+.sw-shell[data-messaging='true'] .sw-sidebar .sw-nav-link[aria-current='page'] { background: var(--sw-surface); color: var(--sw-accent); box-shadow: 0 1px 3px #272e220a; }
+.sw-shell .sw-topbar { gap: 20px; padding-inline: 22px; }
+.sw-shell .sw-brand { font-size: 17px; letter-spacing: -.6px; font-weight: 700; }
+.sw-shell .sw-brand > svg { width: 28px; height: 28px; padding: 5px; background: var(--sw-accent-soft); border-radius: 8px; }
+.sw-shell .sw-organization { padding: 5px 9px; font-size: 11px; max-width: 230px; border: 0; background: transparent; color: var(--sw-muted); border-left: 1px solid var(--sw-border); border-radius: 0; }
+.sw-shell .sw-global-search { height: 35px; max-width: 390px; border-radius: 8px; }
+.sw-shell .sw-global-search input { font-size: 12px; }
+.sw-shell .sw-account { margin-left: 0; height: 38px; }
+.sw-shell .sw-avatar { height: 30px; width: 30px; }
+.sw-shell .sw-notification-label { display: none; }
+.sw-shell .sw-notification-trigger .sw-attention-badge { position: absolute; top: -2px; right: -4px; }
+@media (min-width: 768px) and (max-width: 1099px) {
+    .sw-shell[data-messaging='true'] .sw-sidebar { display: block; width: 76px; }
+    .sw-shell[data-messaging='true'] .sw-menu-toggle { display: none; }
+}
+@media (max-width: 767px) {
+    .sw-shell .sw-topbar { gap: 8px; padding-inline: 9px; }
+    .sw-shell .sw-brand { font-size: 15px; }
+    .sw-shell .sw-global-search input { font-size: 16px; }
+    .sw-shell[data-messaging='true'] .sw-sidebar { display: none; }
+    .sw-shell .sw-account-name { display: none; }
 }

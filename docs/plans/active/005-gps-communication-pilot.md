@@ -1,8 +1,8 @@
 # 005 — GPS communication pilot
 
 Lifecycle: verification-pending
-Approval: Braden requested implementation on October 8, 2026: a usable GPS pilot prioritizing browser desktop notifications, mentions, direct messages and threads. This authorizes the bounded communication slice, not every draft feature, production deployment or invitations/messages to real employees.
-Verification: automated backend, PostgreSQL pilot, builds/types, documentation and two-client browser checks passed at a6a80ae85ec581ff174ed02d70bbabbe4628c61d, with one PHP formatting issue subsequently corrected. Final aggregate checks must be read from the PR's named latest revision. Native GPS-device and side-panel-container acceptance remain pending.
+Approval: Braden requested implementation on October 8, 2026: a usable GPS pilot prioritizing browser desktop notifications, mentions, direct messages and threads. This authorizes the bounded communication slice, not every draft feature, production deployment or invitations/messages to real employees. The subsequent request for a massive UI/UX overhaul and a more polished app authorizes refinement of these existing web/extension flows within this same initiative.
+Verification: historical pilot evidence below remains tied to its named revisions. The October 8 UI follow-up is a review-branch implementation candidate based on 1e6ba769f4d5e6674e4103b61312746f0e9d9014. Pure presentation-helper tests, documentation checks, syntax review and a separate synthetic HTML-preview review are not a compiled-app test. Current application types/build/lint and authenticated/native extension acceptance remain pending; do not carry the old CI passes forward to this UI revision.
 Release: not released. No production origin, server, team setup or public distribution was provisioned.
 
 ## Purpose / Big Picture
@@ -18,6 +18,9 @@ The owners are [Direct messages](../../features/direct-messages.md), [Threads](.
 - [x] Implement shared web/extension UI, history navigation, source-bound drafts and opt-in background alerts.
 - [x] Run automated backend and PostgreSQL pilot tests, static/types, builds and documentation checks; correct identified failures without weakening assertions.
 - [x] Exercise two authenticated users and a built installed extension for DM/mention/live-thread/privacy behavior; inspect synthetic screenshots.
+- [x] Prepare the approved UI refinement in a local patch: shared visual tokens, single messaging navigation, directory, responsive thread pane, composer/mention improvements and compact notification/extension controls.
+- [x] Publish the prepared UI changes to the same pilot branch and PR 3 on the user's subsequent explicit "push them" request; no merge or deployment.
+- [ ] Review the published UI candidate and run its locked formatter, type checks, builds and authenticated browser scenario.
 - [ ] Confirm all aggregate checks on the final handoff revision.
 - [ ] Test native Chrome/OS notifications, real side-panel lifecycle, permission denial, sleep/wake, linked-page draft transitions and removal/reconnect on GPS devices.
 - [ ] Run dedicated simultaneous-start/send/claim concurrency acceptance before claiming those races verified; sequential/idempotency tests are not that evidence.
@@ -39,6 +42,14 @@ The assistant environment lacked an executable local Sail/application setup. Dep
 - Open clients use signal-only Reverb events and newly authorized HTTP reads, with disclosed 30-second collaboration recovery checks. Opted-in extension alarms check only notification records about once a minute with the panel closed; no background browsing lookup occurs.
 - Notifications is an optional Chrome permission requested by an explicit button. Alarms is used for notification delivery only. No DOM access, content script or broad host permission is added.
 - Stack on documentation PR 2 at 89c27d8e01393c7f85268fbcf8fd43bab0526749. Do not merge it or import separate URL-selector PR 1. Initiative 004 remains reserved for that existing work; this plan is 005.
+
+### October 8 UI follow-up decisions
+
+During UI preparation, the connected GitHub tools exposed reads only. Edits were prepared from the tracked source artifact matching `1e6ba769f4d5e6674e4103b61312746f0e9d9014` in a local working tree and packaged with an independently runnable synthetic HTML preview. On the subsequent explicit "push them" request, the prepared changes were published to `work/gps-communication-pilot-20261008` and existing draft PR 3 using available GitHub writes. Runtime source matches that handoff; documentation status is updated for publication. Publishing does not extend historical CI evidence to this UI revision and does not merge or deploy it.
+
+Split the former combined messaging component into a small barrel plus provider, directory, conversation, composer, notifications, primitives and display helpers. Reuse the already-locked Radix dialog and Lucide dependencies. Do not change backend audience rules, notification delivery, URLs/permissions, pricing, migrations or package locks. Preserve the existing legacy discovery routes rather than removing capabilities during a presentation pass.
+
+Use one light visual system; a compact messaging rail; thread split only when there is usable width; distinct draft ownership and read observers; privacy-preserving message previews; resolved mention highlighting; keyboard suggestions; and notification settings in a dialog. No decorative controls for unavailable calls, attachments, reactions or AI.
 
 ## Outcomes & Retrospective
 
@@ -65,6 +76,14 @@ Observed at source a6a80ae85ec581ff174ed02d70bbabbe4628c61d in [pilot run 377379
 The same run's real authenticated browser test passed: installed extension to web DM, selected mention, one generic notification API call for overlapping reasons, live web-to-extension reply, root/reply separation and nonparticipant-admin HTTP denial. Screenshots of web and 390-pixel extension views were inspected. The owner Notification API was instrumented instead of displaying an OS toast; the extension's real page was opened as a browser tab, not in the native side-panel container.
 
 Remaining requirements include actual device permission/OS behavior, closed-panel background delivery, sleep/wake, revoked-session cleanup and linked-page draft transitions in the native panel. Dedicated concurrent database races were not executed. The tests cover sequential pair reuse, safe retries, recipient/privacy checks, claim exclusion/expiry and history beyond 100 messages; do not describe these as exhaustive concurrency or device verification.
+
+### Local UI candidate checks and limits
+
+The follow-up handoff records nine passing pure TypeScript presentation-helper tests and nine passing synthetic-preview checks (three interaction scenarios plus six viewport checks from 320px to 1440px). The preview uses the candidate CSS but a separate in-memory JavaScript demonstration, not the compiled React components. Its desktop, narrow extension-style and mobile screenshots were inspected. The sample notification test simulates a UI message and requests no OS permission.
+
+Documentation structure/tests, source syntax and patch applicability are recorded in the handoff evidence. Local Node is 22.16, below the repository application's declared runtime range; the globally available TypeScript is used only for helper/syntax checks. Locked npm dependencies and the supported Laravel runtime are unavailable here. Therefore full type resolution, locked formatting/lint, app/extension builds, Radix behavior in the compiled clients, authenticated flows, source transitions, native panel behavior and OS notifications remain unverified for this patch.
+
+The browser test source now waits for the loaded extension page before using storage, instead of the previous service-worker startup assumption. It also targets the new accessible UI and asserts independent drafts. These are candidate test corrections, not evidence that the prior fixture issue or the new full app test has passed. Existing hosted CI stays read-only; the new pure-helper check is added without authoring/deployment permissions.
 
 ## Idempotence and Recovery
 

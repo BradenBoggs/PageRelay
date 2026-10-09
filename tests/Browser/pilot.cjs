@@ -13,6 +13,7 @@ const { chromium } = browserRequire('playwright');
         const ownerContext = await browser.newContext();
         const adminContext = await browser.newContext();
         const owner = await ownerContext.newPage();
+        await owner.setViewportSize({ width: 1440, height: 900 });
         const admin = await adminContext.newPage();
         for (const page of [owner, admin]) {
             page.on('pageerror', (error) => errors.push(error.message));
@@ -45,7 +46,7 @@ const { chromium } = browserRequire('playwright');
         await login(owner, 'owner@example.test');
         await login(admin, 'admin@example.test');
         await owner
-            .getByText(/^Notifications/)
+            .getByRole('button', { name: /^Notifications/ })
             .first()
             .click();
         await owner
@@ -54,6 +55,7 @@ const { chromium } = browserRequire('playwright');
         await owner
             .getByText('Enabled. Browser and operating-system')
             .waitFor();
+        await owner.getByRole('button', { name: 'Close dialog', exact: true }).click();
 
         const extensionPath = path.resolve('apps/extension/dist');
         extension = await chromium.launchPersistentContext('', {
@@ -70,23 +72,25 @@ const { chromium } = browserRequire('playwright');
         const identity = JSON.parse(
             fs.readFileSync('/tmp/sidewire-pilot-identity.json', 'utf8'),
         );
-        await worker.evaluate(async (session) => {
-            await chrome.storage.local.set({
-                'sidewire.extension.session': session,
-            });
-        }, identity);
         const extensionId = new URL(worker.url()).host;
         const panel = await extension.newPage();
         panel.on('pageerror', (error) => errors.push(error.message));
         await panel.setViewportSize({ width: 390, height: 900 });
         await panel.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+        await panel.waitForFunction(() => typeof chrome !== 'undefined' && Boolean(chrome.storage?.local));
+        await panel.evaluate(async (session) => {
+            await chrome.storage.local.set({
+                'sidewire.extension.session': session,
+            });
+        }, identity);
+        await panel.reload();
         await panel
             .getByRole('button', { name: 'Messages & DMs', exact: true })
             .click();
         await panel
             .getByRole('button', { name: 'Direct messages', exact: true })
             .click();
-        await panel.getByText('New direct message', { exact: true }).click();
+        await panel.getByRole('button', { name: 'New direct message', exact: true }).click();
         await panel
             .getByRole('button', { name: 'Review Owner', exact: true })
             .click();
@@ -94,7 +98,7 @@ const { chromium } = browserRequire('playwright');
             .getByRole('textbox', { name: 'Message', exact: true })
             .fill('Review quote 1001 @Review Owner');
         await panel
-            .getByRole('button', { name: '@Review Owner', exact: true })
+            .getByRole('option', { name: '@Review Owner', exact: true })
             .click();
         await panel.getByRole('button', { name: 'Send', exact: true }).click();
         await panel
@@ -117,7 +121,7 @@ const { chromium } = browserRequire('playwright');
             !notices[0].body.includes('1001'),
             'Desktop preview must not contain quote text',
         );
-        await owner.getByRole('button', { name: /^Activity/ }).click();
+        await owner.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Activity', exact: true }).click();
         await owner
             .locator('.sw-conversation-row')
             .filter({ hasText: 'Review quote 1001' })
@@ -134,6 +138,7 @@ const { chromium } = browserRequire('playwright');
             'http://localhost:8000',
         ).searchParams.get('chat');
         assert(chatId);
+        await root.hover();
         await root.getByRole('button', { name: 'Reply in thread' }).click();
         await owner
             .getByRole('textbox', { name: 'Reply to this thread' })
@@ -146,7 +151,7 @@ const { chromium } = browserRequire('playwright');
             .filter({ hasText: 'Confirmed in the thread.' })
             .waitFor();
         await panel
-            .getByRole('button', { name: '1 replies', exact: true })
+            .getByRole('button', { name: '1 reply', exact: true })
             .waitFor({ timeout: 15000 });
         assert.equal(
             await panel
@@ -156,7 +161,7 @@ const { chromium } = browserRequire('playwright');
             0,
         );
         await panel
-            .getByRole('button', { name: '1 replies', exact: true })
+            .getByRole('button', { name: '1 reply', exact: true })
             .click();
         await panel
             .locator('article')
@@ -175,6 +180,15 @@ const { chromium } = browserRequire('playwright');
             404,
             'Nonparticipant administrator cannot read a DM',
         );
+        // A wide thread retains a separate main-chat composer, without sharing drafts.
+        await owner.getByRole('textbox', { name: 'Message', exact: true }).fill('Unsent main-chat draft');
+        await owner.getByRole('textbox', { name: 'Reply to this thread' }).fill('Unsent thread draft');
+        await owner.getByRole('button', { name: 'Back to chat', exact: true }).click();
+        assert.equal(await owner.getByRole('textbox', { name: 'Message', exact: true }).inputValue(), 'Unsent main-chat draft');
+        await owner.getByRole('button', { name: '1 reply', exact: true }).click();
+        assert.equal(await owner.getByRole('textbox', { name: 'Reply to this thread' }).inputValue(), 'Unsent thread draft');
+        assert(await owner.locator('.sw-main-stream').isVisible(), 'Main history remains visible beside a desktop thread');
+        assert.equal(await panel.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'No horizontal overflow at panel width');
         await owner.screenshot({
             path: '/tmp/pilot-evidence/web-thread.png',
             fullPage: true,

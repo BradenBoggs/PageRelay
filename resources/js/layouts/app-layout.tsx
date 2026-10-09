@@ -1,14 +1,11 @@
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { AppNavigation } from '@/components/application-shell/app-navigation';
 import { AppTopbar } from '@/components/application-shell/app-topbar';
 import { ChatUiCache } from '@/components/application-shell/chat-ui-cache';
 import { ChatListPanel } from '@/components/chats/chat-list-panel';
 import { CollaborationClient } from '@/components/collaboration/client';
-import {
-    CollaborationProvider,
-    NotificationControls,
-} from '@/components/collaboration/workspace';
+import { CollaborationProvider } from '@/components/collaboration/workspace';
 import {
     Sheet,
     SheetContent,
@@ -33,7 +30,8 @@ export default function AppLayout({
     breadcrumbs?: BreadcrumbItem[];
     children: ReactNode;
 }) {
-    const { props } = usePage<ShellProps>();
+    const { props, url } = usePage<ShellProps>();
+    const messaging = /^\/messages(?:\?|$)/.test(url);
     const [navigationOpen, setNavigationOpen] = useState(false);
     const accountKey = `${props.auth.user.id}:${props.organization?.id ?? 'none'}`;
     const client = useMemo(() => new CollaborationClient(), [accountKey]);
@@ -48,28 +46,19 @@ export default function AppLayout({
             : undefined;
     const selected = Boolean(discovery && props.chat);
     const navigation = (
-        <>
-            {props.organization && (
-                <Link
-                    href="/messages"
-                    className="sw-nav-link"
-                    onClick={() => setNavigationOpen(false)}
-                >
-                    Messages, DMs & mentions
-                </Link>
-            )}
-            <AppNavigation
-                discovery={discovery}
-                hasOrganization={Boolean(props.organization)}
-                onNavigate={() => setNavigationOpen(false)}
-            />
-        </>
+        <AppNavigation
+            discovery={discovery}
+            hasOrganization={Boolean(props.organization)}
+            currentUrl={url}
+            onNavigate={() => setNavigationOpen(false)}
+        />
     );
     const shell = (
         <ChatUiCache key={accountKey}>
             <div
                 className="sw-shell"
                 data-discovery={Boolean(discovery)}
+                data-messaging={messaging}
                 data-selected={selected}
             >
                 <a
@@ -97,10 +86,9 @@ export default function AppLayout({
                         id="main-content"
                         tabIndex={-1}
                         className={
-                            discovery ? 'sw-main' : 'sw-main sw-page-content'
+                            discovery ? 'sw-main' : messaging ? 'sw-main sw-messaging-main' : 'sw-main sw-page-content'
                         }
                     >
-                        {props.organization && <NotificationControls />}
                         {children}
                     </main>
                 </div>

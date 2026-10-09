@@ -12,20 +12,19 @@ The four legacy root-level numbered files are short forwarding notes for existin
 
 ## Current register
 
-Reviewed against branch revision `2cbc88eb2ff5d974367de4794d1c68cfbed858c6` on September 27, 2026. Classification is based on recorded evidence, not a fresh application audit. The initial move preserves the four original plan bodies byte-for-byte.
+The September 27 migration classified the four legacy plans against revision `2cbc88eb2ff5d974367de4794d1c68cfbed858c6`, preserving their bodies byte-for-byte. Those classifications remain evidence-based rather than a new application audit.
 
-| Plan                                                                 | Lifecycle for this migration | Recorded reason it remains active                                                                              |
-| -------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [000 — Trusted foundation](active/000-execplan.md)                   | Verification pending         | Local implementation recorded; the plan still requires a recorded first hosted CI result.                      |
-| [001 — Page chats and linking](active/001-page-chats-and-linking.md) | Verification pending         | Milestone 5 supported-runtime and manual Chrome verification are not established as complete in its record.    |
-| [002 — Durable work Chats](active/002-durable-work-chats.md)         | Verification pending         | Supported Sail checks recorded September 26; manual Chrome and PostgreSQL race verification remain unverified. |
-| [003 — Application shell](active/003-application-shell.md)           | Verification pending         | Supported-runtime and authenticated-browser/accessibility/failure checks remain unchecked in the plan.         |
+- [000 — Trusted foundation](active/000-execplan.md): verification pending; recorded first hosted CI evidence remains to be reconciled with the plan.
+- [001 — Page chats and linking](active/001-page-chats-and-linking.md): verification pending; milestone 5 runtime and manual Chrome acceptance remain open.
+- [002 — Durable work Chats](active/002-durable-work-chats.md): verification pending; manual Chrome and PostgreSQL race acceptance remain open.
+- [003 — Application shell](active/003-application-shell.md): verification pending; authenticated-browser, accessibility and failure acceptance remain open.
+- [005 — GPS communication pilot](active/005-gps-communication-pilot.md): in progress following Braden's October 8 implementation request. Candidate one-to-one DMs, mentions, threads and desktop alerts are in draft PR 3. See its actual verification record before use.
 
-No plan is being marked complete by this documentation change. See [completed plans](completed/README.md). Later evidence must be tied to its exact revision and scope before updating a row; a later general test run does not silently close every earlier plan.
+Initiative 004 belongs to the separate unmerged URL-selector branch; it is not imported or renumbered by this pilot. No earlier plan is marked complete by the new work. See [completed plans](completed/README.md). A later general test run does not silently close every earlier plan.
 
 ## When a plan is required
 
-Use a living ExecPlan for a substantial feature, multi-session change, data migration, security/permission change, integration, or significant refactor. For a small isolated correction or documentation-only change, a bounded request/PR summary and actual checks are sufficient. The current structure update does not create new feature ExecPlans.
+Use a living ExecPlan for a substantial feature, multi-session change, data migration, security/permission change, integration, or significant refactor. For a small isolated correction or documentation-only change, a bounded request/PR summary and actual checks are sufficient.
 
 Use the [template](../templates/exec-plan.md). Before application implementation, obtain explicit scope approval. A feature-specification draft, roadmap entry, tool access, or request to edit docs is not implementation approval. A direct user request to implement a clearly bounded change may supply approval; record what it authorized rather than inventing a separate approval.
 
@@ -33,11 +32,11 @@ Use the [template](../templates/exec-plan.md). Before application implementation
 
 Record `Lifecycle`, `Approval`, `Verification`, and `Release` near the top. Lifecycle values are `proposed`, `approved`, `in-progress`, `blocked`, `verification-pending`, and `completed`. Approval identifies the scoped authorization and date/reference, or says not granted. Verification names actual evidence and pending checks. Release says not released, out of scope, unknown, or links a verified environment/version.
 
-The four byte-preserved legacy active plans may initially retain their older headings/status text; the register above supplies their migration classification. On their next substantive update, add the new header. They cannot move to completed under the legacy exception.
+The four byte-preserved legacy active plans may initially retain their older headings/status text; the register supplies their migration classification. On their next substantive update, add the new header. They cannot move to completed under the legacy exception.
 
 ## Plan contents
 
-Keep these existing headings in order, with concise content proportional to the risk:
+Keep these headings in order, with concise content proportional to risk:
 
 1. Purpose / Big Picture
 2. Progress
@@ -52,18 +51,18 @@ Keep these existing headings in order, with concise content proportional to the 
 11. Artifacts and Notes
 12. Interfaces and Dependencies
 
-Use progress checkboxes only in Progress. Record actual dates and results. Orient a new contributor to current entry points, neighboring owners, tests, non-goals, and relevant baseline revision. Name expected changed paths, understandable milestones, exact supported commands, observable acceptance, and safe recovery. Link to the feature rather than copying its full specification. Mark unknowns explicitly; do not fill sections with invented certainty or boilerplate.
+Use progress checkboxes only in Progress. Record actual dates and results. Orient a new contributor to current entry points, neighboring owners, tests, non-goals, and relevant baseline revision. Name expected changed paths, milestones, exact supported commands, observable acceptance, and safe recovery. Link to the feature rather than copying its full specification. Mark unknowns explicitly; do not fill sections with invented certainty or boilerplate.
 
 ## Completion gate
 
-Before moving to completed, the approved outcome must work, required checks must have actual passing evidence at a named revision, blocking defects must be resolved, and feature status/implementation maps must be current. Record outcomes, remaining nonblocking limitations, and release disposition. Add `Closed: YYYY-MM-DD` and a concise `Closure:` statement pointing to the evidence in the plan.
+Before moving to completed, the approved outcome must work, required checks must have actual passing evidence at a named revision, blocking defects must be resolved, and feature status/implementation maps must be current. Record outcomes, remaining nonblocking limitations, and release disposition. Add `Closed: YYYY-MM-DD` and a concise `Closure:` statement pointing to evidence in the plan.
 
-Unchecked acceptance work, required browser checks, missing provider verification, or an unavailable supported runtime keeps the plan active. Do not erase pending tasks or redefine required checks as optional merely to close it. An explicitly approved scope change must be logged with its reason and any linked follow-up before it can alter the gate. A skipped test is not a pass.
+Unchecked acceptance work, required browser checks, missing provider verification, or an unavailable supported runtime keeps the plan active. Do not erase pending tasks or redefine required checks as optional merely to close it. An explicitly approved scope change must be logged with its reason and linked follow-up before it can alter the gate. A skipped test is not a pass.
 
-A plan may be completed but unreleased only when release was outside its approved scope; say so explicitly. Cancelled or superseded work must retain its actual disposition and rationale, not be labeled completed. Introduce an archive location only when such a case exists.
+A plan may be completed but unreleased only when release was outside its approved scope; say so explicitly. Cancelled or superseded work retains its actual disposition and rationale, not a completed label. Introduce an archive location only when such a case exists.
 
 ## Resuming and maintenance
 
-Read Progress, Outcomes, current approval, and pending validation before continuing. Recheck the branch and changed code; earlier test output is evidence for its earlier revision, not a guarantee for the current one. Use [WORKFLOW](../engineering/WORKFLOW.md) to run targeted checks, review the diff, and report limitations.
+Read Progress, Outcomes, current approval, and pending validation before continuing. Recheck the branch and changed code; earlier test output is evidence for its earlier revision. Use [WORKFLOW](../engineering/WORKFLOW.md) to run targeted checks, review the diff, and report limitations.
 
-Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep this register and the linked plan consistent. Structural checks detect misplaced plans and missing links; they cannot decide whether evidence is truthful or sufficient.
+Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the register and linked plan consistent. Structural checks detect misplaced plans and missing links; they cannot decide whether evidence is truthful or sufficient.

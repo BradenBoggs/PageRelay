@@ -1,9 +1,11 @@
 import { usePage } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { AppNavigation } from '@/components/application-shell/app-navigation';
 import { AppTopbar } from '@/components/application-shell/app-topbar';
 import { ChatUiCache } from '@/components/application-shell/chat-ui-cache';
 import { ChatListPanel } from '@/components/chats/chat-list-panel';
+import { CollaborationClient } from '@/components/collaboration/client';
+import { CollaborationProvider } from '@/components/collaboration/workspace';
 import {
     Sheet,
     SheetContent,
@@ -21,17 +23,18 @@ type ShellProps = Partial<ChatDiscovery> & {
     chat?: Chat;
 };
 
-/** Shared authenticated web frame; feature pages own the main-content region.
- * @see docs/features/application-shell.md
- */
+/** Shared frame; collaboration subscription survives navigation between feature pages. */
 export default function AppLayout({
     children,
 }: {
     breadcrumbs?: BreadcrumbItem[];
     children: ReactNode;
 }) {
-    const { props } = usePage<ShellProps>();
+    const { props, url } = usePage<ShellProps>();
+    const messaging = /^\/messages(?:\?|$)/.test(url);
     const [navigationOpen, setNavigationOpen] = useState(false);
+    const accountKey = `${props.auth.user.id}:${props.organization?.id ?? 'none'}`;
+    const client = useMemo(() => new CollaborationClient(), [accountKey]);
     const discovery: ChatDiscovery | undefined =
         props.surface && props.filters && props.apps && props.chats
             ? {
@@ -42,13 +45,20 @@ export default function AppLayout({
               }
             : undefined;
     const selected = Boolean(discovery && props.chat);
-    return (
-        <ChatUiCache
-            key={`${props.auth.user.id}:${props.organization?.id ?? 'none'}`}
-        >
+    const navigation = (
+        <AppNavigation
+            discovery={discovery}
+            hasOrganization={Boolean(props.organization)}
+            currentUrl={url}
+            onNavigate={() => setNavigationOpen(false)}
+        />
+    );
+    const shell = (
+        <ChatUiCache key={accountKey}>
             <div
                 className="sw-shell"
                 data-discovery={Boolean(discovery)}
+                data-messaging={messaging}
                 data-selected={selected}
             >
                 <a
@@ -65,12 +75,7 @@ export default function AppLayout({
                     onOpenNavigation={() => setNavigationOpen(true)}
                 />
                 <div className="sw-body">
-                    <aside className="sw-sidebar">
-                        <AppNavigation
-                            discovery={discovery}
-                            hasOrganization={Boolean(props.organization)}
-                        />
-                    </aside>
+                    <aside className="sw-sidebar">{navigation}</aside>
                     {discovery && (
                         <ChatListPanel
                             discovery={discovery}
@@ -81,7 +86,7 @@ export default function AppLayout({
                         id="main-content"
                         tabIndex={-1}
                         className={
-                            discovery ? 'sw-main' : 'sw-main sw-page-content'
+                            discovery ? 'sw-main' : messaging ? 'sw-main sw-messaging-main' : 'sw-main sw-page-content'
                         }
                     >
                         {children}
@@ -106,14 +111,22 @@ export default function AppLayout({
                                 Navigate your team workspace.
                             </SheetDescription>
                         </SheetHeader>
-                        <AppNavigation
-                            discovery={discovery}
-                            hasOrganization={Boolean(props.organization)}
-                            onNavigate={() => setNavigationOpen(false)}
-                        />
+                        {navigation}
                     </SheetContent>
                 </Sheet>
             </div>
         </ChatUiCache>
+    );
+    return props.organization ? (
+        <CollaborationProvider
+            key={accountKey}
+            client={client}
+            userId={props.auth.user.id}
+            organizationId={props.organization.id}
+        >
+            {shell}
+        </CollaborationProvider>
+    ) : (
+        shell
     );
 }

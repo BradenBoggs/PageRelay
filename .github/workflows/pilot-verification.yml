@@ -1,0 +1,125 @@
+name: GPS pilot verification
+
+on:
+  push:
+    branches: ['work/gps-communication-pilot-20261008']
+  pull_request:
+    paths: ['app/**', 'routes/**', 'database/**', 'resources/**', 'apps/extension/**', 'tests/**', 'scripts/**', 'docs/**', '.github/workflows/pilot-verification.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: sidewire_pilot_test
+          POSTGRES_USER: sidewire
+          POSTGRES_PASSWORD: isolated-ci-only
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U sidewire -d sidewire_pilot_test" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: testing
+      APP_URL: http://localhost:8000
+      APP_KEY: base64:MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BROADCAST_CONNECTION: 'null'
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+      REVERB_APP_ID: sidewire-ci
+      REVERB_APP_KEY: sidewire-ci-key
+      REVERB_APP_SECRET: isolated-ci-only
+      REVERB_HOST: localhost
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+      VITE_REVERB_APP_KEY: sidewire-ci-key
+      VITE_REVERB_HOST: localhost
+      VITE_REVERB_PORT: 8080
+      VITE_REVERB_SCHEME: http
+      VITE_SIDEWIRE_APP_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress >/tmp/composer-install.log 2>&1
+          npm ci --no-audit --no-fund >/tmp/npm-install.log 2>&1
+          cp .env.example .env
+      - name: Collect verification results
+        run: |
+          mkdir -p /tmp/pilot-evidence
+          python3 - <<'PY'
+          import json, pathlib, subprocess
+          out=pathlib.Path('/tmp/pilot-evidence')
+          checks={
+            'build':'npm run build',
+            'backend':'php artisan test',
+            'pilot-postgres':'DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=sidewire_pilot_test DB_USERNAME=sidewire DB_PASSWORD=isolated-ci-only php artisan test --filter=PilotCollaborationTest',
+            'php-static':'composer types:check',
+            'php-format':'composer lint:check',
+            'frontend-types':'php artisan wayfinder:generate --with-form && npm run types:check',
+            'lint-format':'npm run check',
+            'collaboration-ui':'node --test scripts/collaboration-ui.test.mjs',
+            'docs':'node --test scripts/check-docs.test.mjs && node scripts/check-docs.mjs',
+            'boundaries':'npm run foundation:check',
+          }
+          results={}
+          for name,command in checks.items():
+            with (out/(name+'.log')).open('w') as log:
+              result=subprocess.run(command,shell=True,stdout=log,stderr=subprocess.STDOUT)
+            results[name]={'command':command,'exit_code':result.returncode}
+            print(name+': '+str(result.returncode),flush=True)
+          (out/'results.json').write_text(json.dumps(results,indent=2))
+          (out/'revision.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          pathlib.Path('.git/info/attributes').write_text('README.md -export-ignore\n**/README.md -export-ignore\n')
+          subprocess.run(['git','archive','--format=tar.gz','-o',str(out/'tracked-source.tar.gz'),'HEAD'],check=True)
+          raise SystemExit(1 if any(v['exit_code'] for v in results.values()) else 0)
+          PY
+      - name: Install isolated browser-test runtime
+        if: ${{ !cancelled() }}
+        run: |
+          npm install --prefix /tmp/pilot-browser --no-audit --no-fund --ignore-scripts playwright@1.56.1 >/tmp/playwright-install.log 2>&1
+          node /tmp/pilot-browser/node_modules/playwright/cli.js install --with-deps chromium >/tmp/chromium-install.log 2>&1
+      - name: Exercise authenticated web and installed-extension clients
+        if: ${{ !cancelled() }}
+        env:
+          DB_DATABASE: /tmp/sidewire-pilot-browser.sqlite
+          SESSION_DRIVER: file
+          BROADCAST_CONNECTION: reverb
+        run: |
+          touch "$DB_DATABASE"
+          php artisan migrate --force >/tmp/pilot-browser-migrations.log 2>&1
+          php tests/Browser/seed-pilot.php >/tmp/pilot-browser-seed.log 2>&1
+          EXTENSION_ID=$(node tests/Browser/extension-origin.cjs)
+          REVERB_ALLOWED_ORIGINS="localhost,$EXTENSION_ID" php artisan reverb:start --host=0.0.0.0 --port=8080 >/tmp/pilot-reverb.log 2>&1 &
+          php artisan serve --host=0.0.0.0 --port=8000 >/tmp/pilot-server.log 2>&1 &
+          trap 'kill $(jobs -pr) 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8000/login && break; sleep 1; done
+          node tests/Browser/pilot.cjs > /tmp/pilot-evidence/browser.log 2>&1
+      - name: Upload review evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-verification-evidence
+          path: /tmp/pilot-evidence/
+          retention-days: 3
+          if-no-files-found: error

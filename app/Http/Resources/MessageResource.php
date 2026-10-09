@@ -16,10 +16,10 @@ class MessageResource extends JsonResource
             'id' => $this->public_id,
             'body' => $this->body,
             'created_at' => $this->created_at->toISOString(),
-            'author' => [
-                'id' => $this->author->id,
-                'name' => $this->author->name,
-            ],
+            'author' => ['id' => $this->author->id, 'name' => $this->author->name],
+            'thread_root_id' => $this->thread_root_id ? $this->threadRoot?->public_id : null,
+            'reply_count' => $this->replies_count ?? $this->replies()->count(),
+            'mentions' => $this->mentionedUsers->map(fn ($user): array => ['id' => $user->id, 'name' => $user->name])->values(),
             'source' => $this->sourcePageContext ? [
                 'id' => $this->sourcePageContext->public_id,
                 'title' => $this->sourcePageContext->title,

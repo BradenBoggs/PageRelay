@@ -8,6 +8,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { NotificationControls } from '@/components/collaboration/workspace';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import type { Organization, User } from '@/types';
@@ -55,7 +56,7 @@ export function AppTopbar({
                 <Menu />
             </Button>
             <Link
-                href={organization ? '/chats' : '/dashboard'}
+                href={organization ? '/messages' : '/dashboard'}
                 className="sw-brand"
             >
                 <Unplug aria-hidden="true" />
@@ -94,6 +95,7 @@ export function AppTopbar({
                     </button>
                 </form>
             )}
+            {organization && <NotificationControls />}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button

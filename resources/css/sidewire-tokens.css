@@ -1,0 +1,41 @@
+/* Shared application tokens: web, communication surfaces, and Chrome side panel. */
+:root {
+    --sw-header: #fbfaf8;
+    --sw-header-text: #292d2c;
+    --sw-surface: #ffffff;
+    --sw-panel: #f8f8f5;
+    --sw-canvas: #f0f1ed;
+    --sw-tint: #eeefea;
+    --sw-text: #292d2c;
+    --sw-muted: #6d746e;
+    --sw-border: #e4e6df;
+    --sw-accent: #a34c32;
+    --sw-accent-hover: #873e29;
+    --sw-accent-soft: #f9eee7;
+    --sw-success: #456b4b;
+    --sw-danger: #a13232;
+    --sw-danger-soft: #fff0ee;
+    --sw-radius: 10px;
+    --sw-nav-width: 224px;
+    --sw-list-width: 300px;
+    --sw-header-height: 60px;
+    --sw-shadow: 0 12px 48px #2429241a, 0 2px 8px #2429240a;
+    --sw-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.dark {
+    --sw-header: #202321;
+    --sw-header-text: #e9ece6;
+    --sw-surface: #242825;
+    --sw-panel: #202321;
+    --sw-canvas: #1c1f1d;
+    --sw-tint: #323831;
+    --sw-text: #e9ece6;
+    --sw-muted: #adb6aa;
+    --sw-border: #3c433a;
+    --sw-accent: #edb39a;
+    --sw-accent-hover: #f3c5b2;
+    --sw-accent-soft: #403129;
+    --sw-success: #a4c599;
+    --sw-danger: #ffb4aa;
+    --sw-danger-soft: #472b29;
+}

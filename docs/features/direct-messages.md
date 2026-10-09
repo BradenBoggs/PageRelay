@@ -1,45 +1,43 @@
 # Direct messages and private groups
 
-Status: **Draft for owner review. Core target.** Baseline documentation approved one-to-one DMs for a later milestone; it did not establish their implementation. Group DMs were deferred. See [review scope](README.md).
+Status: **One-to-one GPS pilot approved October 8, 2026; implementation candidate under validation.** Group DMs and the other expansions below remain drafts. Actual results belong to [plan 005](../plans/active/005-gps-communication-pilot.md), not this status label. No production release is claimed.
 
 This document owns DM participants, discovery, privacy, lifecycle, and participant changes. Common message behavior belongs to [Messaging](messaging-and-composer.md), replies to [Threads](threads.md), and attention to [Notifications](mentions-and-notifications.md).
 
-## Purpose and creation
+## Approved pilot behavior
 
-Let coworkers communicate privately without a channel or external page. A member can select another active member of the same organization to start or reopen their one-to-one DM. The same pair resolves to one durable history; retries and simultaneous starts must not duplicate it.
+Let coworkers communicate privately without a channel or external page. An active member can select another active member of the same organization to start or reopen their one-to-one DM. The same pair resolves to one durable history; retries and simultaneous starts must not duplicate it. The recipient's name and the two-person audience are visible before sending.
 
-Provide a private notes-to-self conversation with the same basic composer, search, and saved-reference behavior. It is not an organization announcement channel and does not notify the author about their own notes.
+Only the two participants may read or post, discover the DM, receive its notifications or subscribe to its realtime channel. Owners and organization administrators do not gain access to coworkers' DMs merely through their role. Every history, thread, mention-recipient and notification request rechecks organization membership and participation.
 
-Allow small group DMs with an explicit participant list and optional descriptive name. The recipient list is visible before sending. The server validates all participants and configured group-size limits. Do not infer membership from a pasted address, Team name, shared source URL, or organization role.
+DMs cannot be primary page-link destinations. They never inherit the current tab, last webpage or another chat's draft source. A participant may deliberately paste a normal link, without granting access to its destination.
 
-## History and participant changes
+The pilot supports plain-text messages, selected individual mentions, one-level replies, earlier-history navigation, exact message links, in-memory drafts and related Activity/desktop alerts through the shared features. New-DM selection excludes the sender. Activity ordering updates when a message is sent.
 
-A group's audience is part of its identity. Adding or substituting a person creates a new group with no automatic copy of the prior private history. Clearly explain this instead of silently exposing earlier messages. Exact participant-set reuse may open the already-existing group if the user is shown which history will open; otherwise an explicit new group must not merge histories.
+Removing/deactivating an organization member stops their access and pending delivery. The remaining participant retains authorized history, but the composer is unavailable while the other participant is inactive. Historical authorship is not deleted. Reactivation must be explicit.
 
-Members may leave a group, removing future access and deliveries. Old messages retain their authors and timestamps for the remaining authorized participants. A re-invitation uses the same explicit new-group rule; it must not silently restore the old history to a person who left. Removing someone is not a way to retract information already delivered.
+## Draft expansion: private groups and notes to self
 
-Conversion to a private channel is an expansion, not a prerequisite. It requires consent/authority rules, an explicit audience and history preview, and no accidental public visibility. Until those rules are approved, offer creation of a separate private channel without copying messages.
+Provide private notes to self without incoming-message alerts to the author. Allow small group DMs with an explicit participant list, configured size limit and optional descriptive name. These are not part of the GPS pilot.
 
-## Access and source context
+A group's audience is part of its identity. Adding or substituting a person creates a new group without copying prior private history. Exact participant-set reuse must show which history will open. Members may leave, removing future access and delivery without deleting others' history. Re-invitation must not silently restore access to old private history.
 
-Only current participants may read, post, search, receive notifications, subscribe to realtime, download files, join associated calls, or access derived tasks and canvases. Owners, organization administrators, and nonparticipant channel managers do not automatically gain DM access. Internal operational access, when necessary, follows the disclosed audited policy in [Administration](administration-and-data-lifecycle.md).
+Conversion to a private channel is a separate expansion requiring explicit audience/history rules. Do not infer participation from a pasted address, Team name, source URL or organization role.
 
-DMs cannot be primary page-link destinations. They do not inherit the active tab or the last page used in the extension. A participant may deliberately paste a normal link or reference an authorized SideWire message, but sharing a link does not grant access to its destination. Do not produce a private message preview for a recipient who cannot read it.
+## Draft expansion: everyday controls
 
-## Everyday behavior
+Search, saved items, reactions, files, edits, deletion, hiding and muting use their common feature owners rather than weaker DM-specific versions. Hiding affects personal navigation, not history. Muting controls interruption, not authorization. New activity may resurface a hidden conversation according to approved settings.
 
-DMs appear in the participant's web and extension navigation, Activity, search, unread views, and notification preferences. Support threads, reactions, files, edits, deletion, saved items, and drafts through the common features rather than special weaker DM implementations.
-
-Hiding a DM removes it from personal navigation, not its history or the other participant's view. A new received message may surface it again unless muted. Muting controls interruption; it does not block server access or delete messages.
-
-Removing/deactivating an organization member stops that member's sessions and pending delivery. Remaining participants may retain authorized history with a clear inactive-author label. A one-to-one composer becomes unavailable while its other participant is inactive; historical messages remain accessible to the remaining participant. Reactivation must be explicit and must not silently revive old group memberships.
+Future files, previews, calls, tasks, canvases, exports and AI must use the same participant boundary. Operational access follows the disclosed audited policy in [Administration](administration-and-data-lifecycle.md); no blanket admin bypass is created here.
 
 ## Acceptance behavior
 
-The same pair has one history across web/extension and concurrent starts. A group participant change cannot expose earlier history to a new person. A nonparticipant administrator cannot retrieve a DM through search, file URLs, previews, notification records, exports, calls, or page linking. Leaving/deactivation revokes future access without deleting others' history. Hidden, muted, unread, and deleted are distinguishable states.
+The same pair has one history across web/extension and retries. A nonparticipant administrator cannot discover or retrieve a DM, its replies, mention list, notifications or broadcast content. Membership removal denies further access; the counterpart retains read-only history. DM messages never acquire a browser-page source.
 
-## Owner decisions
+## Implementation map — GPS pilot candidate
 
-Confirm group-size limits, the new-group history rule, notes-to-self, and future reporting/blocking behavior. Abuse reporting must disclose exactly what content is shared with a reviewer; a report is not blanket access to a private conversation. Cross-organization and guest DMs require the external-collaboration feature and are not approved by this document.
+`CreateDirectChat`, `ConversationAccess`, `ConversationPolicy`, `SendCollaborationMessage`, `CollaborationController`, and `conversation_participants` own identity, authorization and sending. Shared UI is under `resources/js/components/collaboration/`, used by `/messages` and the extension. Regression coverage is `tests/Feature/Conversations/PilotCollaborationTest.php`. [Pilot setup](../engineering/GPS-PILOT.md) owns device/deployment checks.
 
-Reference coverage: [Slack messaging and group-DM help catalog](https://slack.com/help/categories/200111606-Using-Slack).
+## Owner decisions outside this pilot
+
+Group size, notes to self, hiding/muting, participant-change UX and future reporting/blocking remain review decisions. A report must disclose exactly what content is shared with a reviewer. Guest and cross-organization DMs require the external-collaboration feature.

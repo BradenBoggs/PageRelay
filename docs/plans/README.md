@@ -20,6 +20,8 @@ The September 27 migration classified the four legacy plans against revision `2c
 - [003 — Application shell](active/003-application-shell.md): verification pending; authenticated-browser, accessibility and failure acceptance remain open.
 - [005 — GPS communication pilot](active/005-gps-communication-pilot.md): in progress following Braden's October 8 implementation request. Candidate one-to-one DMs, mentions, threads and desktop alerts are in draft PR 3. See its actual verification record before use.
 
+- [006 — Conversation-read migration recovery](completed/006-conversation-read-migration-recovery.md): scoped recovery verified October 9 on SQLite/MySQL; not deployed.
+
 Initiative 004 belongs to the separate unmerged URL-selector branch; it is not imported or renumbered by this pilot. No earlier plan is marked complete by the new work. See [completed plans](completed/README.md). A later general test run does not silently close every earlier plan.
 
 ## When a plan is required

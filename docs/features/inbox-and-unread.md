@@ -44,6 +44,7 @@ A person can find a discussion, catch up on relevant changes, mark a place to re
 
 ## Implementation map — documented baseline only
 
+- Recovery: [plan 006](../plans/completed/006-conversation-read-migration-recovery.md) owns the October 9 interrupted-migration repair and its verification. The migration restores missing indexes/foreign keys without dropping existing read positions; incompatible definitions fail for inspection.
 - Read state: `database/migrations/2026_09_05_130000_create_conversation_reads_table.php`, `app/Models/ConversationRead.php`.
 - Domain: `app/Domain/Activity/ConversationDiscovery.php`, `MarkConversationRead.php`.
 - Web: `GET /activity`, `GET /chats`, `POST /chats/{conversation}/read`, `app/Http/Controllers/ChatController.php`.

@@ -38,10 +38,10 @@ class OrganizationInvitationNotification extends Notification implements ShouldQ
                 'inviter' => $inviterName,
                 'organization' => $organizationName,
             ]))
-            ->line(__('Account registration is closed. If you do not have an account, contact your SideWire administrator.'))
+            ->line(__('Create your account to join the organization, or log in if you already have one.'))
             ->action(
-                __('Log in to SideWire'),
-                route('login', ['invitation' => $this->invitation->code]),
+                __('Join organization'),
+                route('register', ['invitation' => $this->invitation->code]),
             );
     }
 

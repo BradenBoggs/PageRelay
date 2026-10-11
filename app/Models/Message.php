@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
  * @property string|null $request_fingerprint
  * @property string $idempotency_key
  * @property string $body
+ * @property Carbon|null $deleted_at
  * @property Carbon $created_at
  * @property-read Conversation $conversation
  * @property-read User $author
@@ -48,6 +49,12 @@ class Message extends Model
         static::creating(function (Message $message): void {
             $message->public_id ??= (string) Str::uuid();
         });
+    }
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['deleted_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Conversation, $this> */

@@ -115,7 +115,7 @@ class OrganizationInvitationController extends Controller
             $invitation->update(['accepted_at' => now()]);
         });
 
-        return to_route('dashboard');
+        return to_route('home');
     }
 
     public function decline(Request $request, OrganizationInvitation $invitation): RedirectResponse
@@ -128,7 +128,7 @@ class OrganizationInvitationController extends Controller
 
         $invitation->delete();
 
-        return to_route('dashboard');
+        return to_route('home');
     }
 
     private function organization(Request $request): Organization

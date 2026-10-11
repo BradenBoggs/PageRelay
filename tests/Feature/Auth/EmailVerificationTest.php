@@ -31,7 +31,7 @@ class EmailVerificationTest extends TestCase
         );
 
         $this->actingAs($user)->get($verificationUrl)
-            ->assertRedirect('/dashboard?verified=1');
+            ->assertRedirect('/?verified=1');
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
@@ -54,10 +54,10 @@ class EmailVerificationTest extends TestCase
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
 
-    public function test_verified_user_is_redirected_to_dashboard_from_verification_prompt(): void
+    public function test_verified_user_is_redirected_to_home_from_verification_prompt(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user)->get(route('verification.notice'))
-            ->assertRedirect('/dashboard');
+            ->assertRedirect('/');
     }
 }

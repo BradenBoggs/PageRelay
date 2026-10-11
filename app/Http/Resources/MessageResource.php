@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Domain\Conversations\DeleteMessage;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,7 +15,9 @@ class MessageResource extends JsonResource
     {
         return [
             'id' => $this->public_id,
-            'body' => $this->body,
+            'body' => $this->deleted_at ? 'Message deleted' : $this->body,
+            'deleted' => $this->deleted_at !== null,
+            'can_delete' => $this->deleted_at === null && app(DeleteMessage::class)->allowed($request->user(), $this->resource),
             'created_at' => $this->created_at->toISOString(),
             'author' => ['id' => $this->author->id, 'name' => $this->author->name],
             'thread_root_id' => $this->thread_root_id ? $this->threadRoot?->public_id : null,

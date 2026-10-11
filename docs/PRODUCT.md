@@ -14,7 +14,7 @@ The foundation account model is one organization per user. The organization is t
 
 ## Core product loop
 
-1. An operator provisions the first owner and company Organization through the console bootstrap; public registration is closed. A provisioned user signs in or accepts an eligible invitation. The default workspace is provisioned without asking the company to choose an operating mode.
+1. An operator provisions the first owner and company Organization through the console bootstrap; public company registration is closed by default (`REGISTRATION_ENABLED=false`). Operators may enable public signup through that flag; it creates a new unverified owner and Organization using the existing default Workspace. A valid Organization invitation lets a new recipient create an account in that Organization; existing accounts sign in and accept an eligible invitation. The default workspace is provisioned without asking the company to choose an operating mode.
 2. The user installs SideWire, opens a work page in Chrome, and opens the side panel.
 3. SideWire reads the active tab's limited page metadata and performs a private, read-only lookup. If a persisted context is linked to a Chat, it opens that Chat. Merely visiting or resolving a page creates no context, Chat, subscription, or browsing-history record.
 4. When no Chat is linked, the user explicitly creates a named work Chat for the page or an authorized owner or administrator links the page to an existing eligible work Chat. Members may also create and use a named work Chat directly from Chats before any page is linked. Only explicit creation or linking persists collaboration data.
@@ -83,7 +83,7 @@ The following remain intentionally open:
 - exact price, trial, proration, cancellation, and complimentary-access rules;
 - whether organization administrators may manage billing;
 - additional application-specific URL rules, context aliases, context merges, and splits;
-- message editing/deletion, moderation, and retention policy;
+- message editing and physical retention policy; own-message deletion and shared work-Chat admin moderation are approved in [Messaging](features/messaging-and-composer.md);
 - attachments, screenshots, reactions, threaded replies, and rich formatting;
 - notification channels and preferences;
 - task behavior beyond the later lightweight-task direction;

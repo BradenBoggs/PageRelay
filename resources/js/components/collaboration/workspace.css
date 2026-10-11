@@ -134,6 +134,12 @@
 .sw-grouped-message { padding-top: 4px; padding-bottom: 5px; }
 .sw-grouped-time { font-size: 9px; color: var(--sw-muted); display: inline-block; white-space: nowrap; opacity: 0; padding-top: 5px; }
 .sw-grouped-message:hover .sw-grouped-time, .sw-grouped-message:focus-within .sw-grouped-time { opacity: 1; }
+.sw-deleted-message { margin: 8px 12px; padding: 10px 14px; border: 1px solid var(--sw-border); color: var(--sw-muted); background: transparent; }
+.sw-deleted-message:hover, .sw-deleted-message:focus-within { background: transparent; }
+.sw-deleted-message > p, .sw-deleted-message > button { margin: 0; font-size: 13px; font-weight: 400; line-height: 1.7; }
+.sw-deleted-message > button { flex: 1; text-align: left; padding: 0; color: inherit; }
+.sw-collaboration-message.sw-thread-active { background: var(--sw-accent-soft); outline: 1px solid var(--sw-accent); outline-offset: -1px; }
+.sw-deleted-message.sw-thread-active { background: var(--sw-panel); border-color: var(--sw-muted); outline-color: var(--sw-muted); }
 .sw-thread-root { padding: 6px 0 2px; }
 .sw-thread-reply-label { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--sw-muted); border-bottom: 1px solid var(--sw-border); margin: 15px 10px 0; padding-bottom: 13px; }
 .sw-thread-reply-label svg { width: 14px; height: 14px; }
@@ -260,4 +266,4 @@
     .sw-collaboration button, .sw-collaboration .sw-icon-button { min-height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) { .sw-collaboration *, .sw-dialog-overlay { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
-@media (forced-colors: active) { .sw-conversation-row[aria-current], .sw-directory-tabs [aria-pressed='true'], .sw-message-target { outline: 2px solid Highlight; } .sw-attention-badge, .sw-inline-mention { border: 1px solid ButtonText; } }
+@media (forced-colors: active) { .sw-conversation-row[aria-current], .sw-directory-tabs [aria-pressed='true'], .sw-message-target, .sw-collaboration-message.sw-thread-active { outline: 2px solid Highlight; } .sw-attention-badge, .sw-inline-mention { border: 1px solid ButtonText; } }

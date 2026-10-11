@@ -24,7 +24,15 @@ The September 27 migration classified the four legacy plans against revision `2c
 
 - [007 — Closed registration and owner bootstrap](completed/007-closed-registration-and-owner-bootstrap.md): scoped closure/bootstrap checks passed October 9; not deployed and no live account created.
 
+- [008 — Remove Overview](completed/008-remove-overview.md): scoped landing/navigation and Profile invitation checks passed October 9; not deployed.
+
+- [009 — Invitation-only registration](completed/009-invitation-only-registration.md): scoped invitation signup, existing-account continuity and closed public company registration verified locally October 9; not deployed.
+
+- [010 — Message deletion and access removal](active/010-message-deletion-and-access-removal.md): approved October 9; own-message deletion, shared work-Chat moderation and history-preserving access removal implemented; web/SQLite verification passed; native extension and PostgreSQL concurrency pending.
+
 Initiative 004 belongs to the separate unmerged URL-selector branch; it is not imported or renumbered by this pilot. No earlier plan is marked complete by the new work. See [completed plans](completed/README.md). A later general test run does not silently close every earlier plan.
+
+- [011 — Registration environment flag](completed/011-registration-environment-flag.md): false-by-default public opt-in and invitation continuity verified October 9; not deployed.
 
 ## When a plan is required
 

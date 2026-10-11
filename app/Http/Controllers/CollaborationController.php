@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Activity\MarkConversationRead;
 use App\Domain\Conversations\ConversationAccess;
 use App\Domain\Conversations\CreateDirectChat;
+use App\Domain\Conversations\DeleteMessage;
 use App\Domain\Conversations\SendCollaborationMessage;
 use App\Enums\ConversationType;
 use App\Http\Resources\MessageResource;
@@ -59,7 +60,7 @@ class CollaborationController extends Controller
             ->when($chat === null, fn ($q) => $q->where('id', '!=', $request->user()->id))
             ->when($chat?->type === ConversationType::Direct, fn ($q) => $q->whereIn('id',
                 DB::table('conversation_participants')->where('conversation_id', $chat->id)->select('user_id')))
-            ->when($input['query'] ?? null, fn ($q, $term) => $q->where('name', 'like', '%'.$term.'%'))
+            ->when($input['query'] ?? null, fn ($q, $term) => $q->whereLike('name', '%'.$term.'%'))
             ->orderBy('name')->limit(30)->get(['id', 'name']);
 
         return response()->json(['data' => $users])->header('Cache-Control', 'no-store, private');
@@ -80,7 +81,7 @@ class CollaborationController extends Controller
         $chat = $this->chat($request, $conversation);
         $input = $request->validate([
             'thread' => ['nullable', 'uuid'], 'before' => ['nullable', 'uuid'],
-            'around' => ['nullable', 'uuid'],
+            'around' => ['nullable', 'uuid'], 'loaded_since' => ['nullable', 'uuid'],
         ]);
         $root = isset($input['thread']) ? $chat->messages()->whereNull('thread_root_id')
             ->where('public_id', $input['thread'])->firstOrFail() : null;
@@ -101,6 +102,9 @@ class CollaborationController extends Controller
         if ($messages->count() > 50) {
             $messages = $messages->slice(1)->values();
         }
+        $loadedSince = isset($input['loaded_since']) ? $chat->messages()->where('public_id', $input['loaded_since'])->firstOrFail() : null;
+        $deletedIds = $loadedSince ? $chat->messages()->where('thread_root_id', $root?->id)
+            ->where('id', '>=', $loadedSince->id)->whereNotNull('deleted_at')->pluck('public_id') : [];
         $first = $messages->first();
         $more = $first !== null && $chat->messages()->where('thread_root_id', $root?->id)->where('id', '<', $first->id)->exists();
 
@@ -108,6 +112,7 @@ class CollaborationController extends Controller
             'chat' => $this->describe($chat, $request->user()),
             'root' => $root ? (new MessageResource($root->load(['author', 'sourcePageContext', 'mentionedUsers'])))->resolve($request) : null,
             'data' => $messages->map(fn (Message $message): array => (new MessageResource($message))->resolve($request)),
+            'deleted_ids' => $deletedIds,
             'older_cursor' => $more ? $messages->first()?->public_id : null,
         ])->header('Cache-Control', 'no-store, private');
     }
@@ -133,6 +138,15 @@ class CollaborationController extends Controller
         return response()->json(['data' => (new MessageResource($sent->message->fresh([
             'author', 'sourcePageContext', 'mentionedUsers', 'threadRoot',
         ])))->resolve($request)], $sent->created ? 201 : 200);
+    }
+
+    public function destroyMessage(Request $request, string $conversation, string $message, DeleteMessage $delete): JsonResponse
+    {
+        $chat = $this->chat($request, $conversation);
+        $item = $chat->messages()->where('public_id', $message)->firstOrFail();
+        $delete->handle($request->user(), $item);
+
+        return response()->json(['data' => (new MessageResource($item->fresh(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])))->resolve($request)]);
     }
 
     public function read(Request $request, string $conversation): JsonResponse

@@ -18,12 +18,14 @@ import type { OrganizationInvitationContext } from '@/types';
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    canRegister: boolean;
     organizationInvitation?: OrganizationInvitationContext | null;
 };
 
 export default function Login({
     status,
     canResetPassword,
+    canRegister,
     organizationInvitation,
 }: Props) {
     return (
@@ -111,6 +113,13 @@ export default function Login({
                     </>
                 )}
             </Form>
+
+            {canRegister && (
+                <p className="text-center text-sm">
+                    Don’t have an account?{' '}
+                    <TextLink href="/register">Sign up</TextLink>
+                </p>
+            )}
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">

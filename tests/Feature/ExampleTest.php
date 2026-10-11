@@ -15,10 +15,25 @@ class ExampleTest extends TestCase
         $this->get(route('home'))->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_are_redirected_from_home_to_the_dashboard(): void
+    public function test_authenticated_users_are_redirected_from_home_to_messages(): void
     {
         $this->actingAs(User::factory()->create())
             ->get(route('home'))
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('messages.index'));
+    }
+
+    public function test_unverified_users_are_redirected_to_verification(): void
+    {
+        $this->actingAs(User::factory()->unverified()->create())
+            ->get(route('home'))
+            ->assertRedirect(route('verification.notice'));
+    }
+
+    public function test_users_without_an_active_organization_are_redirected_to_profile(): void
+    {
+        $user = User::factory()->create();
+        $user->organizationMembership()->delete();
+        $this->actingAs($user)->get(route('home'))->assertRedirect(route('profile.edit'));
+        $this->get(route('messages.index'))->assertForbidden();
     }
 }

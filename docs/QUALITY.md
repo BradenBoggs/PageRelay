@@ -16,6 +16,28 @@ Reviewed: September 27, 2026, against the plan records at `2cbc88eb2ff5d974367de
 
 [Plan 005](plans/active/005-gps-communication-pilot.md) owns the pilot's revision-specific hosted evidence and the October 8 UI candidate. The new presentation-helper and synthetic-preview checks do not extend the prior backend/browser passes to the rewritten React UI. The candidate is published for review on the GPS pilot branch; locked formatting/lint, full type checks, builds and authenticated/native client acceptance remain pending for the redesigned UI. Nothing in this evidence map certifies a GPS rollout.
 
+Its October 9 bounded mention-search follow-up reproduced PostgreSQL's case-sensitive matching and then passed 20 collaboration tests/151 assertions on PHP 8.4/PostgreSQL 18 and PHP 8.5.1/SQLite. Scoped static/format/lint checks and authenticated Chrome tests at 1440px/390px verify partial mixed-case matching, full-name selection/send and membership/DM restrictions. This does not certify native extension or desktop notification delivery, or close broader pilot acceptance.
+
+Its subsequent thread-highlight follow-up passed actual workspace web/extension builds/types, scoped format/lint, 9 helper tests and authenticated Chrome split-view/responsive checks. Current roots remain highlighted on hover/focus; switching, closing and narrowing clear or move the highlight while preserving drafts and muted anonymous deleted placeholders. Native side-panel and forced-color visual acceptance remain unverified.
+
+## October 9 scoped landing-page removal
+
+[Plan 008](plans/completed/008-remove-overview.md) records the isolated checks for removing Overview: 58 focused backend tests, full configured PHP static analysis, web build/types, formatting/lint, route caching, and authenticated Chromium checks at 1440px/390px. Its subsequent bounded sidebar follow-up records web build/types/format/lint and 1440px/390px browser checks for combined Messages/Direct navigation and Activity below Work chats. These validate the scoped navigation, landing redirects and Profile invitation continuity only. They do not close broader pilot verification or certify a production deployment.
+
+## October 9 invitation-only signup correction
+
+[Plan 009](plans/completed/009-invitation-only-registration.md) records 40 focused backend tests/220 assertions, PHP static analysis, web/extension types, web build, scoped format/lint, route caching, boundaries and real Chromium signup/login/acceptance checks at 1440px/390px. Valid invitation signup is restored while public company signup remains closed. Local PHP 8.5.1/SQLite checks do not certify PHP 8.4/PostgreSQL races, production mail delivery or deployment.
+
+## October 9 message deletion and access removal
+
+[Plan 010](plans/active/010-message-deletion-and-access-removal.md) records 33 focused PHP 8.4/SQLite tests (198 assertions), the full suite (161 passed, one PostgreSQL-only skip), PHP static analysis, web/extension types/builds, scoped lint/format and authenticated Chrome acceptance at 1440px/390px. Own-message deletion, shared work-Chat moderation, retry tombstones and membership removal preserving body/author history are covered. The browser check also verifies cancellation, failure recovery and keyboard focus. Full formatting still reports unrelated existing issues; native side-panel interaction, live Reverb propagation and PostgreSQL simultaneous races remain unverified. Nothing was deployed.
+
+Its subsequent visual follow-up rebuilt the actual workspace web/extension assets and passed shared types, scoped format/lint, 9 presentation-helper tests, 5 focused deletion regressions (44 assertions, PHP 8.5.1/SQLite), and browser checks at 1440px/390px. Deleted stream/thread roots display only a muted outlined label, retained replies remain reachable and undeleted neighbors retain attribution. This follow-up does not close the native extension or PostgreSQL gaps.
+
+## October 9 registration environment flag
+
+[Plan 011](plans/completed/011-registration-environment-flag.md) records 72 focused backend tests/370 assertions, full configured PHP static analysis, web build/types, scoped formatting/lint, cached configuration/routes and Chromium checks at 1440px/390px in both flag states. Public signup defaults off and becomes available through `REGISTRATION_ENABLED=true`; invitation signup remains available when false. A subsequent scoped follow-up rebuilt the actual local workspace assets after an old invitation-only bundle was found; desktop/mobile checks of those exact assets confirmed plain public signup has no invitation text and an editable email. Real SMTP, hosted CI and production deployment were not exercised.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

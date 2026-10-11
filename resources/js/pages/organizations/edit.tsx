@@ -139,6 +139,11 @@ export default function OrganizationSettings({
                                     <Form
                                         action={`/settings/organization/members/${member.id}`}
                                         method="delete"
+                                        onBefore={() =>
+                                            window.confirm(
+                                                `Remove ${member.name} from this organization? Their messages and author history will be kept.`,
+                                            )
+                                        }
                                         options={{ preserveScroll: true }}
                                     >
                                         {({ processing }) => (
@@ -147,7 +152,7 @@ export default function OrganizationSettings({
                                                 variant="destructive"
                                                 disabled={processing}
                                             >
-                                                Remove
+                                                Remove access
                                             </Button>
                                         )}
                                     </Form>

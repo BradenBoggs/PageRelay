@@ -12,6 +12,8 @@ Each reply has a stable identity, author, timestamp, plain-text body, selected m
 
 Main history shows roots with reply counts. Opening a thread shows its root and retained replies in order. The refined pilot shows the thread beside the main history when the message stage has at least 760px. Narrow web and extension layouts use a focused thread with a clear return action; hidden main-history content does not advance read state. Main-chat and reply drafts remain separate and in memory. Loading earlier replies and exact-message navigation must not silently change the draft destination.
 
+Approved October 9 refinement: while the thread is shown beside main history, its original message is highlighted and marked current for accessibility. Switching threads moves this highlight; closing the thread or using the narrow focused layout clears it. The highlight stays visible while hovering or focusing the message. Deleted roots keep their anonymous muted placeholder, using neutral emphasis rather than exposing metadata.
+
 ## Participation and attention
 
 For this pilot, the root author and previous reply authors receive subsequent reply attention while still authorized. An explicit eligible mention also creates attention. A reply that is both a mention and a DM/thread update creates one durable event per recipient, not duplicate alerts. Authoring does not notify oneself.
@@ -36,4 +38,4 @@ Two authorized users can exchange replies from web and panel, receive one releva
 
 ## Implementation map — GPS pilot candidate
 
-`messages.thread_root_id`, `Message::threadRoot/replies`, `SendCollaborationMessage`, `RecordMessageAttention`, `CollaborationController::messages/read`, and shared `ConversationView`/composer own the slice. `PilotCollaborationTest` covers root validation, overlapping attention and visible-ID read behavior. [Plan 005](../plans/active/005-gps-communication-pilot.md) owns execution evidence.
+`messages.thread_root_id`, `Message::threadRoot/replies`, `SendCollaborationMessage`, `RecordMessageAttention`, `CollaborationController::messages/read`, and shared `ConversationView`/composer own the slice. `PilotCollaborationTest` covers root validation, overlapping attention and visible-ID read behavior; `tests/Browser/thread-highlight.cjs` covers current-root highlighting and responsive thread transitions. [Plan 005](../plans/active/005-gps-communication-pilot.md) owns execution evidence.

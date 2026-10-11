@@ -26,7 +26,7 @@ SideWire should feel calm, lightweight, and native beside a team's tools. The so
 
 ## Vocabulary and navigation
 
-Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. The GPS pilot uses **Messages**, **Direct**, and **Thread** for its approved messaging destinations and one-level replies. **Work chats** labels the retained source-aware discovery screen, not a second copy of history.
+Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. The GPS pilot uses **Messages** for shared chats and direct messages, **Direct** as an in-directory filter, and **Thread** for one-level replies. **Work chats** labels the retained source-aware discovery screen, not a second copy of history.
 
 Activity is for catching up; Chats is for finding a discussion; Apps groups or filters existing contexts/chats. Do not create one workspace per domain, one mandatory channel per external record, an expanded tree of every CRM lead, or a page/channel/hybrid onboarding selector.
 

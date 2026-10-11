@@ -52,6 +52,20 @@ class MessageNotificationController extends Controller
         return response()->json(['ok' => true, 'enabled' => $input['enabled']]);
     }
 
+    public function history(Request $request): JsonResponse
+    {
+        $request->validate(['page' => ['nullable', 'integer', 'min:1']]);
+        $page = $this->visible($request)->with(['message.author', 'message.threadRoot', 'conversation'])
+            ->latest('id')->paginate(30);
+
+        return response()->json([
+            'data' => $page->getCollection()->map(fn (MessageNotification $item): array => [
+                ...$this->describe($item), 'read_at' => $item->read_at?->toISOString(),
+            ]),
+            'next_page' => $page->hasMorePages() ? $page->currentPage() + 1 : null,
+        ])->header('Cache-Control', 'no-store, private');
+    }
+
     public function claim(Request $request, string $notification): JsonResponse
     {
         return DB::transaction(function () use ($request, $notification): JsonResponse {

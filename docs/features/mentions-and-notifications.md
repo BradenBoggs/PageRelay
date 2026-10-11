@@ -8,6 +8,8 @@ This document owns recipient selection, durable attention, delivery preferences 
 
 Typing @ opens a selection of eligible active coworkers. Selecting a person records their stable user ID and shows a removable recipient chip. Text that merely resembles @name is ordinary text, not a notification. Renaming a user does not reinterpret stored recipients.
 
+Approved October 9 refinement: suggestions match any part of the stored full display name without case sensitivity, including surnames and text spanning name parts. The picker, inserted mention and recipient chip show the complete stored name rather than shortening it to the first name. Names are profile data; this does not invent missing surnames or change recipient identity.
+
 Suggestions and sending recheck organization membership and destination access. A mention cannot invite someone into a DM or grant access to a private destination. In a one-to-one DM, only its participants are eligible. Own messages do not notify the author.
 
 ## Durable attention and reading
@@ -15,6 +17,8 @@ Suggestions and sending recheck organization membership and destination access. 
 Create one attention item per recipient/message for selected mentions, incoming DMs and replies in participated threads. Where reasons overlap, the pilot displays mention before DM before thread. Multiple linked pages and retries cannot multiply the event.
 
 Activity remains the durable source even when desktop notifications are disabled. Only authorized recipients can fetch its text or exact message/thread link. Marking visible message IDs read clears only their attention, never unseen replies. Desktop delivery, dismissal and reading are separate facts.
+
+Approved October 9 notification-panel refinement: the top-bar bell opens a dropdown of retained notification history, including read and unread mentions, DMs and thread replies, newest first with access to older pages. Each item shows the author, reason, chat, preview, time and read state and links to its exact message/thread. Listing or opening this panel does not acknowledge messages or trigger desktop delivery. Removed/deleted attention records are not reconstructed. History remains limited to the current recipient's active Organization and accessible conversations. A settings gear in the panel header opens the existing notification settings modal; closing it returns focus to the bell.
 
 ## Desktop opt-in and privacy
 
@@ -44,6 +48,6 @@ Email fallback/digests, native mobile push and other channels require separate p
 
 Validate individual selection, same-message deduplication, private previews, pause/test/permission states, no historical opt-in replay, lease retry, exact-link navigation, removal of access, and unseen-thread read separation. Native OS checks on actual GPS desktops remain required; API mocks and CI do not certify them.
 
-`message_mentions`, `message_notifications`, `notification_preferences`, `RecordMessageAttention`, `MessageNotificationController`, shared collaboration controls/client, and the extension service worker implement the candidate. `PilotCollaborationTest` covers authorization, consent, reasons and delivery claims. [GPS pilot setup](../engineering/GPS-PILOT.md) owns deployment/device checks.
+`message_mentions`, `message_notifications`, `notification_preferences`, `RecordMessageAttention`, `MessageNotificationController`, `CollaborationController::members`, shared collaboration composer/client, and the extension service worker implement the candidate. `PilotCollaborationTest` covers partial/case-insensitive name search, full-name responses, authorization, consent, reasons and delivery claims. [GPS pilot setup](../engineering/GPS-PILOT.md) owns deployment/device checks.
 
 References: [Chrome notifications](https://developer.chrome.com/docs/extensions/reference/api/notifications), [Chrome alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms), [Web notification permission](https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static).

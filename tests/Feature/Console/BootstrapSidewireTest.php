@@ -54,7 +54,7 @@ class BootstrapSidewireTest extends TestCase
         $this->assertTrue($organization->workspaces()->sole()->is_default);
 
         $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 

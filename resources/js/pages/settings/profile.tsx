@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
-import type { Auth } from '@/types';
+import type { Auth, PendingOrganizationInvitation } from '@/types';
 /* @chisel-email-verification */
 import { send } from '@/routes/verification';
 /* @end-chisel-email-verification */
@@ -23,9 +23,11 @@ export default function Profile(
     {
         mustVerifyEmail,
         status,
+        pendingInvitations = [],
     }: {
         mustVerifyEmail: boolean;
         status?: string;
+        pendingInvitations?: PendingOrganizationInvitation[];
     },
     /* @end-chisel-email-verification */
 ) {
@@ -36,6 +38,55 @@ export default function Profile(
             <Head title="Profile settings" />
 
             <h1 className="sr-only">Profile settings</h1>
+
+            {pendingInvitations.length > 0 && (
+                <section
+                    aria-label="Organization invitations"
+                    className="mb-6 space-y-4"
+                >
+                    <Heading
+                        variant="small"
+                        title="Organization invitations"
+                        description="Review invitations to join your team"
+                    />
+                    {pendingInvitations.map((invitation) => (
+                        <div
+                            key={invitation.code}
+                            className="rounded-xl border p-4"
+                        >
+                            <p>
+                                {invitation.inviterName} invited you to{' '}
+                                {invitation.organizationName}
+                            </p>
+                            <div className="mt-4 flex gap-2">
+                                <Form
+                                    action={`/invitations/${invitation.code}/accept`}
+                                    method="post"
+                                >
+                                    {({ processing }) => (
+                                        <Button disabled={processing}>
+                                            Accept
+                                        </Button>
+                                    )}
+                                </Form>
+                                <Form
+                                    action={`/invitations/${invitation.code}`}
+                                    method="delete"
+                                >
+                                    {({ processing }) => (
+                                        <Button
+                                            variant="outline"
+                                            disabled={processing}
+                                        >
+                                            Decline
+                                        </Button>
+                                    )}
+                                </Form>
+                            </div>
+                        </div>
+                    ))}
+                </section>
+            )}
 
             <div className="space-y-6">
                 <Heading

@@ -35,6 +35,8 @@ class AuthenticationTest extends TestCase
             'expires_at' => now()->addDays(3),
         ]);
 
+        User::create(['name' => 'Invited', 'email' => $invitation->email, 'password' => 'password']);
+
         $this->get(route('login', ['invitation' => $invitation->code]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -53,10 +55,10 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
     }
 
-    public function test_passkey_login_response_redirects_to_the_dashboard(): void
+    public function test_passkey_login_response_redirects_to_the_home_landing(): void
     {
         $user = User::factory()->create();
         $request = Request::create(route('login', absolute: false), 'GET', server: [
@@ -67,7 +69,7 @@ class AuthenticationTest extends TestCase
 
         $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
-        $this->assertSame(route('dashboard'), $jsonResponse->getData()->redirect);
+        $this->assertSame(route('home'), $jsonResponse->getData()->redirect);
     }
 
     public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge(): void

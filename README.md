@@ -61,7 +61,7 @@ flag only for an existing account:
 
 ## Initialize the first owner
 
-Public registration is disabled. After applying migrations, run this command from the deployed application directory to initialize an installation with no users or Organizations:
+Public company registration is controlled by `REGISTRATION_ENABLED`, which defaults to `false` when unset. With it disabled, invited people can still create an account through a valid Organization invitation. Set `REGISTRATION_ENABLED=true` to allow public signup; it creates an unverified owner, their Organization and the Main default Workspace. Rebuild Laravel’s configuration cache (`php artisan config:cache`) after changing the flag; build the updated web assets once with `npm run build:web` when installing this change. Subsequent flag changes do not require another frontend build. After applying migrations, run this command from the deployed application directory to initialize an installation with no users or Organizations:
 
 ```bash
 php artisan sidewire:bootstrap owner@example.com --name="Owner Name" --organization="Company Name"
@@ -69,7 +69,7 @@ php artisan sidewire:bootstrap owner@example.com --name="Owner Name" --organizat
 
 Enter and confirm the password at the hidden prompts. The command creates a verified owner, one Organization, and its Main default Workspace. It accepts at least eight password characters for trusted initial provisioning; production web password/reset validation retains its existing stronger policy. It refuses to overwrite or add accounts when users or Organizations already exist. Concurrent bootstrap commands must use the same configured cache lock store. Internal operator access remains the separate `sidewire:admin` command.
 
-For local development, prefix the Artisan command with `./vendor/bin/sail`. Deploy through the normal configuration/route cache rebuild before using the command. Invitations no longer enable signup; existing recipients can still log in and accept eligible invitations.
+For local development, prefix the Artisan command with `./vendor/bin/sail`. Deploy through the normal configuration/route cache rebuild before using the command. Invitation links let new recipients create an account in the inviting Organization; existing recipients log in and accept eligible invitations. Invitation signup never creates another company. Public signup is available only with the flag enabled, and email verification remains required for either signup flow.
 
 ## Load the Chrome extension
 

@@ -171,6 +171,53 @@ class PilotCollaborationTest extends TestCase
         $this->assertDatabaseHas('message_notifications', ['user_id' => $member->id, 'reason' => 'mention']);
     }
 
+    public function test_mention_search_matches_any_part_of_full_names_regardless_of_case(): void
+    {
+        $owner = User::factory()->create(['name' => 'Chat Owner']);
+        $member = $this->coworker($owner);
+        $member->update(['name' => 'Morgan Alexandra Reed']);
+        $chat = $this->workChat($owner);
+
+        foreach (['mOrGaN', 'REED', 'xAnDr', 'DRA rE'] as $query) {
+            $this->actingAs($owner)->getJson('/collaboration/members?'.http_build_query([
+                'chat' => $chat->public_id, 'query' => $query,
+            ]))->assertOk()->assertJsonCount(1, 'data')
+                ->assertJsonPath('data.0.id', $member->id)
+                ->assertJsonPath('data.0.name', 'Morgan Alexandra Reed');
+        }
+
+        $this->actingAs($owner)->getJson('/collaboration/members?'.http_build_query([
+            'chat' => $chat->public_id, 'query' => 'not-a-coworker',
+        ]))->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_partial_name_search_preserves_active_membership_and_dm_audience(): void
+    {
+        $owner = User::factory()->create(['name' => 'Chat Owner']);
+        $member = $this->coworker($owner);
+        $member->update(['name' => 'Morgan Reed']);
+        $removed = $this->coworker($owner);
+        $removed->update(['name' => 'Removed Reed']);
+        $removed->organizationMembership()->update(['status' => OrganizationMembershipStatus::Removed]);
+        $other = $this->coworker($owner);
+        $other->update(['name' => 'Other Reed']);
+        User::factory()->create(['name' => 'Outside Reed']);
+        $chat = $this->workChat($owner);
+
+        $this->actingAs($owner)->getJson('/collaboration/members?'.http_build_query([
+            'chat' => $chat->public_id, 'query' => 'rEeD',
+        ]))->assertOk()->assertJsonCount(2, 'data')
+            ->assertJsonMissing(['name' => 'Removed Reed'])
+            ->assertJsonMissing(['name' => 'Outside Reed']);
+
+        $direct = $this->direct($owner, $member);
+        $this->actingAs($owner)->getJson('/collaboration/members?'.http_build_query([
+            'chat' => $direct, 'query' => 'rEeD',
+        ]))->assertOk()->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $member->id)
+            ->assertJsonPath('data.0.name', 'Morgan Reed');
+    }
+
     public function test_mention_cannot_grant_access_to_dm_or_cross_an_organization(): void
     {
         $owner = User::factory()->create();

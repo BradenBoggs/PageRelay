@@ -17,6 +17,8 @@ export type Chat = {
     linked_pages: Source[];
 };
 export type Message = {
+    deleted: boolean;
+    can_delete: boolean;
     id: string;
     body: string;
     created_at: string;
@@ -51,7 +53,12 @@ export type AttentionPage = {
     desktop_candidates: string[];
     next_page: number | null;
 };
+export type NotificationHistoryPage = {
+    data: (Attention & { read_at: string | null })[];
+    next_page: number | null;
+};
 export type MessagePage = {
+    deleted_ids: string[];
     data: Message[];
     root: Message | null;
     chat: Chat;

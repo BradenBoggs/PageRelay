@@ -74,6 +74,16 @@ Repeated bootstrap fails safely once an identity or Organization exists. Existin
 
 Actual commands, baseline plus patch, environment and results are recorded above. Do not persist the provided password or real identity in test fixtures or documentation.
 
+### October 9 bounded follow-up: remove the welcome page
+
+User additionally requested removal of the welcome page. The named `home` route now redirects guests to login and signed-in users to `/dashboard` (Overview), retaining the destination’s existing auth/verification middleware. Removed `resources/js/pages/welcome.tsx` and its unused layout exception in `resources/js/app.tsx`. Existing logo/home and logout links retain their named route. No additional account or Organization behavior changed.
+
+Verified at `e4b7218` (the source was committed while checks ran), using the same isolated PHP/Node checkout and disposable SQLite-memory environment described above: `APP_KEY=<ephemeral> vendor/bin/phpunit tests/Feature/ExampleTest.php tests/Feature/Auth` passed 29 tests with 89 assertions and no skips; `npm run build:web`, `npm run types:check:web`, focused Pint, locked frontend formatting/lint, `php artisan route:cache`, documentation structure checks and `git diff --check` passed. Updated browser check confirmed that `/` resolves to `/login` at both 1440px and 390px, along with the existing login/recovery/registration checks. The temporary app server was stopped. No deployment or live account creation occurred.
+
 ## Interfaces and Dependencies
 
 Reuse Laravel Fortify, existing User password casts, CreateOrganization, Cache locks and transaction boundaries. No new package or schema. Provider reference checked October 9: [Laravel feature configuration](https://laravel.com/framework/docs/starter-kits), [Artisan secret prompts](https://laravel.com/framework/docs/artisan/commands).
+
+The subsequent Overview removal supersedes this follow-up’s signed-in landing destination; see [plan 008](008-remove-overview.md) for current routing and its separate evidence.
+
+October 9 scope clarification: [plan 009](009-invitation-only-registration.md) restores invitation-only signup and removes the signup action’s company-creation fallback. This supersedes this plan’s invitation-signup closure; its original verification remains historical. Public company registration and initial console bootstrap retain their separate boundaries.

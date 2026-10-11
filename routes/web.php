@@ -2,18 +2,31 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CollaborationController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExtensionConnectionController;
+use App\Http\Controllers\Organizations\InvitationRegistrationController;
 use App\Http\Controllers\Organizations\OrganizationInvitationController;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 Route::get('/', function (Request $request): RedirectResponse {
-    return to_route($request->user() ? 'dashboard' : 'login');
+    $user = $request->user();
+    if (! $user) {
+        return to_route('login');
+    }
+    if (! $user->hasVerifiedEmail()) {
+        return to_route('verification.notice');
+    }
+
+    return to_route($user->organization()->exists() ? 'messages.index' : 'profile.edit');
 })->name('home');
-Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+Route::redirect('dashboard', '/')->name('dashboard');
+Route::middleware(['guest', 'throttle:5,1'])->group(function (): void {
+    Route::get('register', [InvitationRegistrationController::class, 'show'])->middleware('cache.headers:no_store;private')->name('register');
+    Route::post('register', [RegisteredUserController::class, 'store'])->name('register.store');
+});
 Route::middleware(['auth'])->group(function () {
     Route::post('invitations/{invitation}/accept', [OrganizationInvitationController::class, 'accept'])->name('invitations.accept');
     Route::delete('invitations/{invitation}', [OrganizationInvitationController::class, 'decline'])->name('invitations.decline');

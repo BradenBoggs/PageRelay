@@ -3,7 +3,7 @@ import {
     Activity as ActivityIcon,
     BookOpen,
     FolderGit2,
-    LayoutGrid,
+    MessagesSquare,
     MessageSquare,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -19,15 +19,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { home } from '@/routes';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
+            title: 'Messages',
+            href: home(),
+            icon: MessagesSquare,
         },
         {
             title: 'Activity',
@@ -60,7 +60,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={home()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

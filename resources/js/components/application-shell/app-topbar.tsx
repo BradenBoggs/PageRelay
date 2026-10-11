@@ -56,7 +56,7 @@ export function AppTopbar({
                 <Menu />
             </Button>
             <Link
-                href={organization ? '/messages' : '/dashboard'}
+                href={organization ? '/messages' : '/settings/profile'}
                 className="sw-brand"
             >
                 <Unplug aria-hidden="true" />

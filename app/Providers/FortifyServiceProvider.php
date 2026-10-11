@@ -20,6 +20,7 @@ use App\Http\Responses\TwoFactorLoginResponse;
 use App\Http\Responses\VerifyEmailResponse;
 /* @end-chisel-email-verification */
 use App\Models\OrganizationInvitation;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -91,11 +92,19 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'status' => $request->session()->get('status'),
-            'organizationInvitation' => $this->organizationInvitation($request),
-        ]));
+        Fortify::loginView(function (Request $request) {
+            $invitation = $this->organizationInvitation($request);
+            if ($invitation && ! User::query()->whereRaw('LOWER(email) = ?', [strtolower($invitation['email'])])->exists()) {
+                return to_route('register', ['invitation' => $invitation['code']]);
+            }
+
+            return Inertia::render('auth/login', [
+                'canResetPassword' => Features::enabled(Features::resetPasswords()),
+                'canRegister' => (bool) config('fortify.registration_enabled'),
+                'status' => $request->session()->get('status'),
+                'organizationInvitation' => $invitation,
+            ]);
+        });
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
             'email' => $request->email,
@@ -152,7 +161,7 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Get the pending organization invitation context for auth pages.
      *
-     * @return array{code: string, organizationName: string}|null
+     * @return array{code: string, organizationName: string, email: string}|null
      */
     private function organizationInvitation(Request $request): ?array
     {
@@ -165,6 +174,7 @@ class FortifyServiceProvider extends ServiceProvider
         $invitation = OrganizationInvitation::query()
             ->with('organization')
             ->where('code', $invitationCode)
+            ->whereHas('organization')
             ->whereNull('accepted_at')
             ->where(fn ($query) => $query
                 ->whereNull('expires_at')
@@ -177,6 +187,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         return [
             'code' => $invitation->code,
+            'email' => $invitation->email,
             'organizationName' => $invitation->organization->name,
         ];
     }

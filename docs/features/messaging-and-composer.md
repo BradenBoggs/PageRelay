@@ -4,6 +4,14 @@ Status: **Draft for owner review. Core target.** The documented baseline support
 
 This document owns common message content, lifecycle, delivery, ordering, and history for channels and DMs. It does not own their audiences. Replies, attachments, drafts/scheduling, notifications, and page associations have separate feature documents.
 
+## Approved message deletion — October 9, 2026
+
+The user approved own-message deletion in accessible chats and owner/admin moderation of all messages in shared work Chats. DMs remain participant-only and allow authors to delete their own messages; admin role grants no extra DM access. See [plan 010](../plans/active/010-message-deletion-and-access-removal.md) for implemented behavior, passing web/SQLite checks and pending native extension/PostgreSQL verification.
+
+Deletion requires confirmation and replaces text with “Message deleted” for everyone. The deleted row displays only “Message deleted” inside a quiet outline with muted text; no author, avatar, timestamp, source, message link or action toolbar is rendered. A deleted root with retained replies lets readers open them by activating that same placeholder without extra labels or counts. Stable message identity, author/time, source attribution, replies and read anchors remain intact in stored history; neighboring undeleted messages keep their normal attribution. Mentions and attention records for the deleted message are removed. Repeated deletion succeeds; send retries return the same tombstone and cannot restore content. Membership removal is separate and preserves undeleted content.
+
+Implementation map: `DeleteMessage`, `CollaborationController::destroyMessage`, `MessageResource`, the shared collaboration routes/client/conversation UI, and `MessageDeletionTest`. Broader edit/rich-content/retention proposals below remain unapproved.
+
 ## Content and composition
 
 Provide one recognizable composer across the full web app and narrow extension. Support paragraphs, emphasis, lists, quotations, inline code, code blocks, safe labeled links, emoji, and stable-ID mentions. Provide readable plain-text fallbacks for search/accessibility and notifications. Render a bounded, sanitized content format, never executable user HTML or arbitrary embeds.

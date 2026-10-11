@@ -73,7 +73,9 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/',
+
+    'registration_enabled' => env('REGISTRATION_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------

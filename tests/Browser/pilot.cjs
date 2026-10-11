@@ -25,7 +25,7 @@ const { chromium } = browserRequire('playwright');
             await page
                 .getByRole('button', { name: 'Log in', exact: true })
                 .click();
-            await page.waitForURL('**/dashboard');
+            await page.waitForURL('**/messages');
             await page.goto('http://localhost:8000/messages');
         }
         // Capture notification API calls, not a claim of native Linux/Windows toast delivery.

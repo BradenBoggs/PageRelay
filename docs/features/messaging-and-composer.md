@@ -12,6 +12,12 @@ Deletion requires confirmation and replaces text with “Message deleted” for 
 
 Implementation map: `DeleteMessage`, `CollaborationController::destroyMessage`, `MessageResource`, the shared collaboration routes/client/conversation UI, and `MessageDeletionTest`. Broader edit/rich-content/retention proposals below remain unapproved.
 
+## Approved owned-message editing — October 13, 2026
+
+Authors may edit plain text in their own undeleted messages while they retain chat access. Administrators cannot edit another author's text. Preserve identity, source, author/time, replies, original send fingerprint and existing mentions; edits do not create attention records. Show an edited marker. Stale edit versions return a conflict and retain the draft; identical retries succeed. Loaded history refetches edited messages after missed signals. On screens below 768px, message actions appear in a labeled dropdown; desktop retains inline actions. See [plan 012](../plans/active/012-owned-message-editing.md) for verification status.
+
+Implementation map: `EditMessage`, `CollaborationController::updateMessage`, `MessageResource`, shared collaboration routes and `MessageRow`, and `MessageEditingTest`.
+
 ## Content and composition
 
 Provide one recognizable composer across the full web app and narrow extension. Support paragraphs, emphasis, lists, quotations, inline code, code blocks, safe labeled links, emoji, and stable-ID mentions. Provide readable plain-text fallbacks for search/accessibility and notifications. Render a bounded, sanitized content format, never executable user HTML or arbitrary embeds.

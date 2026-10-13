@@ -10,6 +10,7 @@ Route::get('members', [CollaborationController::class, 'members']);
 Route::post('direct', [CollaborationController::class, 'direct'])->middleware('throttle:30,1');
 Route::get('chats/{conversation}/messages', [CollaborationController::class, 'messages']);
 Route::post('chats/{conversation}/messages', [CollaborationController::class, 'send'])->middleware('throttle:60,1');
+Route::patch('chats/{conversation}/messages/{message}', [CollaborationController::class, 'updateMessage'])->middleware('throttle:60,1');
 Route::delete('chats/{conversation}/messages/{message}', [CollaborationController::class, 'destroyMessage']);
 Route::post('chats/{conversation}/read', [CollaborationController::class, 'read']);
 Route::get('notifications', [MessageNotificationController::class, 'index']);

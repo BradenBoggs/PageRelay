@@ -78,3 +78,5 @@ A plan may be completed but unreleased only when release was outside its approve
 Read Progress, Outcomes, current approval, and pending validation before continuing. Recheck the branch and changed code; earlier test output is evidence for its earlier revision. Use [WORKFLOW](../engineering/WORKFLOW.md) to run targeted checks, review the diff, and report limitations.
 
 Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the register and linked plan consistent. Structural checks detect misplaced plans and missing links; they cannot decide whether evidence is truthful or sufficient.
+
+- [012 — Owned message editing and mobile actions](active/012-owned-message-editing.md): approved October 13; scoped editing/mobile web checks passed, broader runtime verification pending.

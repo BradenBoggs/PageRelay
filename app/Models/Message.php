@@ -25,6 +25,8 @@ use Illuminate\Support\Str;
  * @property string|null $request_fingerprint
  * @property string $idempotency_key
  * @property string $body
+ * @property Carbon|null $edited_at
+ * @property int $edit_version
  * @property Carbon|null $deleted_at
  * @property Carbon $created_at
  * @property-read Conversation $conversation
@@ -54,7 +56,7 @@ class Message extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['deleted_at' => 'datetime'];
+        return ['deleted_at' => 'datetime', 'edited_at' => 'datetime', 'edit_version' => 'integer'];
     }
 
     /** @return BelongsTo<Conversation, $this> */

@@ -6,6 +6,7 @@ use App\Domain\Activity\MarkConversationRead;
 use App\Domain\Conversations\ConversationAccess;
 use App\Domain\Conversations\CreateDirectChat;
 use App\Domain\Conversations\DeleteMessage;
+use App\Domain\Conversations\EditMessage;
 use App\Domain\Conversations\SendCollaborationMessage;
 use App\Enums\ConversationType;
 use App\Http\Resources\MessageResource;
@@ -113,6 +114,10 @@ class CollaborationController extends Controller
             'root' => $root ? (new MessageResource($root->load(['author', 'sourcePageContext', 'mentionedUsers'])))->resolve($request) : null,
             'data' => $messages->map(fn (Message $message): array => (new MessageResource($message))->resolve($request)),
             'deleted_ids' => $deletedIds,
+            'updated_messages' => $loadedSince ? $chat->messages()->where('thread_root_id', $root?->id)
+                ->where('id', '>=', $loadedSince->id)->whereNotNull('edited_at')->whereNull('deleted_at')
+                ->with(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])->withCount('replies')
+                ->get()->map(fn (Message $message): array => (new MessageResource($message))->resolve($request)) : [],
             'older_cursor' => $more ? $messages->first()?->public_id : null,
         ])->header('Cache-Control', 'no-store, private');
     }
@@ -138,6 +143,19 @@ class CollaborationController extends Controller
         return response()->json(['data' => (new MessageResource($sent->message->fresh([
             'author', 'sourcePageContext', 'mentionedUsers', 'threadRoot',
         ])))->resolve($request)], $sent->created ? 201 : 200);
+    }
+
+    public function updateMessage(Request $request, string $conversation, string $message, EditMessage $edit): JsonResponse
+    {
+        $chat = $this->chat($request, $conversation);
+        $item = $chat->messages()->where('public_id', $message)->firstOrFail();
+        $input = $request->validate([
+            'body' => ['required', 'string', 'max:10000'],
+            'edit_version' => ['required', 'integer', 'min:0'],
+        ]);
+        $edit->handle($request->user(), $item, $input['body'], $input['edit_version']);
+
+        return response()->json(['data' => (new MessageResource($item->fresh(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])))->resolve($request)]);
     }
 
     public function destroyMessage(Request $request, string $conversation, string $message, DeleteMessage $delete): JsonResponse

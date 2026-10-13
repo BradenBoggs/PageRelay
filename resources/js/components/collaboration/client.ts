@@ -19,6 +19,9 @@ export type Chat = {
 export type Message = {
     deleted: boolean;
     can_delete: boolean;
+    can_edit: boolean;
+    edited_at: string | null;
+    edit_version: number;
     id: string;
     body: string;
     created_at: string;
@@ -59,6 +62,7 @@ export type NotificationHistoryPage = {
 };
 export type MessagePage = {
     deleted_ids: string[];
+    updated_messages: Message[];
     data: Message[];
     root: Message | null;
     chat: Chat;

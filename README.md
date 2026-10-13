@@ -71,6 +71,15 @@ Enter and confirm the password at the hidden prompts. The command creates a veri
 
 For local development, prefix the Artisan command with `./vendor/bin/sail`. Deploy through the normal configuration/route cache rebuild before using the command. Invitation links let new recipients create an account in the inviting Organization; existing recipients log in and accept eligible invitations. Invitation signup never creates another company. Public signup is available only with the flag enabled, and email verification remains required for either signup flow.
 
+## Email with Resend
+
+The Resend PHP SDK is installed and uses Laravel's existing mail transport.
+Set `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM_ADDRESS` (a verified
+Resend sender), and `MAIL_FROM_NAME` in the application environment. Rebuild
+cached configuration with `php artisan config:cache` if your deployment uses
+it, and restart long-running queue workers after changing mail configuration.
+Local development defaults to the log mailer; `.env.example` contains no API key.
+
 ## Load the Chrome extension
 
 In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load

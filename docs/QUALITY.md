@@ -38,6 +38,10 @@ Its subsequent visual follow-up rebuilt the actual workspace web/extension asset
 
 [Plan 011](plans/completed/011-registration-environment-flag.md) records 72 focused backend tests/370 assertions, full configured PHP static analysis, web build/types, scoped formatting/lint, cached configuration/routes and Chromium checks at 1440px/390px in both flag states. Public signup defaults off and becomes available through `REGISTRATION_ENABLED=true`; invitation signup remains available when false. A subsequent scoped follow-up rebuilt the actual local workspace assets after an old invitation-only bundle was found; desktop/mobile checks of those exact assets confirmed plain public signup has no invitation text and an editable email. Real SMTP, hosted CI and production deployment were not exercised.
 
+## October 13 owned message editing and mobile actions
+
+[Plan 012](plans/active/012-owned-message-editing.md) records 8 focused PHP 8.5.1/SQLite tests (85 assertions), PHP static analysis, web/extension types/builds and Chrome editing/mobile-dropdown acceptance at 1440px/390px. Full suite: 176 passed, 1 unrelated registration assertion failed and 1 PostgreSQL-only skip. Native side-panel interaction, live Reverb, PHP 8.4 and PostgreSQL races remain unverified; no deployment.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

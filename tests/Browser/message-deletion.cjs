@@ -66,9 +66,30 @@ const evidence = process.env.SIDEWIRE_BROWSER_EVIDENCE_DIR;
             await row.waitFor();
             const id = await row.getAttribute('data-message-id');
             await row.hover();
-            await row
-                .getByRole('button', { name: 'Delete message', exact: true })
-                .click();
+            async function openDelete() {
+                if (width < 768) {
+                    await row
+                        .getByRole('button', {
+                            name: 'Message actions',
+                            exact: true,
+                        })
+                        .click();
+                    await member
+                        .getByRole('menuitem', {
+                            name: 'Delete message',
+                            exact: true,
+                        })
+                        .click();
+                } else {
+                    await row
+                        .getByRole('button', {
+                            name: 'Delete message',
+                            exact: true,
+                        })
+                        .click();
+                }
+            }
+            await openDelete();
             const dialog = member.getByRole('dialog', {
                 name: 'Delete message?',
             });
@@ -77,13 +98,12 @@ const evidence = process.env.SIDEWIRE_BROWSER_EVIDENCE_DIR;
                 .getByRole('button', { name: 'Cancel', exact: true })
                 .click();
             await member.waitForFunction(
-                () =>
+                (label) =>
                     document.activeElement?.getAttribute('aria-label') ===
-                    'Delete message',
+                    label,
+                width < 768 ? 'Message actions' : 'Delete message',
             );
-            await row
-                .getByRole('button', { name: 'Delete message', exact: true })
-                .click();
+            await openDelete();
             await member.route(
                 '**/collaboration/chats/*/messages/' + id,
                 (route) =>

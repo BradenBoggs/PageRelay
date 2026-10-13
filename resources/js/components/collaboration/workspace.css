@@ -267,3 +267,15 @@
 }
 @media (prefers-reduced-motion: reduce) { .sw-collaboration *, .sw-dialog-overlay { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 @media (forced-colors: active) { .sw-conversation-row[aria-current], .sw-directory-tabs [aria-pressed='true'], .sw-message-target, .sw-collaboration-message.sw-thread-active { outline: 2px solid Highlight; } .sw-attention-badge, .sw-inline-mention { border: 1px solid ButtonText; } }
+
+.sw-message-mobile-actions { display: none; }
+.sw-edited-marker { color: var(--sw-muted); font-size: 11px; }
+.sw-edit-message-input { width: 100%; min-height: 140px; padding: 10px; border: 1px solid var(--sw-border); border-radius: 8px; resize: vertical; }
+.sw-message-action-menu { z-index: 60; min-width: 180px; padding: 4px; border: 1px solid var(--sw-border); border-radius: 8px; background: var(--sw-surface); color: var(--sw-text); box-shadow: 0 4px 16px #252a2420; }
+.sw-message-action-menu [role="menuitem"] { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 13px; text-decoration: none; outline: none; }
+.sw-message-action-menu [role="menuitem"][data-highlighted] { background: var(--sw-tint); }
+.sw-message-action-menu svg { width: 16px; height: 16px; }
+@media (max-width: 767px) {
+    .sw-message-actions { display: none; }
+    .sw-message-mobile-actions { display: block; align-self: flex-start; }
+}

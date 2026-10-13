@@ -14,6 +14,10 @@ Status: open. Observed October 9, 2026 at `e4b721865f09e403fe836520b6851d67885bb
 
 Keep statuses simple: open, selected, resolved, or declined with rationale. Link the implementation plan or PR when selected; link actual resolution evidence when resolved. Product ideas belong in the owning feature's proposed scope unless they describe a real maintenance defect.
 
+### SW-DEBT-002 — Registration test disagrees with the current signup route
+
+Status: open. Observed October 13, 2026 on `d1b86a3` plus message-editing changes (no registration code modified): `APP_KEY=<disposable key> vendor/bin/phpunit` fails `RegistrationTest::test_public_registration_remains_closed` because GET `/register` returns 200 where the test expects 404. Owner: accounts/registration. This prevents a full-suite pass; review intended invitation/signup behavior and reconcile its test and route deliberately. Focused message tests pass. See [plan 012](active/012-owned-message-editing.md).
+
 ## Working rule
 
 Record the finding, return to the current approved outcome, and select follow-up work deliberately. Fold a finding into the current plan only when it blocks that outcome or creates an immediate relevant safety risk, with the scope change made explicit. Do not launch a cleanup agent, edit neighboring features, or allocate new dependencies merely because an item is listed here.

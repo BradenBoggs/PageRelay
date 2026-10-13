@@ -12,9 +12,18 @@ import {
     MessagesSquare,
     RefreshCw,
     Trash2,
+    Pencil,
+    MoreHorizontal,
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import {
+    Root as DropdownMenu,
+    Trigger as DropdownMenuTrigger,
+    Content as DropdownMenuContent,
+    Item as DropdownMenuItem,
+    Portal as DropdownMenuPortal,
+} from '@radix-ui/react-dropdown-menu';
 import {
     messagePath,
     type Message,
@@ -204,6 +213,12 @@ function MessageStream({
                               older_cursor: previous.older_cursor,
                           }
                         : result;
+                const edited = new Map(
+                    result.updated_messages.map((item) => [item.id, item]),
+                );
+                next.data = next.data.map(
+                    (item) => edited.get(item.id) ?? item,
+                );
                 const deletedIds = new Set(result.deleted_ids);
                 next.data = next.data.map((item) =>
                     deletedIds.has(item.id)
@@ -212,6 +227,7 @@ function MessageStream({
                               body: 'Message deleted',
                               deleted: true,
                               can_delete: false,
+                              can_edit: false,
                               mentions: [],
                           }
                         : item,
@@ -612,6 +628,40 @@ function MessageRow({
     const { client } = useCollaboration();
     const [copied, setCopied] = useState(false);
     const article = useRef<HTMLElement>(null);
+    const [editOpen, setEditOpen] = useState(false);
+    const [editBody, setEditBody] = useState('');
+    const [editVersion, setEditVersion] = useState(0);
+    const [saving, setSaving] = useState(false);
+    const [editError, setEditError] = useState('');
+    function startEdit() {
+        setEditBody(item.body);
+        setEditVersion(item.edit_version);
+        setEditError('');
+        setEditOpen(true);
+    }
+    async function saveEdit() {
+        if (saving || !editBody.trim()) return;
+        setSaving(true);
+        setEditError('');
+        try {
+            await client.mutate(
+                `/chats/${chatId}/messages/${item.id}`,
+                { body: editBody, edit_version: editVersion },
+                'PATCH',
+            );
+            setEditOpen(false);
+            client.events.dispatchEvent(new Event('changed'));
+            requestAnimationFrame(() => article.current?.focus());
+        } catch (failure) {
+            setEditError(
+                failure instanceof Error
+                    ? failure.message
+                    : 'Could not edit this message.',
+            );
+        } finally {
+            setSaving(false);
+        }
+    }
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState('');
@@ -730,6 +780,9 @@ function MessageRow({
                         ),
                     )}
                 </p>
+                {item.edited_at && (
+                    <span className="sw-edited-marker">Edited</span>
+                )}
                 {item.source && (
                     <a
                         className="sw-message-source"
@@ -803,7 +856,125 @@ function MessageRow({
                     </button>
                 </div>
             </CollaborationDialog>
+            <CollaborationDialog
+                open={editOpen}
+                onOpenChange={(open) => {
+                    if (!saving) setEditOpen(open);
+                }}
+                title="Edit message"
+                description="Update your message text. Its original source and replies stay attached."
+            >
+                <label htmlFor={`edit-${item.id}`}>Message</label>
+                <textarea
+                    id={`edit-${item.id}`}
+                    className="sw-edit-message-input"
+                    value={editBody}
+                    maxLength={10000}
+                    disabled={saving}
+                    onChange={(event) => setEditBody(event.target.value)}
+                    onKeyDown={(event) => {
+                        if (
+                            !event.nativeEvent.isComposing &&
+                            (event.ctrlKey || event.metaKey) &&
+                            event.key === 'Enter'
+                        ) {
+                            event.preventDefault();
+                            void saveEdit();
+                        }
+                    }}
+                />
+                {editError && <InlineError>{editError}</InlineError>}
+                <div className="sw-dialog-actions">
+                    <button
+                        type="button"
+                        className="sw-button-secondary"
+                        disabled={saving}
+                        onClick={() => setEditOpen(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="sw-button-primary"
+                        disabled={saving || !editBody.trim()}
+                        onClick={() => {
+                            void saveEdit();
+                        }}
+                    >
+                        {saving ? 'Saving…' : 'Save changes'}
+                    </button>
+                </div>
+            </CollaborationDialog>
+            <div className="sw-message-mobile-actions">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            className="sw-icon-button"
+                            aria-label="Message actions"
+                            title="Message actions"
+                        >
+                            <MoreHorizontal aria-hidden="true" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuPortal>
+                        <DropdownMenuContent
+                            align="end"
+                            sideOffset={4}
+                            className="sw-message-action-menu"
+                        >
+                            {item.can_edit && (
+                                <DropdownMenuItem onSelect={startEdit}>
+                                    <Pencil />
+                                    Edit message
+                                </DropdownMenuItem>
+                            )}
+                            {item.can_delete && (
+                                <DropdownMenuItem
+                                    onSelect={() => setDeleteOpen(true)}
+                                >
+                                    <Trash2 />
+                                    Delete message
+                                </DropdownMenuItem>
+                            )}
+                            {onThread && (
+                                <DropdownMenuItem
+                                    onSelect={() => onThread(item.id)}
+                                >
+                                    <MessagesSquare />
+                                    Reply in thread
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    void copy();
+                                }}
+                            >
+                                <Copy />
+                                Copy message link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <a
+                                    href={path}
+                                    target={client.token ? '_blank' : undefined}
+                                    rel="noreferrer"
+                                >
+                                    <ExternalLink />
+                                    Open message link
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenuPortal>
+                </DropdownMenu>
+            </div>
             <div className="sw-message-actions">
+                {item.can_edit && (
+                    <IconButton
+                        icon={Pencil}
+                        label="Edit message"
+                        onClick={startEdit}
+                    />
+                )}
                 {item.can_delete && !isDeleted && (
                     <IconButton
                         icon={Trash2}

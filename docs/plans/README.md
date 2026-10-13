@@ -18,7 +18,7 @@ The September 27 migration classified the four legacy plans against revision `2c
 - [001 — Page chats and linking](active/001-page-chats-and-linking.md): verification pending; milestone 5 runtime and manual Chrome acceptance remain open.
 - [002 — Durable work Chats](active/002-durable-work-chats.md): verification pending; manual Chrome and PostgreSQL race acceptance remain open.
 - [003 — Application shell](active/003-application-shell.md): verification pending; authenticated-browser, accessibility and failure acceptance remain open.
-- [005 — GPS communication pilot](active/005-gps-communication-pilot.md): in progress following Braden's October 8 implementation request. Candidate one-to-one DMs, mentions, threads and desktop alerts are in draft PR 3. See its actual verification record before use.
+- [005 — GPS communication pilot](active/005-gps-communication-pilot.md): verification pending following Braden's implementation request. October 13 bell history/settings-gear web and focused backend checks passed; native panel/OS and broader pilot acceptance remain open. Historical pilot candidate is in draft PR 3; see its revision-specific evidence before use.
 
 - [006 — Conversation-read migration recovery](completed/006-conversation-read-migration-recovery.md): scoped recovery verified October 9 on SQLite/MySQL; not deployed.
 
@@ -88,3 +88,5 @@ Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the re
 - [015 — Work reference badges](active/015-message-reference-badges.md): approved October 13; generic bracket badges verified in web/parser checks, native side-panel acceptance pending.
 
 - [016 — Work Chat controls and incoming messages](active/016-work-chat-controls.md): approved October 13; scoped web/SQLite checks passed; native-panel/PostgreSQL acceptance pending.
+
+- [017 — Image-link thumbnails](active/017-message-image-thumbnails.md): approved October 13; implementation and verification in progress.

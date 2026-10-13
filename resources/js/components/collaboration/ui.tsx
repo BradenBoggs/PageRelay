@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AlertCircle, Hash, X, type LucideIcon } from 'lucide-react';
-import { useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useRef, type ButtonHTMLAttributes, type ReactNode, type RefObject } from 'react';
 import { avatarTone, initials } from './presentation';
 
 export function PersonAvatar({ name, chat = false, small = false }: { name: string; chat?: boolean; small?: boolean }) {
@@ -12,7 +12,7 @@ export function IconButton({ icon: Icon, label, className = '', ...props }: Butt
 }
 
 /** Same Radix dialog primitive as the web UI; independent of web-only aliases/Tailwind. */
-export function CollaborationDialog({ open, onOpenChange, title, description, children, trigger }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; children: ReactNode; trigger?: ReactNode }) {
+export function CollaborationDialog({ open, onOpenChange, title, description, children, trigger, returnFocusRef }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; children: ReactNode; trigger?: ReactNode; returnFocusRef?: RefObject<HTMLElement | null> }) {
     const returnFocus = useRef<HTMLElement | null>(null);
     return <Dialog.Root open={open} onOpenChange={onOpenChange}>
         {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
@@ -21,7 +21,8 @@ export function CollaborationDialog({ open, onOpenChange, title, description, ch
             <Dialog.Content className="sw-collaboration sw-dialog-content" onOpenAutoFocus={() => {
                 if (!trigger) returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
             }} onCloseAutoFocus={(event) => {
-                if (!trigger && returnFocus.current?.isConnected) { event.preventDefault(); returnFocus.current.focus(); }
+                const target = returnFocusRef?.current ?? returnFocus.current;
+                if (!trigger && target?.isConnected) { event.preventDefault(); target.focus(); }
             }}>
                 <header className="sw-dialog-heading"><div><Dialog.Title>{title}</Dialog.Title><Dialog.Description>{description}</Dialog.Description></div><Dialog.Close asChild><IconButton icon={X} label="Close dialog" /></Dialog.Close></header>
                 {children}

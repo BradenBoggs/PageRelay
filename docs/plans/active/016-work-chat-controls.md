@@ -43,7 +43,7 @@ Run focused PHP conversation/activity tests, Pint/Larastan, TypeScript, web/exte
 
 ## Validation and Acceptance
 
-Members cannot create/rename by HTTP or direct domain calls; owners/admins can. Cross-tenant, revoked, retired and DM rename attempts fail. Retrying creation preserves identity. Members can still send messages. Counts exclude own/deleted messages, follow read positions, and preserve unseen replies. Incoming sounds ignore initial history, own sends and message edits/deletions. Verify web desktop/narrow dialogs and recovery. Native Chrome panel and supported database/runtime results remain required before closing if unavailable.
+Members cannot create/rename by HTTP or direct domain calls; owners/admins can. Cross-tenant, revoked, retired and DM rename attempts fail. Retrying creation preserves identity. Members can still send messages. Counts exclude own/deleted messages, follow read positions, and preserve unseen replies. Incoming sounds ignore initial history, own sends and message edits/deletions. Verify web desktop/narrow dialogs and recovery. Native Chrome panel and PostgreSQL concurrency remain required before closing if unavailable.
 
 ## Idempotence and Recovery
 
@@ -59,10 +59,14 @@ October 13, 2026, base main `6aa57dfb5d29f2f04289664dceb450a2e8c8740a` plus this
 - `npm run types:check` and `npm run build`: web and extension passed. Focused `vp fmt`/`vp lint` passed for affected files; inherited compact board/panel formatting retained. `npm run check` remains blocked by 21 formatting findings across both existing compact files and unrelated prior work; no whole-tree formatting performed.
 - `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. `node scripts/check-docs.mjs`, `npm run foundation:check` and `git diff --check`: passed.
 - `SIDEWIRE_BROWSER_EVIDENCE_DIR=docs/plans/artifacts/016-work-chat-controls node tests/Browser/work-chat-controls.cjs`: Chrome passed against isolated fixtures. Covers creation, name-edit cancel, injected save failure/draft retention/retry at 1440/390px, immediate matching header titles, member controls hidden, incoming unread/read changes, initial/own/repeated-refresh silence, successful Web Audio oscillator scheduling and no page errors or overflow. This validates audio synthesis, not an audible physical speaker. Browser autoplay requires interaction. Screenshots: [desktop](../artifacts/016-work-chat-controls/work-chat-1440.png), [mobile](../artifacts/016-work-chat-controls/work-chat-390.png); mobile inspected visually.
-- Initial Docker inspection was sandbox-blocked; scoped escalation established Docker and running Sail PHP 8.4.23. Supported-runtime focused result follows below.
+- Initial Docker inspection was sandbox-blocked; scoped escalation established Docker and running Sail PHP 8.4.23. `./vendor/bin/sail artisan test tests/Feature/Conversations tests/Feature/Activity`: 66 passed, 738 assertions, one PostgreSQL-only skip on PHP 8.4.23 with disposable SQLite.
 
 Outstanding: native Chrome side-panel interaction, live Reverb transport and PostgreSQL concurrency. Do not infer these from browser/SQLite checks. The additive `message_reads` migration must be applied when installing the change; previous exact historical reads without persisted evidence cannot be reconstructed. Each open client can play its own cue; cross-client sound claims and configurable preferences are outside scope.
 
 ## Interfaces and Dependencies
 
 Reuse Laravel active membership, policies, shared CollaborationClient/provider/dialog and Web Audio. No dependency or extension permission changes.
+
+## Bounded follow-up: opening chats at the bottom
+
+Braden requested this correction on October 13 while finishing the work. The existing first-load scroll used an animation frame after scheduling React state, which could run before messages committed. Apply pending scroll intent in `useLayoutEffect` after rendering, preserving explicit deep-link targets, reader position and hidden-pane intent. Only shared `conversation.tsx` and its messaging owner/browser evidence are changed. `node tests/Browser/chat-opening-scroll.cjs` passed at 1440px/390px with a 90-message synthetic chat: ordinary Messages/Work chats opens reached the bottom, background refresh preserved a scrolled-up reader, and explicit message links remained targeted. The first test incorrectly expected the explicit Refresh/jump-to-latest control to preserve position; corrected it to exercise a background focus/recovery signal and reran successfully. Web/extension TypeScript, both builds, focused lint and documentation/diff checks passed after the change.

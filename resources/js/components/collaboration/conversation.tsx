@@ -17,7 +17,7 @@ import {
     ListTodo,
     X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
     Root as DropdownMenu,
     Trigger as DropdownMenuTrigger,
@@ -32,6 +32,7 @@ import {
     type Source,
 } from './client';
 import { Composer } from './composer';
+import { ImagePreviews } from './image-previews';
 import { TodoDialog, TodoStatus } from './todos';
 import {
     dayLabel,
@@ -200,6 +201,29 @@ function MessageStream({
     const requestVersion = useRef(0);
     const olderRequest = useRef<AbortController | null>(null);
     const forceLatest = useRef(false);
+    const pendingScroll = useRef<{
+        target: string | null;
+        follow: boolean;
+        position: number;
+    } | null>(null);
+    useLayoutEffect(() => {
+        const node = history.current;
+        const intent = pendingScroll.current;
+        if (!active || !node || !intent || !data) return;
+        pendingScroll.current = null;
+        if (intent.target) {
+            const match = node.querySelector<HTMLElement>(
+                `[data-message-id="${intent.target}"]`,
+            );
+            if (match)
+                node.scrollTop =
+                    match.offsetTop - node.offsetTop - node.clientHeight / 3;
+        } else {
+            node.scrollTop = intent.follow
+                ? node.scrollHeight
+                : intent.position;
+        }
+    }, [data, active]);
     function store(next: MessagePage | null) {
         dataRef.current = next;
         setData(next);
@@ -272,24 +296,9 @@ function MessageStream({
                         : item,
                 );
                 forceLatest.current = false;
+                pendingScroll.current = { target, follow, position };
                 store(next);
                 setNewActivity(Boolean(incoming && !follow && !target));
-                requestAnimationFrame(() => {
-                    if (abort.signal.aborted) return;
-                    const node = history.current;
-                    if (!node) return;
-                    if (target) {
-                        const match = node.querySelector<HTMLElement>(
-                            `[data-message-id="${target}"]`,
-                        );
-                        if (match)
-                            node.scrollTop =
-                                match.offsetTop -
-                                node.offsetTop -
-                                node.clientHeight / 3;
-                    } else
-                        node.scrollTop = follow ? node.scrollHeight : position;
-                });
             })
             .catch((failure: unknown) => {
                 if (abort.signal.aborted || version !== requestVersion.current)
@@ -889,6 +898,7 @@ function MessageRow({
                         ),
                     )}
                 </p>
+                <ImagePreviews chatId={chatId} message={item} />
                 {item.todo && <TodoStatus todo={item.todo} inMessage />}
                 {item.edited_at && (
                     <span className="sw-edited-marker">Edited</span>

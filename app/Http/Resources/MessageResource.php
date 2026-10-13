@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Domain\Conversations\DeleteMessage;
 use App\Domain\Conversations\EditMessage;
+use App\Domain\Images\ImagePreview;
 use App\Domain\Todos\ManageTodo;
 use App\Models\Message;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class MessageResource extends JsonResource
             'can_create_todo' => $this->deleted_at === null && $this->todo === null && app(ManageTodo::class)->canManage($request->user(), $this->resource),
             'edited_at' => $this->edited_at?->toISOString(),
             'edit_version' => $this->edit_version,
+            'image_previews' => $this->deleted_at ? [] : app(ImagePreview::class)->candidates($this->body),
             'deleted' => $this->deleted_at !== null,
             'can_delete' => $this->deleted_at === null && app(DeleteMessage::class)->allowed($request->user(), $this->resource),
             'created_at' => $this->created_at->toISOString(),

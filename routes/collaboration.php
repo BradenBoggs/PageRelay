@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CollaborationController;
+use App\Http\Controllers\MessageImageController;
 use App\Http\Controllers\MessageNotificationController;
 use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
@@ -26,3 +27,5 @@ Route::get('todos', [TodoController::class, 'index']);
 Route::get('todos/{todo}', [TodoController::class, 'show']);
 Route::post('chats/{conversation}/messages/{message}/todo', [TodoController::class, 'store'])->middleware('throttle:60,1');
 Route::patch('todos/{todo}', [TodoController::class, 'update'])->middleware('throttle:60,1');
+
+Route::get('chats/{conversation}/messages/{message}/images/{image}', [MessageImageController::class, 'show'])->where('image', '[a-f0-9]{64}')->middleware('throttle:30,1');

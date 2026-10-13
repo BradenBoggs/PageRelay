@@ -26,7 +26,7 @@ SideWire should feel calm, lightweight, and native beside a team's tools. The so
 
 ## Vocabulary and navigation
 
-Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. The GPS pilot uses **Messages** for shared chats and direct messages, **Direct** as an in-directory filter, and **Thread** for one-level replies. **Work chats** labels the retained source-aware discovery screen, not a second copy of history.
+Use **Chat**, **Activity**, **Chats**, **Apps**, and **This Page** according to `docs/PRODUCT.md`. Conversation and Inbox may remain internal names and filenames, not competing interface labels. The web sidebar uses **Messages** for direct messages and **Work chats** for shared work Chats. The extension retains its combined Messages & DMs directory and Direct filter. **Thread** names one-level replies. **Work chats** labels the retained source-aware discovery screen, not a second copy of history.
 
 Activity is for catching up; Chats is for finding a discussion; Apps groups or filters existing contexts/chats. Do not create one workspace per domain, one mandatory channel per external record, an expanded tree of every CRM lead, or a page/channel/hybrid onboarding selector.
 
@@ -42,7 +42,7 @@ Use semantic color, type, spacing, radius, border, shadow, and state tokens. Do 
 
 The panel must work at realistic narrow widths and variable heights; it is not a desktop dashboard squeezed into a column.
 
-The normal This Page view has a compact current-page header and safe source-page action. The two primary tabs are **This Page** and **Messages & DMs**. The latter includes shared work Chats, private one-to-one DMs and **Mentions & replies**. Notification preferences live behind a labeled bell button; account/disconnect actions are separate. When a Chat is linked, its history is the main scroll region and the composer stays reachable. When no Chat is linked, replace the history and composer with compact actions to create a Chat for the page or, for eligible managers, link an existing work Chat.
+The normal This Page view has a compact current-page header and safe source-page action. The two primary tabs are **This Page** and **Messages & DMs**. The latter includes shared work Chats, private one-to-one DMs and **Mentions & replies**. The labeled bell opens notification history; its header gear opens notification preferences and desktop controls. Account/disconnect actions are separate. When a Chat is linked, its history is the main scroll region and the composer stays reachable. When no Chat is linked, replace the history and composer with compact actions to create a Chat for the page or, for eligible managers, link an existing work Chat.
 
 The Messages & DMs directory lists durable named work Chats, including newly created empty Chats, and authorized one-to-one conversations. Selecting one opens its history and composer inside the panel without requiring an external page. A direct Chat send has no inferred source-page attribution. Provide a clear return to Chats and preserve the separate This Page destination.
 
@@ -82,7 +82,7 @@ Keep the conversation visible beside a thread when the message stage has at leas
 
 The composer provides an eligible-coworker mention picker, recipient chips, a clear send action, sending/retry feedback and source disclosure when relevant. Enter inserts a newline; Ctrl/Command + Enter sends, except during IME composition. Mention suggestions support arrows, Enter and Escape. Pending uncertain sends retain the same immutable payload and request identity.
 
-Desktop permission/test/pause controls belong in an accessible notification dialog, not a persistent full-width control block above every conversation. Display the real connection and preference states. This UI change does not change desktop delivery, privacy, notification scope or server claims.
+The bell opens retained notification history without marking messages read. Desktop permission/test/pause controls belong in the accessible settings dialog opened by the panel header gear. Display the real connection and preference states. This UI change does not change desktop delivery, privacy, notification scope or server claims.
 
 ## Responsive and accessible behavior
 

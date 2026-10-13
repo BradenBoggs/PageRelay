@@ -49,6 +49,7 @@ const { chromium } = browserRequire('playwright');
             .getByRole('button', { name: /^Notifications/ })
             .first()
             .click();
+        await owner.getByRole('menuitem', { name: 'Notification settings' }).click();
         await owner
             .getByRole('button', { name: 'Enable on this browser' })
             .click();

@@ -1,8 +1,16 @@
 # Files, attachments, snippets, and safe links
 
-Status: **Draft for owner review. Core attachments and safe links; richer previews are expansion.** No complete attachment feature was established in the baseline. See [review scope](README.md).
+Status: **Direct-image thumbnails approved October 13, 2026 and implemented as a local candidate under plan 017. Other attachment/rich-preview proposals remain draft.** No complete attachment feature was established in the baseline. See [review scope](README.md).
 
 This document owns chosen-file upload, processing, authorized preview/download, message attachments, text snippets, and link previews. Calls/clips own recording; retention belongs to [Administration](administration-and-data-lifecycle.md).
+
+## Approved direct-image thumbnails — October 13, 2026
+
+The user approved small previews for posted direct-image URLs. Recognize raster image paths (PNG/JPEG/GIF/WebP/AVIF/BMP), including ordinary query strings; cap at four distinct candidates per message. Bracket labels remain inert. Load lazily in visible message rows; readers can hide/show previews and open the original image. Failed or blocked previews retain the original clickable link.
+
+An authorized message endpoint resolves the URL from stored message text; it accepts no arbitrary fetch URL. Recheck audience, deletion and URL identity before delivery. Validate with existing URL safety rules, require public IPv4 resolution, pin cURL to the validated address and reject redirects. Send no cookies/referrer, disable environment proxies, bound connect/total time (3/8 seconds) and transfer (2 MiB), and verify actual supported raster bytes with at most 12 million pixels. IPv6-only, temporary credential URLs, private/reserved destinations and unsupported/oversized content fall back to links. Serve private/no-store/nosniff responses; browser-local blobs are revoked on removal. No persistent image storage, webpage scraping, uploads or new extension permissions.
+
+Implementation: `ImagePreview`, `MessageImageController`, `MessageResource::image_previews`, shared `ImagePreviews`/`MessageRow`, collaboration routes and `MessageImagePreviewTest`. Actual evidence and open checks: [plan 017](../plans/active/017-message-image-thumbnails.md).
 
 ## Upload and presentation
 

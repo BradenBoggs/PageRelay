@@ -54,6 +54,8 @@ Email fallback/digests, native mobile push and other channels require separate p
 
 Validate individual selection, same-message deduplication, private previews, pause/test/permission states, no historical opt-in replay, lease retry, exact-link navigation, removal of access, and unseen-thread read separation. Native OS checks on actual GPS desktops remain required; API mocks and CI do not certify them.
 
+`notifications.tsx` renders the shared bell history dropdown and settings gear; `MessageNotificationController::history` and `NotificationHistoryPage` supply authorized read/unread history. `PilotCollaborationTest` covers history pagination without read/delivery side effects and recipient/private-access isolation for both clients; `tests/Browser/notification-panel.cjs` exercises the compiled web panel and settings.
+
 `message_mentions`, `message_notifications`, `notification_preferences`, `RecordMessageAttention`, `MessageNotificationController`, `CollaborationController::members`, shared collaboration composer/client, and the extension service worker implement the candidate. `CollaborationController::updates`, shared `provider.tsx`/`incoming-sound.ts`, and `WorkChatControlsTest` own the incoming-sound/unread boundary. `PilotCollaborationTest` covers partial/case-insensitive name search, full-name responses, authorization, consent, reasons and delivery claims. [GPS pilot setup](../engineering/GPS-PILOT.md) owns deployment/device checks.
 
 References: [Chrome notifications](https://developer.chrome.com/docs/extensions/reference/api/notifications), [Chrome alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms), [Web notification permission](https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static).

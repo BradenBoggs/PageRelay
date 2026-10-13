@@ -2,7 +2,7 @@
 
 Lifecycle: verification-pending
 Approval: Braden requested implementation on October 8, 2026: a usable GPS pilot prioritizing browser desktop notifications, mentions, direct messages and threads. This authorizes the bounded communication slice, not every draft feature, production deployment or invitations/messages to real employees. The subsequent request for a massive UI/UX overhaul and a more polished app authorizes refinement of these existing web/extension flows within this same initiative.
-Verification: historical pilot evidence below remains tied to its named revisions. The October 8 UI follow-up is a review-branch implementation candidate based on 1e6ba769f4d5e6674e4103b61312746f0e9d9014. Pure presentation-helper tests, documentation checks, syntax review and a separate synthetic HTML-preview review are not a compiled-app test. Current application types/build/lint and authenticated/native extension acceptance remain pending; do not carry the old CI passes forward to this UI revision.
+Verification: historical pilot evidence below remains tied to its named revisions. The October 8 UI follow-up is a review-branch implementation candidate based on 1e6ba769f4d5e6674e4103b61312746f0e9d9014. Pure presentation-helper tests, documentation checks, syntax review and a separate synthetic HTML-preview review are not a compiled-app test. Later scoped checks are recorded below, including October 13 notification-panel types/builds and authenticated web acceptance. Broader pilot/native extension acceptance remains pending; do not carry old CI passes forward to unrelated UI revisions.
 Release: not released. No production origin, server, team setup or public distribution was provisioned.
 
 ## Purpose / Big Picture
@@ -12,6 +12,8 @@ A coworker can use the web app or Chrome extension to send a private one-to-one 
 The owners are [Direct messages](../../features/direct-messages.md), [Threads](../../features/threads.md), [Notifications](../../features/mentions-and-notifications.md) and [Browser extension](../../features/browser-extension.md). Group DMs, private-channel administration, uploads, reactions, AI, calls, email/SMS, notification schedules and production provisioning are excluded.
 
 ## Progress
+
+- [x] Complete the October 13 bell history/settings-gear continuation and verify scoped history isolation plus compiled web desktop/mobile flows; native extension/OS checks remain separate.
 
 - [x] Inspect membership policies, page-send transactions, handoff, UI and feature owners.
 - [x] Implement shared authorization, one-to-one identity, thread/mention persistence and durable attention.
@@ -34,6 +36,10 @@ The null broadcast driver returns without executing channel authorization callba
 The assistant environment lacked an executable local Sail/application setup. Dependency, database and browser checks ran in isolated hosted CI. Local tools inspected downloaded tracked source, logs and synthetic screenshots; this is not a local Sail run.
 
 ## Decision Log
+
+- October 13 web sidebar refinement: Braden requests Messages to list only direct messages and Work chats to list only work Chats. Restrict the web Messages directory/default landing and remove its conversation-kind switches; reuse the existing direct API filter and existing work-only discovery. Preserve Activity, authorized exact chat/thread/message links, and the separate combined extension directory. This is a bounded UI correction with focused browser/build/type checks; no backend or permission change.
+
+- October 13 notification-panel continuation: Braden again requests actual notifications on bell click with settings/desktop controls behind a panel gear. At `6d56c866c96a6585f3874d6eca001bae1076a5e0` plus existing unrelated local changes, the authorized history endpoint/type already exist but the bell still opens preferences. Complete the shared React dropdown, pagination, refresh/error states and focus return using locked Radix primitives; verify actual web desktop/mobile flows and existing history authorization without changing delivery rules.
 
 - October 9 notification-panel refinement: the user authorizes the top-bar bell to open a dropdown containing retained notification history and a settings gear that opens the existing settings modal. Include read and unread events, with pagination and exact message/thread links. Opening or listing history must not mark messages read or change desktop delivery; reuse current membership, recipient and conversation access checks. Verify backend history isolation and interactive dropdown/modal behavior at desktop/mobile widths. No deployment or new notification source is authorized.
 
@@ -140,6 +146,31 @@ The migration is additive. Back up before deployment; rollback removes new colla
 ## Artifacts and Notes
 
 The named run's pilot-verification-evidence artifact contains result codes, logs, revision, tracked source and synthetic web/extension screenshots. It excludes .env files, runtime identity/token files, real customer data and dependencies. Artifacts have short retention; the run and this plan preserve the durable outcome summary. Final PR status must name its current revision and fresh check results.
+
+### October 13 notification-panel continuation
+
+At base `6d56c866c96a6585f3874d6eca001bae1076a5e0` plus this patch and preserved unrelated working-tree changes, the bell still launched preferences despite the existing authorized history endpoint. Shared `notifications.tsx` now opens retained history with author/reason/chat/preview/time/read state, older pages and exact message/thread navigation. The header gear opens desktop enable/test/pause preferences. A dialog focus target restores the bell; reopening clears cached previews while authorization runs, recovery refresh preserves loaded history pages, and failures provide retry. No new notification source, permission, schema, delivery policy or dependency was introduced.
+
+October 13, 2026 environment: Node 24.14.1, host PHP 8.5.1, existing Sail PHP 8.4, isolated SQLite memory/temporary browser fixtures and headless installed Chrome. Browser database/storage and seed/bootstrap/router are under `/private/tmp/sidewire-notification-browser/`; no shared data, production deployment, merge or push was performed.
+
+- `php artisan test --compact --filter=PilotCollaborationTest` and `./vendor/bin/sail artisan test --compact --filter=PilotCollaborationTest`: 22 passed, 183 assertions in each runtime. New cases cover retained read items, pagination without changing read/claim/delivery state, same/other-Organization recipient isolation and revoked private-chat access through web and extension APIs. Initial test fixtures hit the real send rate limit and used a nonexistent token helper; corrected fixtures to use the existing domain sender and token ability, without changing application limits or permissions.
+- `npm run types:check`, web and extension builds: passed. Focused `vp check` formatting/lint for `notifications.tsx`/`notification-panel.cjs`, focused `vp check --no-fmt` lint for compact existing shared UI/pilot harness, and scoped Pint: passed. Existing compact formatting in shared CSS/UI/pilot files retained to keep the diff bounded. Whole-tree formatting and the full application suite were not rerun for this UI slice.
+- `SIDEWIRE_BROWSER_EVIDENCE_DIR=docs/plans/artifacts/005-notification-panel node tests/Browser/notification-panel.cjs`: authenticated Chrome acceptance passed at 1440px/390px against the actual workspace build. Covers history and read/unread states, older pages, recovery refresh, zero read/claim/delivery requests on panel opening, exact thread/message navigation, gear activation by keyboard, modal/bell focus return, loading/empty/error/retry states, long-content bounds, denied permission feedback and desktop enable/test/pause requests. OS Notification is instrumented: this verifies API/settings interactions, not native toast delivery. The first browser run exposed Radix's trigger-based accessible name overriding the panel label; the panel now has the stable Notifications name. Focus assertions now wait for the actual close lifecycle, and screenshot capture finishes animations.
+- `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. `node scripts/check-docs.mjs`, `npm run foundation:check`, and `git diff --check`: passed.
+
+Screenshots: [desktop history](../artifacts/005-notification-panel/notifications-1440.png), [mobile history](../artifacts/005-notification-panel/notifications-390.png), [mobile settings](../artifacts/005-notification-panel/notification-settings-390.png), [mobile empty state](../artifacts/005-notification-panel/notifications-empty-390.png). Desktop/mobile history and settings were visually inspected. Native side-panel interaction, real OS toast acceptance, live Reverb and broader pilot acceptance remain pending; this scoped follow-up does not close plan 005 or certify a release.
+
+### October 13 bounded follow-up: separate sidebar chat directories
+
+Braden requests Messages to show direct messages only and Work chats to show work Chats only. At base `6d56c866c96a6585f3874d6eca001bae1076a5e0` plus the preserved working tree, Work chats already uses `ConversationDiscovery`'s work-only query. Changed only the web messaging entry and shared board: `/messages` defaults to the direct filter, legacy `view=all/chats/direct` links remain direct-only, and the web All/Chats/Direct switches are removed. Direct-only empty/selection copy describes private conversations. Activity remains separate, and authorized explicit work-chat/message/thread links keep their selected target while the directory stays direct-only. The combined extension directory remains available. No backend, dependency, schema or authorization change.
+
+October 13, 2026 scoped evidence: Node 24.14.1, PHP 8.5.1 isolated SQLite browser server at `127.0.0.1:18018`, installed headless Chrome and the actual workspace build. Existing disposable notification fixtures contain both a DM and a work Chat.
+
+- `npm run types:check`, `npm run build`, focused `vp check --no-fmt resources/js/pages/collaboration/index.tsx resources/js/components/collaboration/board.tsx`: passed. Existing compact formatting retained.
+- `node /private/tmp/sidewire-notification-browser/sidebar-check.cjs`: passed at 1440px/390px. Real sidebar navigation verifies disjoint directory titles, no web kind-switch controls, filtering, legacy query links, opening/reusing a DM, opening a work Chat, returning to Messages, Activity filters, preserved exact work-thread links, no page errors and bounded Messages layout. The harness was corrected to compare chat titles rather than legitimate author previews and to inspect attached directory content when mobile intentionally hides it behind the selected conversation.
+- `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. Documentation structure and `git diff --check`: passed. No backend suite was rerun for unchanged backend behavior; the preceding notification history tests retain their own evidence.
+
+Visually inspected [Messages mobile](../artifacts/005-sidebar-separation/messages-390.png) and [Work chats mobile](../artifacts/005-sidebar-separation/work-chats-390.png). Desktop artifacts: [Messages](../artifacts/005-sidebar-separation/messages-1440.png), [Work chats](../artifacts/005-sidebar-separation/work-chats-1440.png). No deployment or native extension interaction performed; broader plan 005 acceptance remains open.
 
 ## Interfaces and Dependencies
 

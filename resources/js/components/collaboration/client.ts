@@ -38,6 +38,7 @@ export type Todo = {
     };
 };
 export type Message = {
+    image_previews: { key: string; url: string }[];
     todo: Todo | null;
     can_create_todo: boolean;
     deleted: boolean;

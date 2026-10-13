@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Conversations;
 
+use App\Domain\Conversations\SendCollaborationMessage;
 use App\Enums\ApiTokenAbility;
 use App\Enums\ConversationType;
 use App\Enums\OrganizationMembershipStatus;
@@ -14,6 +15,7 @@ use App\Models\OrganizationMembership;
 use App\Models\User;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -329,6 +331,54 @@ class PilotCollaborationTest extends TestCase
         $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => false])->assertOk();
         $this->travel(46)->seconds();
         $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->assertJsonPath('data', null);
+    }
+
+    public function test_notification_history_retains_read_items_and_paginates_without_acknowledging_them(): void
+    {
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $chat = $this->workChat($owner);
+        for ($index = 1; $index <= 31; $index++) {
+            app(SendCollaborationMessage::class)->handle(
+                $owner->organization()->firstOrFail(), $owner, $chat, 'History item '.$index, (string) Str::uuid(), null, [$member->id]);
+        }
+        $read = MessageNotification::query()->oldest('id')->firstOrFail();
+        $read->forceFill(['read_at' => now()])->save();
+        $before = MessageNotification::query()->orderBy('id')->get()->toArray();
+
+        $this->actingAs($member)->getJson('/collaboration/notifications/history')->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertJsonCount(30, 'data')
+            ->assertJsonPath('data.0.body', 'History item 31')->assertJsonPath('data.0.read_at', null)
+            ->assertJsonPath('next_page', 2);
+        $this->getJson('/collaboration/notifications/history?page=2')->assertOk()->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $read->public_id)->assertJsonPath('data.0.body', 'History item 1')
+            ->assertJsonPath('data.0.read_at', $read->read_at->toISOString())->assertJsonPath('next_page', null);
+        $this->assertSame($before, MessageNotification::query()->orderBy('id')->get()->toArray());
+        $this->getJson('/collaboration/notifications')->assertOk()->assertJsonPath('unread_count', 30);
+    }
+
+    public function test_notification_history_is_recipient_scoped_and_rechecks_private_access_for_both_clients(): void
+    {
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $outside = User::factory()->create();
+        $chat = $this->direct($owner, $member);
+        $message = $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat.'/messages', $this->payload())
+            ->assertCreated()->json('data.id');
+        $this->actingAs($member)->getJson('/collaboration/notifications/history')->assertOk()
+            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.message_id', $message);
+        $this->actingAs($owner)->getJson('/collaboration/notifications/history')->assertOk()->assertJsonCount(0, 'data');
+        $this->actingAs($outside)->getJson('/collaboration/notifications/history')->assertOk()->assertJsonCount(0, 'data');
+        $token = $member->createToken('history test', [ApiTokenAbility::ExtensionAccess->value], now()->addHour());
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token->plainTextToken)->getJson('/api/v1/extension/collaboration/notifications/history')
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.message_id', $message);
+        DB::table('conversation_participants')
+            ->where('conversation_id', Conversation::query()->where('public_id', $chat)->sole()->id)
+            ->where('user_id', $member->id)->delete();
+        $this->withToken($token->plainTextToken)->getJson('/api/v1/extension/collaboration/notifications/history')
+            ->assertOk()->assertJsonCount(0, 'data');
+        $this->actingAs($member)->getJson('/collaboration/notifications/history')->assertOk()->assertJsonCount(0, 'data');
     }
 
     public function test_history_pagination_can_reach_messages_beyond_latest_hundred(): void

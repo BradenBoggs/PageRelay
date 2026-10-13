@@ -69,3 +69,7 @@ Security and usability require behavioral checks as well as static tools: tenant
 ## Structural enforcement is bounded
 
 The documentation checker protects navigation and lifecycle shape. It cannot establish true approval, feature completeness, truthful evidence, deployment, or compatibility with every browser. Those are review responsibilities. Where runtime or evidence is missing, use unverified/pending rather than a guessed quality grade.
+
+## Work-Chat controls, unread counts and incoming sound
+
+[Plan 016](plans/active/016-work-chat-controls.md) records October 13 admin-only creation/name editing, exact unseen-message counts, authorized incoming audio synthesis and desktop/mobile browser results. Host PHP/SQLite, TypeScript, web/extension builds and focused static checks passed. Native panel/Reverb/PostgreSQL checks remain pending; full-suite registration and whole-tree formatting failures are recorded without being represented as passes. The additive read migration has not been applied to shared databases; no release claimed.

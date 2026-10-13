@@ -87,4 +87,4 @@ Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the re
 
 - [015 — Work reference badges](active/015-message-reference-badges.md): approved October 13; generic bracket badges verified in web/parser checks, native side-panel acceptance pending.
 
-- [016 — Work Chat controls and incoming messages](active/016-work-chat-controls.md): approved October 13; implementation/checks in progress.
+- [016 — Work Chat controls and incoming messages](active/016-work-chat-controls.md): approved October 13; scoped web/SQLite checks passed; native-panel/PostgreSQL acceptance pending.

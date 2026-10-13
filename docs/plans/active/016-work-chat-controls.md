@@ -1,8 +1,8 @@
 # Admin work Chats, unread counts, and incoming sounds
 
-Lifecycle: in-progress
+Lifecycle: verification-pending
 Approval: Braden's October 13, 2026 requests authorize admin-only creation/editing of work Chats, unseen-message counts, and sounds for incoming messages from other users.
-Verification: pending
+Verification: scoped PHP/SQLite, web desktop/mobile, TypeScript, builds and static checks passed; native panel/PostgreSQL race checks pending
 Release: not released; deployment outside scope
 
 ## Purpose / Big Picture
@@ -12,10 +12,10 @@ Restrict work-Chat creation and name editing to active Organization owners/admin
 ## Progress
 
 - [x] Inspect branch, owners, current policies and read/delivery boundaries.
-- [ ] Implement role enforcement and name editing in shared web/panel UI.
-- [ ] Implement unread counts and authorized incoming-message detection/sound.
-- [ ] Verify focused permissions, counts, retries, web flows and static checks.
-- [ ] Record evidence and outstanding runtime/native-panel checks.
+- [x] Implement role enforcement and name editing in shared web/panel UI.
+- [x] Implement unread counts and authorized incoming-message detection/sound.
+- [x] Verify focused permissions, counts, retries, web flows and static checks.
+- [x] Record evidence and outstanding runtime/native-panel checks.
 
 ## Surprises & Discoveries
 
@@ -27,7 +27,7 @@ October 13: interpret chat editing as changing its name, preserving own-message 
 
 ## Outcomes & Retrospective
 
-Implementation and verification in progress. No deployment authorized.
+Implemented admin creation/name editing, exact unseen-message counts and authorized incoming audio synthesis. Scoped checks passed; native panel/PostgreSQL race coverage remains pending, so this plan stays active. No deployment authorized.
 
 ## Context and Orientation
 
@@ -51,7 +51,17 @@ Creation retains existing keys/normalization; rename repeats safely without chan
 
 ## Artifacts and Notes
 
-Evidence pending. Host PHP 8.5.1 and Node 24.14.1 available; initial Docker socket inspection denied by sandbox.
+October 13, 2026, base main `6aa57dfb5d29f2f04289664dceb450a2e8c8740a` plus this patch and preserved pre-existing work. Host PHP 8.5.1, Node 24.14.1; SQLite memory tests; disposable browser database/storage under `/private/tmp/sidewire-controls-browser/`. No shared database migrations, deployment or merge performed.
+
+- `php artisan test tests/Feature/Conversations tests/Feature/Activity`: 65 passed, 735 assertions, one PostgreSQL-only skip before the added migration-upgrade test. `php artisan test tests/Feature/Conversations/WorkChatControlsTest.php` after that addition: six passed, 92 assertions. Coverage includes active owner/admin/member and demoted/removed actors, web/panel requests, direct domain calls, creation retry after demotion, tenant/DM/retired isolation, exact root/reply acknowledgements, own/deleted exclusion, incoming cursor deduplication and preservation of prior reads during migration.
+- `php artisan test`: 188 passed, one pre-existing registration expectation failure (`RegistrationTest::test_public_registration_remains_closed`, expected GET 404, actual 200), one PostgreSQL skip; 1,360 assertions. No registration code changed. Existing SW-DEBT-002 tracks it.
+- Scoped `vendor/bin/pint`: passed. `php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress --debug`: passed, zero errors. Ordinary parallel PHPStan could not bind a sandbox loopback socket; debug mode resolved it.
+- `npm run types:check` and `npm run build`: web and extension passed. Focused `vp fmt`/`vp lint` passed for affected files; inherited compact board/panel formatting retained. `npm run check` remains blocked by 21 formatting findings across both existing compact files and unrelated prior work; no whole-tree formatting performed.
+- `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. `node scripts/check-docs.mjs`, `npm run foundation:check` and `git diff --check`: passed.
+- `SIDEWIRE_BROWSER_EVIDENCE_DIR=docs/plans/artifacts/016-work-chat-controls node tests/Browser/work-chat-controls.cjs`: Chrome passed against isolated fixtures. Covers creation, name-edit cancel, injected save failure/draft retention/retry at 1440/390px, immediate matching header titles, member controls hidden, incoming unread/read changes, initial/own/repeated-refresh silence, successful Web Audio oscillator scheduling and no page errors or overflow. This validates audio synthesis, not an audible physical speaker. Browser autoplay requires interaction. Screenshots: [desktop](../artifacts/016-work-chat-controls/work-chat-1440.png), [mobile](../artifacts/016-work-chat-controls/work-chat-390.png); mobile inspected visually.
+- Initial Docker inspection was sandbox-blocked; scoped escalation established Docker and running Sail PHP 8.4.23. Supported-runtime focused result follows below.
+
+Outstanding: native Chrome side-panel interaction, live Reverb transport and PostgreSQL concurrency. Do not infer these from browser/SQLite checks. The additive `message_reads` migration must be applied when installing the change; previous exact historical reads without persisted evidence cannot be reconstructed. Each open client can play its own cue; cross-client sound claims and configurable preferences are outside scope.
 
 ## Interfaces and Dependencies
 

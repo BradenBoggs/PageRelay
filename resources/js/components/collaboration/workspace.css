@@ -279,3 +279,64 @@
     .sw-message-actions { display: none; }
     .sw-message-mobile-actions { display: block; align-self: flex-start; }
 }
+
+/* Message-owned todos reuse the shared chat audience and visual tokens. */
+.sw-todos { width: 100%; max-width: 880px; margin: 0 auto; padding: 24px; min-width: 0; }
+.sw-todos-heading { margin-bottom: 24px; }
+.sw-todos-heading h1 { display: flex; align-items: center; gap: 10px; font-size: 28px; margin: 8px 0; }
+.sw-todos-heading p { color: var(--sw-muted); font-size: 14px; }
+.sw-todo-filters { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+.sw-todo-list { display: grid; gap: 12px; }
+.sw-todo-card { padding: 18px; border: 1px solid var(--sw-border); border-radius: var(--sw-radius); background: var(--sw-surface); min-width: 0; }
+.sw-todo-card h2 { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; margin: 0 0 8px; }
+.sw-todo-card small { display: block; color: var(--sw-muted); margin-top: 10px; }
+.sw-todo-completed-title { text-decoration: line-through; color: var(--sw-muted); }
+.sw-todo-status { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-size: 12px; }
+.sw-todo-status > .sw-inline-error { flex-basis: 100%; }
+.sw-todo-check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.sw-todo-check input { width: 16px; height: 16px; accent-color: var(--sw-accent); }
+.sw-todo-check svg { width: 13px; height: 13px; color: var(--sw-accent); }
+.sw-todo-assignee { color: var(--sw-muted); overflow-wrap: anywhere; }
+.sw-todo-reference { display: block; color: var(--sw-muted); border-left: 2px solid var(--sw-border); margin-top: 14px; padding: 4px 10px; text-decoration: none; font-size: 12px; }
+.sw-todo-reference:hover { color: var(--sw-accent); }
+.sw-todo-reference p, .sw-todo-original p { white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 5px 0 0; }
+.sw-todo-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; font-size: 12px; }
+.sw-todo-form { display: grid; gap: 16px; }
+.sw-todo-form label { display: grid; gap: 6px; font-size: 13px; }
+.sw-todo-form input, .sw-todo-form select { width: 100%; min-height: 40px; padding: 8px; border: 1px solid var(--sw-border); border-radius: 6px; background: var(--sw-surface); color: var(--sw-text); }
+.sw-todo-original { background: var(--sw-panel); border-radius: 6px; padding: 12px; font-size: 12px; color: var(--sw-muted); }
+.sw-extension-todos { height: 100%; overflow-y: auto; padding: 14px; }
+@media (max-width: 767px) { .sw-todos-heading h1 { font-size: 24px; } .sw-todo-card { padding: 14px; } .sw-todo-filters { gap: 8px; } }
+
+.sw-extension-todos .sw-todos { padding: 12px 0; }
+@media (max-width: 767px) { .sw-todos { padding: 18px; } }
+
+@media (max-width: 767px) { .sw-collaboration .sw-message-todo-edit { display: none; } }
+
+/* Concept 2: a quiet inline action in chat; all task details live on Todos. */
+.sw-todo-inline { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; min-width: 0; font-size: 13px; color: var(--sw-muted); }
+.sw-todo-inline input { flex: 0 0 16px; width: 16px; height: 16px; accent-color: var(--sw-accent); }
+.sw-todo-title-link { display: inline-flex; align-items: center; gap: 6px; text-align: left; color: inherit; text-decoration: none; padding: 0; min-width: 0; overflow-wrap: anywhere; background: none; border: 0; }
+.sw-todo-title-link:hover { color: var(--sw-accent); }
+.sw-todo-title-link svg { width: 13px; height: 13px; flex-shrink: 0; }
+.sw-todo-inline[data-completed="true"] .sw-todo-title-link { text-decoration: line-through; }
+.sw-todo-inline .sw-inline-error { flex-basis: 100%; }
+.sw-todo-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px 90px; align-items: center; gap: 16px; padding: 14px 12px; border-bottom: 1px solid var(--sw-border); }
+.sw-todo-row .sw-todo-inline { margin: 0; color: var(--sw-text); }
+.sw-todo-row-assignee { font-size: 12px; color: var(--sw-muted); overflow-wrap: anywhere; }
+.sw-todo-row-status { font-size: 11px; color: var(--sw-muted); border-radius: 20px; background: var(--sw-panel); padding: 4px 8px; justify-self: end; }
+.sw-todo-selected { background: var(--sw-accent-soft); }
+.sw-todo-list { gap: 0; }
+.sw-todo-details { border-top: 1px solid var(--sw-border); margin-top: 28px; padding-top: 24px; }
+.sw-todo-details > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.sw-todo-details h2 { font-size: 18px; font-weight: 650; overflow-wrap: anywhere; }
+.sw-todo-details .sw-todo-status { margin: 0; flex-shrink: 0; }
+.sw-todo-details .sw-todo-reference { display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 0; color: var(--sw-accent); }
+.sw-todo-details .sw-todo-reference svg { width: 13px; height: 13px; }
+.sw-todo-details > small { display: block; margin-top: 12px; color: var(--sw-muted); }
+@media (max-width: 767px) {
+    .sw-todo-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 14px 8px; }
+    .sw-todo-row .sw-todo-inline { grid-column: 1 / -1; flex-wrap: nowrap; align-items: flex-start; }
+    .sw-todo-row-assignee { padding-left: 24px; }
+    .sw-message-body .sw-todo-inline { flex-wrap: nowrap; align-items: flex-start; }
+}

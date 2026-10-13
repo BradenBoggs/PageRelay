@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, Globe2, Hash, MessagesSquare } from 'lucide-react';
+import {
+    Activity,
+    ListTodo,
+    Bell,
+    Globe2,
+    Hash,
+    MessagesSquare,
+} from 'lucide-react';
 import { chatDiscoveryUrl } from '@/lib/chat-navigation';
 import type { ChatDiscovery } from '@/types/chat';
 
@@ -66,6 +73,18 @@ export function AppNavigation({
                         >
                             <Bell aria-hidden="true" />
                             <span>Activity</span>
+                        </Link>
+                        <Link
+                            href="/todos"
+                            onClick={onNavigate}
+                            className="sw-nav-link"
+                            aria-current={
+                                path === '/todos' ? 'page' : undefined
+                            }
+                            title="Todos"
+                        >
+                            <ListTodo aria-hidden="true" />
+                            <span>Todos</span>
                         </Link>
                     </>
                 )}

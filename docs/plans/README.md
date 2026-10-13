@@ -80,3 +80,5 @@ Read Progress, Outcomes, current approval, and pending validation before continu
 Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the register and linked plan consistent. Structural checks detect misplaced plans and missing links; they cannot decide whether evidence is truthful or sufficient.
 
 - [012 — Owned message editing and mobile actions](active/012-owned-message-editing.md): approved October 13; scoped editing/mobile web checks passed, broader runtime verification pending.
+
+- [013 — Message-linked todos and assignment](active/013-message-todos.md): approved October 13; scoped todo/assignment web and SQLite checks passed, wider runtime verification pending.

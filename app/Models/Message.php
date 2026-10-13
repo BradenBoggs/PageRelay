@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -29,6 +30,7 @@ use Illuminate\Support\Str;
  * @property int $edit_version
  * @property Carbon|null $deleted_at
  * @property Carbon $created_at
+ * @property-read Todo|null $todo
  * @property-read Conversation $conversation
  * @property-read User $author
  * @property-read PageContext|null $sourcePageContext
@@ -93,6 +95,12 @@ class Message extends Model
     public function mentionedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'message_mentions');
+    }
+
+    /** @return HasOne<Todo, $this> */
+    public function todo(): HasOne
+    {
+        return $this->hasOne(Todo::class);
     }
 
     public function getRouteKeyName(): string

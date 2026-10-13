@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CollaborationController;
 use App\Http\Controllers\MessageNotificationController;
+use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
 
 // Included only inside an authenticated, verified organization route group.
@@ -18,3 +19,8 @@ Route::get('notifications/history', [MessageNotificationController::class, 'hist
 Route::put('notifications/settings', [MessageNotificationController::class, 'settings']);
 Route::post('notifications/{notification}/claim', [MessageNotificationController::class, 'claim']);
 Route::post('notifications/{notification}/delivered', [MessageNotificationController::class, 'delivered']);
+
+Route::get('todos', [TodoController::class, 'index']);
+Route::get('todos/{todo}', [TodoController::class, 'show']);
+Route::post('chats/{conversation}/messages/{message}/todo', [TodoController::class, 'store'])->middleware('throttle:60,1');
+Route::patch('todos/{todo}', [TodoController::class, 'update'])->middleware('throttle:60,1');

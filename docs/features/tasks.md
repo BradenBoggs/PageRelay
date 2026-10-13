@@ -1,8 +1,18 @@
 # Tasks, shared lists, and action tracking
 
-Status: **Draft for owner review. Expansion target; not established as implemented.** The baseline proposed simple page-related tasks. This revision makes a page optional and defines shared lists without making a project-management suite a launch requirement. See [review scope](README.md).
+Status: **Message-linked todos and assignment approved October 13, 2026 and implemented as a local candidate; verification is recorded in plan 013. Remaining expansion targets are drafts.** The baseline proposed simple page-related tasks. This revision makes a page optional and defines shared lists without making a project-management suite a launch requirement. See [review scope](README.md).
 
 This document owns task/list records, assignment, status, due dates, and resource permissions. Personal reminders belong to [Saved items](saved-items-and-reminders.md); automated forms and recurring actions belong to [Workflows](workflows-and-automation.md).
+
+## Approved message-linked todos — October 13, 2026
+
+The user approved converting messages into todos with user assignment, visible message checkmarks and a todo list linking back to the message. See [plan 013](../plans/active/013-message-todos.md) for execution/verification. Broader lists, due dates, reminders, custom statuses and independent tasks below remain proposals.
+
+One todo belongs to one retained message, including replies and DMs. Conversion previews a required title (up to 200 characters), optional assignee and inherited chat audience. All active members with access to that chat can manage its todo, except retired chats are read-only. Creation retries return the existing todo rather than changing its assignment. Updates use a version to reject stale writes; identical retries succeed.
+
+Assignment is optional and limited to active coworkers who can read the owning chat. Assignment grants no access and emits no new notification in this slice. Members can edit the todo title, reassign/unassign, complete and reopen; retain completion actor/time while completed. Removed assignees stay attributed and are marked as needing reassignment. An author editing a message never changes its todo title. Deleting a message retains the todo, while its original-message preview becomes “Message deleted”; never keep a hidden message-body snapshot.
+
+The Todos view shows accessible todos only, with All/Mine and Open/Completed/All filters, pagination, assignee, completion checkbox and a live message reference. The approved concept 2 renders message todos as a compact checkbox, title and link to `/todos?todo=<id>`, with completed titles struck through. Assignment, title editing and original-message details live on the Todos page in a selected details panel; completing either view updates the same record. Narrow screens expose conversion through the existing action dropdown. No page context or extension installation is required.
 
 ## Purpose and ownership
 
@@ -41,3 +51,12 @@ A teammate can create and complete an assigned action without a page. Several li
 Confirm shared-task editing roles, whether list editors differ from channel posting roles, and whether boards/custom fields/subtasks belong in the first task release. Approve reminder timing, archive recovery, and list/item limits. Gantt charts, portfolios, time tracking, resource planning, and synchronization with every external task system remain outside this feature.
 
 Reference coverage: [Slack lists](https://slack.com/help/articles/27452748828179-Use-lists-in-Slack). SideWire's simplified scope and permission defaults are proposals.
+
+## Implementation map — approved message todos
+
+- Persistence: `Todo`, `Message::todo`, the message-owned `todos` table and additive migration.
+- Access and mutations: `ManageTodo`, `TodoController`, `TodoResource`, shared collaboration routes. Visibility follows `ConversationAccess`; retired chats are read-only.
+- Message state and missed-event recovery: `MessageResource`, `CollaborationController::messages`, existing signal-only `MessageCreated` event.
+- Shared UI: `todos.tsx`, `MessageRow`, `CollaborationClient` todo types; extension board exposes the same Todos list without new permissions.
+- Web entry: `/todos`, `resources/js/pages/todos/index.tsx`, `AppNavigation`.
+- Coverage: `MessageTodoTest`, `tests/Browser/message-todos.cjs`; actual evidence/omissions in [plan 013](../plans/active/013-message-todos.md).

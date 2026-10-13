@@ -14,6 +14,7 @@ import {
     Trash2,
     Pencil,
     MoreHorizontal,
+    ListTodo,
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -31,6 +32,7 @@ import {
     type Source,
 } from './client';
 import { Composer } from './composer';
+import { TodoDialog, TodoStatus } from './todos';
 import {
     dayLabel,
     mentionParts,
@@ -628,6 +630,7 @@ function MessageRow({
     const { client } = useCollaboration();
     const [copied, setCopied] = useState(false);
     const article = useRef<HTMLElement>(null);
+    const [todoOpen, setTodoOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editBody, setEditBody] = useState('');
     const [editVersion, setEditVersion] = useState(0);
@@ -780,6 +783,7 @@ function MessageRow({
                         ),
                     )}
                 </p>
+                {item.todo && <TodoStatus todo={item.todo} inMessage />}
                 {item.edited_at && (
                     <span className="sw-edited-marker">Edited</span>
                 )}
@@ -905,6 +909,14 @@ function MessageRow({
                     </button>
                 </div>
             </CollaborationDialog>
+            <TodoDialog
+                open={todoOpen}
+                onOpenChange={setTodoOpen}
+                chatId={chatId}
+                messageId={item.id}
+                messageBody={item.body}
+                todo={item.todo}
+            />
             <div className="sw-message-mobile-actions">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -923,6 +935,14 @@ function MessageRow({
                             sideOffset={4}
                             className="sw-message-action-menu"
                         >
+                            {item.can_create_todo && (
+                                <DropdownMenuItem
+                                    onSelect={() => setTodoOpen(true)}
+                                >
+                                    <ListTodo />
+                                    Convert to todo
+                                </DropdownMenuItem>
+                            )}
                             {item.can_edit && (
                                 <DropdownMenuItem onSelect={startEdit}>
                                     <Pencil />
@@ -968,6 +988,13 @@ function MessageRow({
                 </DropdownMenu>
             </div>
             <div className="sw-message-actions">
+                {item.can_create_todo && (
+                    <IconButton
+                        icon={ListTodo}
+                        label="Convert to todo"
+                        onClick={() => setTodoOpen(true)}
+                    />
+                )}
                 {item.can_edit && (
                     <IconButton
                         icon={Pencil}

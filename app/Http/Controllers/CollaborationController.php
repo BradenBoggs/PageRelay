@@ -87,7 +87,7 @@ class CollaborationController extends Controller
         $root = isset($input['thread']) ? $chat->messages()->whereNull('thread_root_id')
             ->where('public_id', $input['thread'])->firstOrFail() : null;
         $query = $chat->messages()->where('thread_root_id', $root?->id)
-            ->with(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])->withCount('replies');
+            ->with(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers', 'todo.assignee', 'todo.completer', 'todo.message.conversation', 'todo.message.threadRoot'])->withCount('replies');
         if (isset($input['before'])) {
             $before = (clone $query)->where('public_id', $input['before'])->firstOrFail();
             $query->where('id', '<', $before->id);
@@ -115,8 +115,8 @@ class CollaborationController extends Controller
             'data' => $messages->map(fn (Message $message): array => (new MessageResource($message))->resolve($request)),
             'deleted_ids' => $deletedIds,
             'updated_messages' => $loadedSince ? $chat->messages()->where('thread_root_id', $root?->id)
-                ->where('id', '>=', $loadedSince->id)->whereNotNull('edited_at')->whereNull('deleted_at')
-                ->with(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])->withCount('replies')
+                ->where('id', '>=', $loadedSince->id)->where(fn ($query) => $query->whereNotNull('edited_at')->orWhereHas('todo'))->whereNull('deleted_at')
+                ->with(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers', 'todo.assignee', 'todo.completer', 'todo.message.conversation', 'todo.message.threadRoot'])->withCount('replies')
                 ->get()->map(fn (Message $message): array => (new MessageResource($message))->resolve($request)) : [],
             'older_cursor' => $more ? $messages->first()?->public_id : null,
         ])->header('Cache-Control', 'no-store, private');

@@ -42,6 +42,10 @@ Its subsequent visual follow-up rebuilt the actual workspace web/extension asset
 
 [Plan 012](plans/active/012-owned-message-editing.md) records 8 focused PHP 8.5.1/SQLite tests (85 assertions), PHP static analysis, web/extension types/builds and Chrome editing/mobile-dropdown acceptance at 1440px/390px. Full suite: 176 passed, 1 unrelated registration assertion failed and 1 PostgreSQL-only skip. Native side-panel interaction, live Reverb, PHP 8.4 and PostgreSQL races remain unverified; no deployment.
 
+## October 13 message-linked todos and assignment
+
+[Plan 013](plans/active/013-message-todos.md) records 12 focused PHP 8.5.1/SQLite tests (156 assertions), PHP analysis, web/extension types/builds, scoped lint/format and Chrome 1440px/390px conversion/assignment/completion/reference checks. Full suite: 180 passed, existing registration assertion failed, one PostgreSQL-only skip. Private task visibility/assignee eligibility, removed membership, retry/conflict behavior and live message references are covered. PHP 8.4/PostgreSQL concurrency, live Reverb and native side-panel interactions remain unverified; no deployment.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

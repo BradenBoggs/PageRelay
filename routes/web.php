@@ -5,6 +5,7 @@ use App\Http\Controllers\CollaborationController;
 use App\Http\Controllers\ExtensionConnectionController;
 use App\Http\Controllers\Organizations\InvitationRegistrationController;
 use App\Http\Controllers\Organizations\OrganizationInvitationController;
+use App\Http\Controllers\TodoController;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'verified', EnsureOrganizationMembership::class, 'thr
     Route::post('extension/connect/{handoff}', [ExtensionConnectionController::class, 'store'])->name('extension.connect.store');
 });
 Route::middleware(['auth', 'verified', EnsureOrganizationMembership::class])->group(function (): void {
+    Route::get('todos', [TodoController::class, 'home'])->name('todos.index');
     Route::get('messages', [CollaborationController::class, 'home'])->name('messages.index');
     Route::prefix('collaboration')->middleware('throttle:240,1')->group(function (): void {
         require __DIR__.'/collaboration.php';

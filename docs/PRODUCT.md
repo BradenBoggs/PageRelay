@@ -20,7 +20,7 @@ The foundation account model is one organization per user. The organization is t
 4. When no Chat is linked, the user explicitly creates a named work Chat for the page or an authorized owner or administrator links the page to an existing eligible work Chat. Members may also create and use a named work Chat directly from Chats before any page is linked. Only explicit creation or linking persists collaboration data.
 5. The user continues the same durable Chat beside a linked page or directly from SideWire's Chats view.
 6. Teammates reach the same shared history from either linked page, or catch up through Activity and find discussions through Chats and search.
-7. In a later milestone, the team can create and complete lightweight page-related tasks.
+7. The approved message-todo slice lets members convert messages into assigned actions, complete them and follow the original message from Todos; see [Tasks](features/tasks.md) for verification status.
 
 The first useful release needs to make this loop dependable. It does not need to mirror every feature of Slack, Microsoft Teams, or a full project-management platform.
 
@@ -38,7 +38,7 @@ The first useful release needs to make this loop dependable. It does not need to
 - **Channel:** a future shared Chat with its own ongoing-topic and audience semantics, such as Sales or Announcements. Current named work Chats are organization-wide and page-linkable without implementing full channel membership or administration.
 - **Activity:** a cross-tool view of relevant updates, unread chats, and mentions as those features ship. Replies appear only after replies are separately approved.
 - **Chats:** the browsable and searchable collection of discussions. Activity answers what changed; Chats helps locate a discussion.
-- **Task:** a lightweight action item tied to a page context. Tasks follow the core chat workflow.
+- **Task:** a lightweight action item owned by its message/chat, with an optional assignee and a reference to the original message. Tasks follow the core chat workflow.
 - **Source page:** the external page represented by a page context. A message may record the page context selected when it was sent.
 
 Use Chat and Activity in user-facing copy instead of Conversation and Inbox. Existing `Conversation` models, storage names, the internal `page` discriminator, and specification filenames may remain; they refer to the same Chat concept, not a second product entity. In particular, `page-conversations.md` owns work Chats and page linking, and `inbox-and-unread.md` owns Activity and read state. Do not perform a rename-only code or schema migration.
@@ -86,7 +86,7 @@ The following remain intentionally open:
 - message editing and physical retention policy; own-message deletion and shared work-Chat admin moderation are approved in [Messaging](features/messaging-and-composer.md);
 - attachments, screenshots, reactions, threaded replies, and rich formatting;
 - notification channels and preferences;
-- task behavior beyond the later lightweight-task direction;
+- task behavior beyond the approved message-linked todo slice;
 - supported Chrome versions and extension-store distribution timing;
 - future multi-organization membership and switching;
 - workspace access restrictions and team-driven access;
@@ -106,7 +106,7 @@ Manual page-to-chat linking is no longer an open product question; its approved 
 - Private member communication: `docs/features/direct-messages.md`
 - Activity and read state: `docs/features/inbox-and-unread.md`
 - Mentions and notification delivery: `docs/features/mentions-and-notifications.md`
-- Lightweight actions tied to work pages: `docs/features/tasks.md`
+- Message-linked assigned todos: `docs/features/tasks.md`
 - Search across authorized SideWire content: `docs/features/search.md`
 - Native adapters and third-party services: `docs/features/integrations.md`
 - Pricing, subscriptions, and paid access: `docs/features/billing-and-product-access.md`

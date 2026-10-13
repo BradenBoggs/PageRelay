@@ -16,7 +16,27 @@ export type Chat = {
     unread_attention: number;
     linked_pages: Source[];
 };
+export type Todo = {
+    id: string;
+    title: string;
+    version: number;
+    completed: boolean;
+    completed_at: string | null;
+    completed_by: Person | null;
+    assignee: Person | null;
+    needs_reassignment: boolean;
+    can_manage: boolean;
+    message: {
+        id: string;
+        body: string;
+        chat_id: string;
+        chat_title: string;
+        thread_id: string | null;
+    };
+};
 export type Message = {
+    todo: Todo | null;
+    can_create_todo: boolean;
     deleted: boolean;
     can_delete: boolean;
     can_edit: boolean;

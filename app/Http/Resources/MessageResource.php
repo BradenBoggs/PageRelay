@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Domain\Conversations\DeleteMessage;
 use App\Domain\Conversations\EditMessage;
+use App\Domain\Todos\ManageTodo;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -18,6 +19,8 @@ class MessageResource extends JsonResource
             'id' => $this->public_id,
             'body' => $this->deleted_at ? 'Message deleted' : $this->body,
             'can_edit' => app(EditMessage::class)->allowed($request->user(), $this->resource),
+            'todo' => $this->todo ? (new TodoResource($this->todo))->resolve($request) : null,
+            'can_create_todo' => $this->deleted_at === null && $this->todo === null && app(ManageTodo::class)->canManage($request->user(), $this->resource),
             'edited_at' => $this->edited_at?->toISOString(),
             'edit_version' => $this->edit_version,
             'deleted' => $this->deleted_at !== null,

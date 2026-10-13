@@ -2,6 +2,7 @@ import { ArrowDownLeft, ArrowUpRight, AtSign, Bell, CheckCheck, ChevronLeft, Che
 import { useEffect, useRef, useState } from 'react';
 import type { AttentionPage, Chat, Person } from './client';
 import { ConversationView } from './conversation';
+import { TodoList } from './todos';
 import { timeLabel } from './presentation';
 import { useCollaboration } from './provider';
 import { CollaborationDialog, EmptyState, IconButton, InlineError, PersonAvatar } from './ui';
@@ -13,6 +14,7 @@ const emptySelection: Selection = { chat: null, thread: null, message: null };
 export function CollaborationBoard({ initialChat, initialThread, initialMessage, initialView = 'all', onCreateChat }: { initialChat?: string | null; initialThread?: string | null; initialMessage?: string | null; initialView?: CommunicationView; onCreateChat?: () => void }) {
     const { client, revision, attention } = useCollaboration();
     const [selection, setSelection] = useState<Selection>({ chat: initialChat ?? null, thread: initialThread ?? null, message: initialMessage ?? null });
+    const [showTodos, setShowTodos] = useState(false);
     const [tab, setTab] = useState<CommunicationView>(initialView);
     const [chats, setChats] = useState<Chat[]>([]);
     const [activity, setActivity] = useState<AttentionPage | null>(null);
@@ -67,12 +69,14 @@ export function CollaborationBoard({ initialChat, initialThread, initialMessage,
     }
     const filtered = chats.filter((chat) => `${chat.title} ${chat.linked_pages.map((source) => source.host).join(' ')}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
     const attentionItems = activity?.data.filter((item) => (activityFilter === 'all' || item.reason === activityFilter) && `${item.author} ${item.body} ${item.chat_title}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())) ?? [];
+    if (showTodos) return <div className="sw-collaboration sw-extension-todos"><button type="button" className="sw-button-text" onClick={() => setShowTodos(false)}>Back to messages</button><TodoList /></div>;
     return <div className="sw-collaboration sw-board" data-selected={Boolean(selection.chat)}>
         <aside ref={list} tabIndex={-1} className="sw-conversation-list" aria-label={isActivity ? 'Mentions and replies' : 'Conversations'}>
             <header className="sw-directory-heading"><div><span className="sw-section-kicker">YOUR WORKSPACE</span><h1>{isActivity ? 'Activity' : 'Messages'}</h1></div><IconButton icon={Plus} label="New direct message" onClick={() => setNewDirect(true)} /></header>
             <div className="sw-directory-tools">
                 <label className="sw-filter-input"><Search aria-hidden="true" /><span className="sw-visually-hidden">Filter conversations on this page</span><input type="search" value={query} maxLength={100} onChange={(event) => setQuery(event.target.value)} placeholder={isActivity ? 'Filter activity on this page' : 'Filter conversations on this page'} />{query && <IconButton icon={X} label="Clear filter" onClick={() => setQuery('')} />}</label>
                 {!isActivity ? <nav className="sw-directory-tabs" aria-label="Communication views">{(['all', 'chats', 'direct'] as const).map((value) => <button type="button" key={value} aria-label={value === 'direct' ? 'Direct messages' : undefined} aria-pressed={tab === value} onClick={() => changeTab(value)}>{value === 'all' ? 'All' : value === 'chats' ? 'Chats' : 'Direct'}</button>)}</nav> : <nav className="sw-directory-tabs" aria-label="Activity filters">{(['all', 'mention', 'thread', 'direct'] as const).map((value) => <button type="button" key={value} aria-pressed={activityFilter === value} onClick={() => setActivityFilter(value)}>{value === 'all' ? 'All' : value === 'mention' ? 'Mentions' : value === 'thread' ? 'Threads' : 'DMs'}</button>)}</nav>}
+                {client.token && <button type="button" className="sw-activity-shortcut" onClick={() => setShowTodos(true)}><CheckCheck aria-hidden="true" />Todos</button>}
                 {client.token && <button type="button" className="sw-activity-shortcut" onClick={() => changeTab(isActivity ? 'all' : 'activity')}><Bell aria-hidden="true" /><span>{isActivity ? 'Back to all messages' : 'Mentions & replies'}</span>{!isActivity && Boolean(attention?.unread_count) && <span className="sw-attention-badge">{attention!.unread_count}</span>}{isActivity && <ArrowUpRight aria-hidden="true" />}</button>}
             </div>
             <div className="sw-directory-scroll" aria-busy={loading}>

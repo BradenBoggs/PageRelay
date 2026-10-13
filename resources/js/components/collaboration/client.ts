@@ -13,10 +13,13 @@ export type Chat = {
     title: string;
     type: 'page' | 'direct';
     can_send: boolean;
+    can_edit: boolean;
     unread_attention: number;
+    unread_count: number;
     linked_pages: Source[];
 };
 export type Todo = {
+    description: string | null;
     id: string;
     title: string;
     version: number;

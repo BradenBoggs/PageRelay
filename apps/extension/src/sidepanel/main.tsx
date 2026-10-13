@@ -265,7 +265,7 @@ function SidePanel() {
                 </header>
                 <nav className="sw-extension-tabs" aria-label="Side panel"><button type="button" aria-pressed={view === 'page'} onClick={() => { setView('page'); setRefresh((value) => value + 1); }}><Globe2 aria-hidden="true" />This Page</button><button type="button" aria-pressed={view === 'messages'} onClick={() => { setSelectedChat(null); setView('messages'); }}><MessagesSquare aria-hidden="true" />Messages & DMs</button></nav>
                 {error && !createOpen && <InlineError>{error}</InlineError>}
-                {view === 'messages' ? <CollaborationBoard key={selectedChat ?? 'board'} initialChat={selectedChat} onCreateChat={() => setCreateOpen(true)} /> : <div className="sw-page-home">
+                {view === 'messages' ? <CollaborationBoard key={selectedChat ?? 'board'} initialChat={selectedChat} onCreateChat={session.organization.canManagePageLinks ? () => setCreateOpen(true) : undefined} /> : <div className="sw-page-home">
                     {resolving && <p className="sw-page-loading" role="status">Finding this page’s conversation…</p>}
                     {pageError && <EmptyState icon={Globe2} title="Your messages are still here">{pageError}</EmptyState>}
                     {page && <>
@@ -353,7 +353,8 @@ function PageActions({
     return (
         <div className="sw-page-actions">
             {error && <InlineError>{error}</InlineError>}
-            {!page.chat && (
+            {!page.chat && !session.organization.canManagePageLinks && <p>No chat is linked to this page. Ask an administrator to create or link a work chat.</p>}
+            {!page.chat && session.organization.canManagePageLinks && (
                 <form
                     onSubmit={(event) => {
                         event.preventDefault();

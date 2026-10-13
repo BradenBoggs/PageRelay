@@ -14,7 +14,7 @@ Use focused list/detail/thread states, a reachable composer, visible audience/so
 
 The October 8 refinement uses the shared messaging palette and components with a compact extension header, two primary tabs, and a bell-triggered notification dialog. Each panel destination fills the available height with one independently scrolling timeline and a reachable composer. Narrow threads replace the main timeline without reassigning its draft or reading hidden messages.
 
-New work-chat creation is a short dialog available from the directory; the existing explicit page creation/linking and manager-only rules remain unchanged. Detected URL/title fields are reviewable details, not persistent raw-URL clutter. Disconnect remains an explicit account action. No background-worker, permission, API, or authentication semantics change with the redesign. See [UI](../UI.md) for shared behavior and [plan 005](../plans/active/005-gps-communication-pilot.md) for validation limits.
+New work-chat creation is a short dialog available to owners/admins from the directory. Page creation and work-chat name editing also follow the [work-Chat administration rule](page-conversations.md); members see an explanation when a page has no chat. Detected URL/title fields are reviewable details, not persistent raw-URL clutter. Disconnect remains an explicit account action. No background-worker, permission, API, or authentication semantics change with the redesign. See [UI](../UI.md) for shared behavior and [plan 005](../plans/active/005-gps-communication-pilot.md) for validation limits.
 
 ## Permissions and privacy
 

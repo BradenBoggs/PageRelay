@@ -6,6 +6,8 @@ use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
 
 // Included only inside an authenticated, verified organization route group.
+Route::get('updates', [CollaborationController::class, 'updates']);
+Route::patch('chats/{conversation}', [CollaborationController::class, 'updateChat']);
 Route::get('chats', [CollaborationController::class, 'index']);
 Route::get('members', [CollaborationController::class, 'members']);
 Route::post('direct', [CollaborationController::class, 'direct'])->middleware('throttle:30,1');

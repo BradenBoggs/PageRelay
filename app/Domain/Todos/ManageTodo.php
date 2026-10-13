@@ -56,9 +56,9 @@ class ManageTodo
         }
     }
 
-    public function create(User $actor, Message $message, string $title, ?int $assigneeId): Todo
+    public function create(User $actor, Message $message, string $title, ?int $assigneeId, ?string $description = null): Todo
     {
-        return DB::transaction(function () use ($actor, $message, $title, $assigneeId): Todo {
+        return DB::transaction(function () use ($actor, $message, $title, $assigneeId, $description): Todo {
             $this->authorizeLocked($actor, $message);
             $locked = Message::query()->whereKey($message->id)->lockForUpdate()->firstOrFail();
             $existing = Todo::query()->where('message_id', $locked->id)->first();
@@ -68,19 +68,20 @@ class ManageTodo
             abort_if($locked->deleted_at !== null, 409, 'Deleted messages cannot be converted into todos.');
             $this->validateAssignee($assigneeId, $locked);
             $todo = Todo::query()->create(['message_id' => $locked->id, 'created_by' => $actor->id,
-                'title' => $title, 'assignee_id' => $assigneeId]);
+                'title' => $title, 'description' => $description, 'assignee_id' => $assigneeId]);
             MessageCreated::dispatch($locked);
 
             return $todo;
         }, 3);
     }
 
-    public function update(User $actor, Todo $todo, string $title, ?int $assigneeId, bool $completed, int $version): Todo
+    public function update(User $actor, Todo $todo, string $title, ?int $assigneeId, bool $completed, int $version, ?string $description = null, bool $updateDescription = false): Todo
     {
-        return DB::transaction(function () use ($actor, $todo, $title, $assigneeId, $completed, $version): Todo {
+        return DB::transaction(function () use ($actor, $todo, $title, $assigneeId, $completed, $version, $description, $updateDescription): Todo {
             $this->authorizeLocked($actor, $todo->message);
             $locked = Todo::query()->whereKey($todo->id)->lockForUpdate()->firstOrFail();
-            $same = $locked->title === $title && $locked->assignee_id === $assigneeId
+            $nextDescription = $updateDescription ? $description : $locked->description;
+            $same = $locked->description === $nextDescription && $locked->title === $title && $locked->assignee_id === $assigneeId
                 && ($locked->completed_at !== null) === $completed;
             if ($same && ($locked->version === $version || $locked->version === $version + 1)) {
                 return $locked;
@@ -90,7 +91,7 @@ class ManageTodo
             if ($locked->assignee_id !== $assigneeId) {
                 $this->validateAssignee($assigneeId, $locked->message);
             }
-            $changes = ['title' => $title, 'assignee_id' => $assigneeId, 'version' => $version + 1];
+            $changes = ['title' => $title, 'description' => $nextDescription, 'assignee_id' => $assigneeId, 'version' => $version + 1];
             if (($locked->completed_at !== null) !== $completed) {
                 $changes['completed_at'] = $completed ? now() : null;
                 $changes['completed_by'] = $completed ? $actor->id : null;

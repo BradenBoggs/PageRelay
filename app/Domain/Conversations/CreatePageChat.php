@@ -4,6 +4,7 @@ namespace App\Domain\Conversations;
 
 use App\Domain\PageContexts\CreatePageContext;
 use App\Enums\ConversationType;
+use App\Enums\OrganizationRole;
 use App\Models\Conversation;
 use App\Models\Organization;
 use App\Models\OrganizationMembership;
@@ -39,12 +40,14 @@ class CreatePageChat
             $chatName,
             $faviconUrl,
         ): PageContext {
-            OrganizationMembership::query()
+            $membership = OrganizationMembership::query()
                 ->active()
                 ->where('organization_id', $organization->id)
                 ->where('user_id', $actor->id)
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            abort_unless($membership && $membership->role->isAtLeast(OrganizationRole::Administrator), 403);
 
             $context = $this->createContext->handle(
                 $organization,

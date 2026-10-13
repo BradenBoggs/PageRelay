@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
  * @property string $public_id
  * @property int $message_id
  * @property string $title
+ * @property string|null $description
  * @property int $created_by
  * @property int|null $assignee_id
  * @property int|null $completed_by
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
  */
 class Todo extends Model
 {
-    protected $fillable = ['message_id', 'title', 'created_by', 'assignee_id'];
+    protected $fillable = ['message_id', 'title', 'description', 'created_by', 'assignee_id'];
 
     protected static function booted(): void
     {

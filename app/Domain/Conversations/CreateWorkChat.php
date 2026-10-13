@@ -3,6 +3,7 @@
 namespace App\Domain\Conversations;
 
 use App\Enums\ConversationType;
+use App\Enums\OrganizationRole;
 use App\Models\Conversation;
 use App\Models\Organization;
 use App\Models\OrganizationMembership;
@@ -33,12 +34,14 @@ class CreateWorkChat
         }
 
         return DB::transaction(function () use ($organization, $actor, $title, $idempotencyKey): Conversation {
-            OrganizationMembership::query()
+            $membership = OrganizationMembership::query()
                 ->active()
                 ->where('organization_id', $organization->id)
                 ->where('user_id', $actor->id)
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            abort_unless($membership && $membership->role->isAtLeast(OrganizationRole::Administrator), 403);
 
             $workspace = $organization->defaultWorkspace()->firstOrFail();
             $existing = $this->createdBy($organization, $actor, $idempotencyKey);

@@ -67,7 +67,7 @@ Public company registration is controlled by `REGISTRATION_ENABLED`, which defau
 php artisan sidewire:bootstrap owner@example.com --name="Owner Name" --organization="Company Name"
 ```
 
-Enter and confirm the password at the hidden prompts. The command creates a verified owner, one Organization, and its Main default Workspace. It accepts at least eight password characters for trusted initial provisioning; production web password/reset validation retains its existing stronger policy. It refuses to overwrite or add accounts when users or Organizations already exist. Concurrent bootstrap commands must use the same configured cache lock store. Internal operator access remains the separate `sidewire:admin` command.
+Enter and confirm the password at the hidden prompts. The command creates a verified owner, one Organization, and its Main default Workspace. It accepts passwords of at least eight characters, matching the web registration/reset policy. It refuses to overwrite or add accounts when users or Organizations already exist. Concurrent bootstrap commands must use the same configured cache lock store. Internal operator access remains the separate `sidewire:admin` command.
 
 For local development, prefix the Artisan command with `./vendor/bin/sail`. Deploy through the normal configuration/route cache rebuild before using the command. Invitation links let new recipients create an account in the inviting Organization; existing recipients log in and accept eligible invitations. Invitation signup never creates another company. Public signup is available only with the flag enabled, and email verification remains required for either signup flow.
 

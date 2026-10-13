@@ -35,7 +35,7 @@ import { Composer } from './composer';
 import { TodoDialog, TodoStatus } from './todos';
 import {
     dayLabel,
-    mentionParts,
+    messageParts,
     mergeMessages,
     sameMessageGroup,
     timeLabel,
@@ -56,12 +56,14 @@ export function ConversationView({
     initialThread,
     initialMessage,
     onBack,
+    onRenamed,
 }: {
     chatId: string;
     source?: Source | null;
     initialThread?: string | null;
     initialMessage?: string | null;
     onBack?: () => void;
+    onRenamed?: (title: string) => void;
 }) {
     const [thread, setThread] = useState<string | null>(initialThread ?? null);
     const [wide, setWide] = useState(false);
@@ -109,6 +111,7 @@ export function ConversationView({
                 activeThread={wide ? thread : null}
                 onThread={openThread}
                 onBack={onBack}
+                onRenamed={onRenamed}
             />
             {thread && (
                 <MessageStream
@@ -137,6 +140,7 @@ function MessageStream({
     onThread,
     onBack,
     onClose,
+    onRenamed,
 }: {
     chatId: string;
     thread: string | null;
@@ -146,6 +150,7 @@ function MessageStream({
     activeThread?: string | null;
     onThread?: (id: string) => void;
     onBack?: () => void;
+    onRenamed?: (title: string) => void;
     onClose?: () => void;
 }) {
     const { client, revision } = useCollaboration();
@@ -157,6 +162,38 @@ function MessageStream({
     const [newActivity, setNewActivity] = useState(false);
     const [reload, setReload] = useState(0);
     const [pagesOpen, setPagesOpen] = useState(false);
+    const [renameOpen, setRenameOpen] = useState(false);
+    const [chatName, setChatName] = useState('');
+    const [renameError, setRenameError] = useState('');
+    const [renaming, setRenaming] = useState(false);
+    const renameBusy = useRef(false);
+    async function renameChat(event: React.FormEvent) {
+        event.preventDefault();
+        if (renameBusy.current || !chatName.trim()) return;
+        renameBusy.current = true;
+        setRenaming(true);
+        setRenameError('');
+        try {
+            const result = await client.mutate<{ data: { title: string } }>(
+                `/chats/${chatId}`,
+                { title: chatName },
+                'PATCH',
+            );
+            onRenamed?.(result.data.title);
+            setRenameOpen(false);
+            client.events.dispatchEvent(new Event('changed'));
+            setReload((value) => value + 1);
+        } catch (failure) {
+            setRenameError(
+                failure instanceof Error
+                    ? failure.message
+                    : 'Could not save the chat name.',
+            );
+        } finally {
+            renameBusy.current = false;
+            setRenaming(false);
+        }
+    }
     const history = useRef<HTMLDivElement>(null);
     const heading = useRef<HTMLHeadingElement>(null);
     const readIds = useRef(new Set<string>());
@@ -429,6 +466,17 @@ function MessageStream({
                     </p>
                 </div>
                 <div className="sw-heading-actions">
+                    {!thread && data?.chat.can_edit && (
+                        <IconButton
+                            icon={Pencil}
+                            label="Edit work chat"
+                            onClick={() => {
+                                setChatName(data.chat.title);
+                                setRenameError('');
+                                setRenameOpen(true);
+                            }}
+                        />
+                    )}
                     {!thread && Boolean(data?.chat.linked_pages.length) && (
                         <button
                             type="button"
@@ -581,6 +629,45 @@ function MessageStream({
                     </div>
                 )
             )}
+            <CollaborationDialog
+                open={renameOpen}
+                onOpenChange={(open) => {
+                    if (!renaming) setRenameOpen(open);
+                }}
+                title="Edit work chat"
+                description="Change the chat name. Linked pages and message history stay with this chat."
+            >
+                <form className="sw-extension-create" onSubmit={renameChat}>
+                    <label>
+                        Chat name
+                        <input
+                            required
+                            maxLength={255}
+                            value={chatName}
+                            disabled={renaming}
+                            onChange={(event) =>
+                                setChatName(event.target.value)
+                            }
+                        />
+                    </label>
+                    {renameError && <InlineError>{renameError}</InlineError>}
+                    <button
+                        type="submit"
+                        className="sw-button-primary"
+                        disabled={renaming || !chatName.trim()}
+                    >
+                        {renaming ? 'Saving…' : 'Save changes'}
+                    </button>
+                    <button
+                        type="button"
+                        className="sw-button-text"
+                        disabled={renaming}
+                        onClick={() => setRenameOpen(false)}
+                    >
+                        Cancel
+                    </button>
+                </form>
+            </CollaborationDialog>
             <CollaborationDialog
                 open={pagesOpen}
                 onOpenChange={setPagesOpen}
@@ -770,11 +857,30 @@ function MessageRow({
                     </time>
                 </header>
                 <p>
-                    {mentionParts(
+                    {messageParts(
                         isDeleted ? 'Message deleted' : item.body,
                         isDeleted ? [] : item.mentions,
                     ).map((part, index) =>
-                        part.mentioned ? (
+                        part.reference ? (
+                            <span
+                                className="sw-work-reference"
+                                title={part.reference.description}
+                                aria-label={part.reference.description}
+                                key={index}
+                            >
+                                {part.reference.label}
+                            </span>
+                        ) : part.href ? (
+                            <a
+                                className="sw-message-url"
+                                href={part.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                key={index}
+                            >
+                                {part.text}
+                            </a>
+                        ) : part.mentioned ? (
                             <mark className="sw-inline-mention" key={index}>
                                 {part.text}
                             </mark>

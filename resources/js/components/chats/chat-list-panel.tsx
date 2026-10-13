@@ -2,6 +2,7 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { MessageSquarePlus, Plus, X } from 'lucide-react';
 import { useRef, useState, type FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { useCollaboration } from '@/components/collaboration/provider';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -101,6 +102,7 @@ export function ChatListPanel({
     selectedId?: string;
 }) {
     const { url } = usePage();
+    const { unreadCounts } = useCollaboration();
     const { surface, filters, chats } = discovery;
     const title = surface === 'activity' ? 'Activity' : 'Chats';
     const page = new URL(url, 'https://sidewire.invalid').searchParams.get(
@@ -127,7 +129,7 @@ export function ChatListPanel({
                 <div className="sw-list-heading">
                     <h2>{title}</h2>
                     <span className="sw-count">{chats.total}</span>
-                    <CreateChat />
+                    {discovery.canCreateWorkChats && <CreateChat />}
                 </div>
                 <div
                     className="sw-segments"
@@ -182,12 +184,16 @@ export function ChatListPanel({
                         <p>
                             {surface === 'activity'
                                 ? 'Updates from chats you open or participate in appear here.'
-                                : 'Create a chat to start a discussion with your team.'}
+                                : discovery.canCreateWorkChats
+                                  ? 'Create a chat to start a discussion with your team.'
+                                  : 'An administrator can create a work chat for your team.'}
                         </p>
                     </div>
                 )}
                 <ul>
                     {chats.items.map((chat) => {
+                        const unread =
+                            unreadCounts[chat.id] ?? chat.unread_count;
                         const destination = chatDiscoveryUrl(
                             `/chats/${chat.id}`,
                             discovery,
@@ -256,9 +262,9 @@ export function ChatListPanel({
                                                 ),
                                             ].join(' · ') || 'No linked pages'}
                                         </span>
-                                        {chat.unread_count > 0 && (
+                                        {unread > 0 && (
                                             <span className="sw-unread">
-                                                {chat.unread_count} unread
+                                                {unread} unread
                                             </span>
                                         )}
                                     </div>

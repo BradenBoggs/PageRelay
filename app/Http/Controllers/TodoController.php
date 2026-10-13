@@ -47,8 +47,8 @@ class TodoController extends Controller
     {
         $chat = ConversationAccess::query($request->user())->where('public_id', $conversation)->firstOrFail();
         $item = $chat->messages()->where('public_id', $message)->firstOrFail();
-        $input = $request->validate(['title' => ['required', 'string', 'max:200'], 'assignee_id' => ['nullable', 'integer', 'min:1']]);
-        $todo = $manage->create($request->user(), $item, $input['title'], $input['assignee_id'] ?? null);
+        $input = $request->validate(['title' => ['required', 'string', 'max:200'], 'description' => ['sometimes', 'nullable', 'string', 'max:10000'], 'assignee_id' => ['nullable', 'integer', 'min:1']]);
+        $todo = $manage->create($request->user(), $item, $input['title'], $input['assignee_id'] ?? null, $input['description'] ?? null);
 
         return response()->json(['data' => (new TodoResource($todo->fresh()))->resolve($request)]);
     }
@@ -56,9 +56,9 @@ class TodoController extends Controller
     public function update(Request $request, string $todo, ManageTodo $manage): JsonResponse
     {
         $item = $manage->visible($request->user())->where('public_id', $todo)->firstOrFail();
-        $input = $request->validate(['title' => ['required', 'string', 'max:200'], 'assignee_id' => ['present', 'nullable', 'integer', 'min:1'],
+        $input = $request->validate(['title' => ['required', 'string', 'max:200'], 'description' => ['sometimes', 'nullable', 'string', 'max:10000'], 'assignee_id' => ['present', 'nullable', 'integer', 'min:1'],
             'completed' => ['required', 'boolean'], 'version' => ['required', 'integer', 'min:0']]);
-        $updated = $manage->update($request->user(), $item, $input['title'], $input['assignee_id'], $input['completed'], $input['version']);
+        $updated = $manage->update($request->user(), $item, $input['title'], $input['assignee_id'], $input['completed'], $input['version'], $input['description'] ?? null, array_key_exists('description', $input));
 
         return response()->json(['data' => (new TodoResource($updated->fresh()))->resolve($request)]);
     }

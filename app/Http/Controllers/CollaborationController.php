@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Activity\MarkConversationRead;
+use App\Domain\Activity\UnreadMessages;
 use App\Domain\Conversations\ConversationAccess;
 use App\Domain\Conversations\CreateDirectChat;
 use App\Domain\Conversations\DeleteMessage;
 use App\Domain\Conversations\EditMessage;
+use App\Domain\Conversations\RenameWorkChat;
 use App\Domain\Conversations\SendCollaborationMessage;
 use App\Enums\ConversationType;
 use App\Http\Resources\MessageResource;
@@ -38,7 +40,8 @@ class CollaborationController extends Controller
             'query' => ['nullable', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
-        $chats = ConversationAccess::query($request->user())->whereNull('retired_at')
+        $chats = ConversationAccess::query($request->user())->select('conversations.*')
+            ->selectSub(app(UnreadMessages::class)->query($request->user())->selectRaw('count(*)'), 'unread_count')->whereNull('retired_at')
             ->when($input['kind'] ?? null, fn ($q, $kind) => $q->where('type', $kind))
             ->when($input['query'] ?? null, fn ($q, $term) => $q->where('title', 'like', '%'.$term.'%'))
             ->with(['latestMessage.author', 'pageContexts'])
@@ -167,6 +170,32 @@ class CollaborationController extends Controller
         return response()->json(['data' => (new MessageResource($item->fresh(['author', 'sourcePageContext', 'threadRoot', 'mentionedUsers'])))->resolve($request)]);
     }
 
+    public function updates(Request $request): JsonResponse
+    {
+        $input = $request->validate(['after' => ['nullable', 'integer', 'min:0']]);
+        $accessible = ConversationAccess::query($request->user())->whereNull('retired_at');
+        $messages = Message::query()->whereIn('conversation_id', (clone $accessible)->select('conversations.id'));
+        $newest = (int) (clone $messages)->max('id');
+        $incoming = isset($input['after']) && (clone $messages)->where('id', '>', $input['after'])->where('id', '<=', $newest)
+            ->where('author_id', '!=', $request->user()->id)->whereNull('deleted_at')->exists();
+        $counts = $accessible->where('type', ConversationType::Page)->select('conversations.public_id')
+            ->selectSub(app(UnreadMessages::class)->query($request->user())->selectRaw('count(*)'), 'unread_count')
+            ->get()->mapWithKeys(fn ($chat): array => [$chat->public_id => (int) $chat->unread_count]);
+
+        return response()->json(['cursor' => $newest, 'incoming' => $incoming, 'unread_counts' => $counts])
+            ->header('Cache-Control', 'no-store, private');
+    }
+
+    public function updateChat(Request $request, string $conversation, RenameWorkChat $rename): JsonResponse
+    {
+        $chat = $this->chat($request, $conversation);
+        $this->authorize('update', $chat);
+        $input = $request->validate(['title' => ['required', 'string', 'max:255', 'regex:/\S/u']]);
+        $renamed = $rename->handle($request->user(), $chat, $input['title']);
+
+        return response()->json(['data' => $this->describe($renamed->load('pageContexts'), $request->user())]);
+    }
+
     public function read(Request $request, string $conversation): JsonResponse
     {
         $chat = $this->chat($request, $conversation);
@@ -178,11 +207,14 @@ class CollaborationController extends Controller
         MessageNotification::query()->where('user_id', $request->user()->id)
             ->where('organization_id', $chat->organization_id)->where('conversation_id', $chat->id)
             ->whereIn('message_id', $messages->modelKeys())->whereNull('read_at')->update(['read_at' => now()]);
+        DB::table('message_reads')->insertOrIgnore($messages->map(fn ($message): array => [
+            'message_id' => $message->id, 'user_id' => $request->user()->id, 'read_at' => now(),
+        ])->values()->all());
         $latestRoot = $messages->whereNull('thread_root_id')->sortByDesc('id')->first();
         if ($latestRoot && $chat->type === ConversationType::Page && $chat->retired_at === null) {
             /** @var Organization $organization */
             $organization = $request->attributes->get('organization');
-            app(MarkConversationRead::class)->handle($organization, $request->user(), $chat, $latestRoot->public_id);
+            app(MarkConversationRead::class)->handle($organization, $request->user(), $chat, $latestRoot->public_id, false);
         }
 
         return response()->json(['ok' => true]);
@@ -209,6 +241,8 @@ class CollaborationController extends Controller
         return [
             'id' => $chat->public_id, 'title' => $title, 'type' => $chat->type->value,
             'can_send' => $canSend,
+            'can_edit' => $user->can('update', $chat),
+            'unread_count' => $chat->type === ConversationType::Page ? (int) ($chat->unread_count ?? 0) : 0,
             'unread_attention' => MessageNotification::query()->where('user_id', $user->id)
                 ->where('conversation_id', $chat->id)->whereNull('read_at')->count(),
             'linked_pages' => $chat->pageContexts->map(fn ($page): array => [

@@ -6,6 +6,7 @@ import {
     type ReactNode,
 } from 'react';
 import { CollaborationClient, type AttentionPage, type Notice } from './client';
+import { incomingSound } from './incoming-sound';
 import './workspace.css';
 
 type WorkspaceState = {
@@ -14,6 +15,7 @@ type WorkspaceState = {
     refresh: () => void;
     attention: AttentionPage | null;
     status: string;
+    unreadCounts: Record<string, number>;
 };
 const Context = createContext<WorkspaceState | null>(null);
 export function useCollaboration(): WorkspaceState {
@@ -39,20 +41,35 @@ export function CollaborationProvider({
     const [attention, setAttention] = useState<AttentionPage | null>(null);
     const [status, setStatus] = useState('Connecting');
     const [expired, setExpired] = useState(false);
+    const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>(
+        {},
+    );
     const refresh = () => setRevision((value) => value + 1);
     useEffect(() => {
         if (expired) return;
         client.onAuthLost = () => {
             setAttention(null);
+            setUnreadCounts({});
             setExpired(true);
         };
         let active = true;
+        let cursor: number | null = null;
+        const sound = incomingSound();
         let busy = false;
         let timer: ReturnType<typeof setTimeout>;
         const check = async () => {
             if (busy || !active) return;
             busy = true;
             try {
+                const updates = await client.request<{
+                    cursor: number;
+                    incoming: boolean;
+                    unread_counts: Record<string, number>;
+                }>(`/updates${cursor === null ? '' : `?after=${cursor}`}`);
+                if (!active) return;
+                setUnreadCounts(updates.unread_counts);
+                if (cursor !== null && updates.incoming) sound.play();
+                cursor = Math.max(cursor ?? 0, updates.cursor);
                 const result =
                     await client.request<AttentionPage>('/notifications');
                 if (!active) return;
@@ -119,6 +136,7 @@ export function CollaborationProvider({
             clearInterval(interval);
             clearTimeout(timer);
             disconnect();
+            sound.dispose();
             client.events.removeEventListener('changed', changed);
             document.removeEventListener('visibilitychange', focused);
             window.removeEventListener('online', changed);
@@ -145,7 +163,14 @@ export function CollaborationProvider({
         );
     return (
         <Context.Provider
-            value={{ client, revision, refresh, attention, status }}
+            value={{
+                client,
+                revision,
+                refresh,
+                attention,
+                status,
+                unreadCounts,
+            }}
         >
             {children}
         </Context.Provider>

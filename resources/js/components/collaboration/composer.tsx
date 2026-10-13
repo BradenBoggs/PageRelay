@@ -1,4 +1,4 @@
-import { AtSign, CornerDownLeft, Link2, LoaderCircle, Send, X } from 'lucide-react';
+import { AtSign, CornerDownLeft, Link2, LoaderCircle, Send, Tag, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { freshDraft, type Draft, type Person, type Source } from './client';
 import { mentionAtCaret } from './presentation';
@@ -65,6 +65,16 @@ export function Composer({ chatId, thread, source, title, onSent }: { chatId: st
         edit(`${before}${insert}${draft.body.slice(element.selectionEnd)}`, position);
         requestAnimationFrame(() => { element.focus(); element.setSelectionRange(position, position); });
     }
+    function insertReference() {
+        const element = input.current;
+        if (!element || attempted || busy) return;
+        const start = element.selectionStart;
+        const before = draft.body.slice(0, start);
+        const insert = before && !/\s$/u.test(before) ? ' [ ]' : '[ ]';
+        const position = start + insert.length - 1;
+        edit(`${before}${insert}${draft.body.slice(element.selectionEnd)}`, position);
+        requestAnimationFrame(() => { element.focus(); element.setSelectionRange(position, position); });
+    }
     async function send() {
         if (pending.current || !draft.body.trim()) return;
         pending.current = true; setBusy(true); setError('');
@@ -93,7 +103,7 @@ export function Composer({ chatId, thread, source, title, onSent }: { chatId: st
             }} />
             {suggestions.length > 0 && <div className="sw-mention-menu"><div className="sw-mention-menu-heading"><AtSign aria-hidden="true" />Mention a coworker<span>↑ ↓ to choose · ↵ to select</span></div><div id={suggestionId} role="listbox" aria-label="Mention suggestions">{suggestions.map((person, index) => <button type="button" role="option" aria-selected={activeIndex === index} id={`${suggestionId}-${index}`} key={person.id} onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActiveIndex(index)} onClick={() => mention(person)}><PersonAvatar name={person.name} small /><span>@{person.name}</span></button>)}</div></div>}
             {draft.mentions.length > 0 && <div className="sw-compose-recipients" aria-label="People to notify"><span>Notifying</span>{draft.mentions.map((person) => <button type="button" key={person.id} disabled={busy || attempted} aria-label={`Remove mention notification for ${person.name}`} onClick={() => update({ ...draft, mentions: draft.mentions.filter((item) => item.id !== person.id) })}>@{person.name}<X aria-hidden="true" /></button>)}</div>}
-            <div className="sw-compose-toolbar"><IconButton icon={AtSign} label="Mention a coworker" disabled={busy || attempted} onClick={insertMention} /><span id={hintId} className="sw-compose-hint">{attempted ? 'Draft locked for safe retry' : 'Enter for a new line'}</span><button type="submit" className="sw-send-button" disabled={busy || !draft.body.trim()} title="Send with Ctrl or Command + Enter">{busy ? <LoaderCircle className="sw-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}<span>{busy ? 'Sending…' : attempted ? 'Retry same message' : thread ? 'Send reply' : 'Send'}</span></button></div>
+            <div className="sw-compose-toolbar"><IconButton icon={AtSign} label="Mention a coworker" disabled={busy || attempted} onClick={insertMention} /><IconButton icon={Tag} label="Insert reference badge" disabled={busy || attempted} onClick={insertReference} /><span id={hintId} className="sw-compose-hint">{attempted ? 'Draft locked for safe retry' : 'Enter for a new line'}</span><button type="submit" className="sw-send-button" disabled={busy || !draft.body.trim()} title="Send with Ctrl or Command + Enter">{busy ? <LoaderCircle className="sw-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}<span>{busy ? 'Sending…' : attempted ? 'Retry same message' : thread ? 'Send reply' : 'Send'}</span></button></div>
         </div>
         {suggestionError && <p className="sw-compose-warning" role="status">{suggestionError}</p>}
         {draft.source && <p className="sw-compose-source"><Link2 aria-hidden="true" /><span>From <strong>{draft.source.host}</strong> · {draft.source.title}. This source stays with your draft.</span></p>}

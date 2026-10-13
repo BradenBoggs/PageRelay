@@ -340,3 +340,11 @@
     .sw-todo-row-assignee { padding-left: 24px; }
     .sw-message-body .sw-todo-inline { flex-wrap: nowrap; align-items: flex-start; }
 }
+
+.sw-todo-form textarea { width: 100%; min-height: 110px; padding: 10px; border: 1px solid var(--sw-border); border-radius: 6px; background: var(--sw-surface); color: var(--sw-text); resize: vertical; }
+.sw-todo-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.sw-work-reference { display: inline; padding: 2px 6px; border: 1px solid var(--sw-border); border-radius: 5px; background: var(--sw-panel); color: var(--sw-text); font-size: .9em; font-weight: 600; box-decoration-break: clone; -webkit-box-decoration-break: clone; overflow-wrap: anywhere; }
+
+.sw-message-url { color: var(--sw-accent); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.sw-message-url:hover { color: var(--sw-accent-hover); }

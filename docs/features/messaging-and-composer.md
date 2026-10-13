@@ -18,6 +18,12 @@ Authors may edit plain text in their own undeleted messages while they retain ch
 
 Implementation map: `EditMessage`, `CollaborationController::updateMessage`, `MessageResource`, shared collaboration routes and `MessageRow`, and `MessageEditingTest`.
 
+## Approved work-reference badges — October 13, 2026
+
+GPS user approved square-bracket badges, then explicitly requested that any text in square brackets becomes a badge. Examples: `[PO 1234]`, `[Customer Acme]`, `[Urgent]`, and `[anything / at all!]`. Preserve the label's case; trim outer whitespace for display. Balanced nested brackets form one outer badge; multiline and long labels wrap. Empty/whitespace-only and unmatched brackets remain plain text. Resolved mentions keep their existing semantics.
+
+Badges are inert user-entered labels, not verified external records or access-granting links. Storage, edit text, previews, notifications and task conversion retain original plain-text syntax. The composer has an accessible Insert reference badge action. No external integration or broad rich-text capability is added. Implementation: `workReferenceParts`, `MessageRow`, shared composer/CSS and `scripts/collaboration-ui.test.mjs`; evidence in [plan 015](../plans/active/015-message-reference-badges.md).
+
 ## Content and composition
 
 Provide one recognizable composer across the full web app and narrow extension. Support paragraphs, emphasis, lists, quotations, inline code, code blocks, safe labeled links, emoji, and stable-ID mentions. Provide readable plain-text fallbacks for search/accessibility and notifications. Render a bounded, sanitized content format, never executable user HTML or arbitrary embeds.
@@ -57,3 +63,7 @@ Two clients converge on the same acknowledged messages, edits, deletions, and re
 Confirm author edit/delete permissions, any disclosed edit window, moderation permissions, custom emoji scope, and maximum message size. Retention policy and recovery periods must be settled before enabling permanent purge. Public read receipts, exact online tracking, nested reply trees, and automatic AI actions are not included.
 
 Reference coverage: [Slack messaging](https://slack.com/help/articles/201457107-Send-and-read-messages), [message actions and formatting catalog](https://slack.com/help/categories/200111606-Using-Slack).
+
+## Approved clickable URLs — October 13, 2026
+
+Plain `https://`, `http://` and `www.` URLs in message text render as underlined links opening a new tab with `noopener noreferrer`. Trailing sentence punctuation stays outside links; balanced parentheses in URL paths remain. Invalid, credential-bearing and unsupported-scheme text stays plain. Mentions and square-bracket badges retain their existing formatting. No URL previews, background fetching, record access, source attribution or storage changes. Shared `messageParts` and `MessageRow` serve messages/replies on web and extension. Evidence is recorded with the formatting work in [plan 015](../plans/active/015-message-reference-badges.md).

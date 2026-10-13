@@ -48,6 +48,18 @@ Its subsequent visual follow-up rebuilt the actual workspace web/extension asset
 
 The concept-2 follow-up in plan 013 records 4 focused task regressions/74 assertions, shared types/builds, PHP analysis and Chrome 1440px/390px minimal-message/deep-linked task-details acceptance. Wider runtime gaps remain unchanged.
 
+Task-description follow-up in plan 013 records 5 focused regressions/91 assertions, PHP analysis, shared types/builds and Chrome 1440px/390px description entry/editing. Existing runtime gaps remain.
+
+## October 13 password minimum
+
+[Plan 014](plans/active/014-password-minimum.md) records 18 focused policy/reset/settings tests (99 assertions) and PHP analysis on PHP 8.5.1/SQLite. Production and local validation accept simple eight-character passwords while rejecting shorter values and mismatched confirmation. PHP 8.4 and browser acceptance were not rerun; no deployment.
+
+## October 13 bracket badges
+
+[Plan 015](plans/active/015-message-reference-badges.md) records 30 parser/documentation tests, shared web/extension types/builds and Chrome 1440px/390px generic bracket formatting/insertion/edit checks. Original message syntax remains plain text and arbitrary labels are inert; native extension interaction remains pending. No backend migration or deployment.
+
+Plan 015 also records 33 parser/documentation tests and Chrome 1440px/390px clickable-URL checks, including navigation to mocked external destinations, safe new-tab attributes and preserved source text. Shared types/builds passed; native side-panel acceptance remains pending.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

@@ -36,9 +36,15 @@ Web-only alerts require an open SideWire tab. With the extension opted in, notif
 
 A server-issued 45-second claim coalesces competing web/extension clients. Successful notification API submission is acknowledged separately from reading. Failed display or lost acknowledgement can be retried after the lease; exactly-once OS presentation is not promised. Already-read items are not newly claimable. Every claim/acknowledgement rechecks current access and recipient identity.
 
+## Approved incoming sound — October 13, 2026
+
+Open web/panel clients play a short sound when a freshly authorized update reports a new message from another person in an accessible conversation. This includes work Chats without mentions and accessible DMs/replies. Initial history, own messages, repeated refreshes, edits and deletions do not play a sound. Several arrivals in one update coalesce into one cue. A cursor is local to the open client; there is no sound replay when the client opens/reloads. Counts and sound checks use signal-only Reverb notifications plus the existing 30-second recovery cadence; no page polling is added.
+
+The browser must allow audio playback after a user interacts with SideWire. Audio is generated locally using Web Audio without fetching external assets or requesting extension permissions. Each open client may sound; this is separate from the existing desktop-notification claim and preference. Closed-browser delivery, multi-tab sound deduplication and configurable sound preferences are not part of this slice. See [plan 016](../plans/active/016-work-chat-controls.md).
+
 ## Draft expansions
 
-Per-conversation mute, all-message settings, quiet-hour schedules, timed pauses, configurable previews/sounds, keyword alerts, reminders and manual thread-follow controls are outside this pilot. Future quiet hours use an explicit timezone and cannot be bypassed by organizational defaults.
+Per-conversation mute, all-message settings, quiet-hour schedules, timed pauses, configurable previews and sound preferences, keyword alerts, reminders and manual thread-follow controls are outside this pilot. Future quiet hours use an explicit timezone and cannot be bypassed by organizational defaults.
 
 Broad @channel, @here and Team/group mentions need permission, audience-count warning and bounded eligible membership. Presence must not become browsing surveillance. Edits may notify newly added recipients only under an approved editing feature; imports, page relinking, restoration and unchanged mentions must not replay old alerts.
 
@@ -48,6 +54,6 @@ Email fallback/digests, native mobile push and other channels require separate p
 
 Validate individual selection, same-message deduplication, private previews, pause/test/permission states, no historical opt-in replay, lease retry, exact-link navigation, removal of access, and unseen-thread read separation. Native OS checks on actual GPS desktops remain required; API mocks and CI do not certify them.
 
-`message_mentions`, `message_notifications`, `notification_preferences`, `RecordMessageAttention`, `MessageNotificationController`, `CollaborationController::members`, shared collaboration composer/client, and the extension service worker implement the candidate. `PilotCollaborationTest` covers partial/case-insensitive name search, full-name responses, authorization, consent, reasons and delivery claims. [GPS pilot setup](../engineering/GPS-PILOT.md) owns deployment/device checks.
+`message_mentions`, `message_notifications`, `notification_preferences`, `RecordMessageAttention`, `MessageNotificationController`, `CollaborationController::members`, shared collaboration composer/client, and the extension service worker implement the candidate. `CollaborationController::updates`, shared `provider.tsx`/`incoming-sound.ts`, and `WorkChatControlsTest` own the incoming-sound/unread boundary. `PilotCollaborationTest` covers partial/case-insensitive name search, full-name responses, authorization, consent, reasons and delivery claims. [GPS pilot setup](../engineering/GPS-PILOT.md) owns deployment/device checks.
 
 References: [Chrome notifications](https://developer.chrome.com/docs/extensions/reference/api/notifications), [Chrome alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms), [Web notification permission](https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static).

@@ -42,11 +42,17 @@ Authorization is checked before rows, counts, suggestions, previews, and subscri
 
 A person can find a discussion, catch up on relevant changes, mark a place to revisit, and clear an explicit snapshot consistently across web/extension. Viewing a public channel does not secretly subscribe them. Several linked pages yield one chat and one message count. Hidden tabs and thread roots do not mark unseen messages read. Concurrent explicit mark-unread and stale automatic read updates resolve predictably without erasing the latest user intent.
 
+## Approved unread message counts — October 13, 2026
+
+Work-Chat lists in the web app and panel show the number of unseen messages from other people, including replies. Own messages and deleted messages do not count. Exact visible-message acknowledgements persist in `message_reads`; reading a newer root or the main chat does not acknowledge hidden older messages or replies. Listing chats does not mark them read. Counts are authorized against current membership/default Workspace and refresh through existing realtime/recovery signals. Multiple source links still yield one chat/count.
+
+The additive migration preserves existing main-chat read positions and acknowledged notification replies; exact historical reads that were never recorded cannot be reconstructed. Legacy explicit mark-through requests keep their snapshot semantics. Shared web/panel visible-message requests record only submitted, validated message IDs. See [plan 016](../plans/active/016-work-chat-controls.md) for evidence and limitations.
+
 ## Implementation map — documented baseline only
 
 - Recovery: [plan 006](../plans/completed/006-conversation-read-migration-recovery.md) owns the October 9 interrupted-migration repair and its verification. The migration restores missing indexes/foreign keys without dropping existing read positions; incompatible definitions fail for inspection.
 - Read state: `database/migrations/2026_09_05_130000_create_conversation_reads_table.php`, `app/Models/ConversationRead.php`.
-- Domain: `app/Domain/Activity/ConversationDiscovery.php`, `MarkConversationRead.php`.
+- Domain: `app/Domain/Activity/ConversationDiscovery.php`, `MarkConversationRead.php`, `UnreadMessages.php`; exact seen rows use `database/migrations/2026_10_13_160000_create_message_reads_table.php`.
 - Web: `GET /activity`, `GET /chats`, `POST /chats/{conversation}/read`, `app/Http/Controllers/ChatController.php`.
 - Extension: `GET /api/v1/extension/discovery`, `POST /api/v1/extension/page-chats/{conversation}/read`.
 - API: `app/Http/Controllers/Api/V1/ConversationDiscoveryController.php`, `PageConversationReadController.php`, `app/Http/Resources/ConversationActivityResource.php`.

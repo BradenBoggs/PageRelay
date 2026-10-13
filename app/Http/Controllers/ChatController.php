@@ -186,6 +186,7 @@ class ChatController extends Controller
         );
 
         return [
+            'canCreateWorkChats' => $request->user()->can('create', Conversation::class),
             'surface' => $surface,
             'filters' => [
                 'view' => $view,

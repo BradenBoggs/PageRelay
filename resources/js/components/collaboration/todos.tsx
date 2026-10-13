@@ -32,6 +32,7 @@ export function TodoDialog({
 }) {
     const { client } = useCollaboration();
     const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [dirty, setDirty] = useState(false);
     const [assignee, setAssignee] = useState('');
     const [people, setPeople] = useState<Person[]>([]);
@@ -48,6 +49,7 @@ export function TodoDialog({
             setTitle(
                 todo?.title ?? messageBody.replace(/\s+/g, ' ').slice(0, 200),
             );
+            setDescription(todo?.description ?? '');
             setAssignee(todo?.assignee ? String(todo.assignee.id) : '');
             setSnapshot(todo ?? null);
             setError('');
@@ -95,6 +97,7 @@ export function TodoDialog({
                     : `/chats/${chatId}/messages/${messageId}/todo`,
                 {
                     title: title.trim(),
+                    description: description.trim() || null,
                     assignee_id: assignee ? Number(assignee) : null,
                     ...(snapshot
                         ? {
@@ -133,6 +136,20 @@ export function TodoDialog({
                     onChange={(event) => {
                         setDirty(true);
                         setTitle(event.target.value);
+                    }}
+                />
+            </label>
+            <label>
+                Description
+                <textarea
+                    value={description}
+                    maxLength={10000}
+                    disabled={busy}
+                    rows={4}
+                    placeholder="Add context, requirements, or notes…"
+                    onChange={(event) => {
+                        setDirty(true);
+                        setDescription(event.target.value);
                     }}
                 />
             </label>
@@ -239,6 +256,7 @@ export function TodoStatus({
                 `/todos/${current.id}`,
                 {
                     title: current.title,
+                    description: current.description,
                     assignee_id: current.assignee?.id ?? null,
                     completed: !current.completed,
                     version: current.version,
@@ -359,10 +377,17 @@ function TodoDetails({ id }: { id: string }) {
                             onSaved={setTodo}
                         />
                     ) : (
-                        <p>
-                            Assigned to {todo.assignee?.name ?? 'nobody'}. This
-                            chat is read-only.
-                        </p>
+                        <div>
+                            {todo.description && (
+                                <p className="sw-todo-description">
+                                    {todo.description}
+                                </p>
+                            )}
+                            <p>
+                                Assigned to {todo.assignee?.name ?? 'nobody'}.
+                                This chat is read-only.
+                            </p>
+                        </div>
                     )}
                     <a
                         className="sw-todo-reference"

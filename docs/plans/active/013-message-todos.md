@@ -79,3 +79,16 @@ October 13, 2026, baseline `b6b1a79` plus the retained task patch. User chose th
 - Screenshots inspected: [mobile messages](../artifacts/013-message-todos/concept-2/message-todo-390.png), [desktop Todos](../artifacts/013-message-todos/concept-2/todos-1440.png).
 
 Earlier supported-runtime/native/Reverb/concurrency gaps and unrelated full-suite registration failure remain. No shared database migration or release.
+
+## Bounded follow-up — task descriptions
+
+October 13 user clarified that each task should have a description in addition to its title. Add nullable plain-text description (10,000-character limit), details textarea, safe optional PATCH semantics and retry/version coverage. Existing chat audience and compact messages remain. Scoped verification passed; migration only on disposable data.
+
+Description follow-up evidence at `6aa57df` plus this patch, October 13, 2026: PHP 8.5.1, Node 24.14.1, SQLite memory/disposable browser fixtures.
+
+- `APP_KEY=<disposable key> vendor/bin/phpunit tests/Feature/Conversations/MessageTodoTest.php`: 5 passed, 91 assertions. Description create/update/clear, length limit, conflict/retry and omitted-field completion preservation covered.
+- `php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress --debug`: passed, zero errors. Scoped Pint, frontend format/lint, shared types and web/extension build passed.
+- `SIDEWIRE_BROWSER_EVIDENCE_DIR=docs/plans/artifacts/013-message-todos/descriptions node tests/Browser/message-todos.cjs`: Chrome 1440px/390px passed. Description creation, multiline field readback and inline editing alongside assignment/completion/reference behavior. [Mobile details](../artifacts/013-message-todos/descriptions/todos-390.png) visually inspected.
+- `node scripts/check-docs.mjs` and `git diff --check`: passed.
+
+No shared migration or release. Existing supported-runtime/native/Reverb/concurrency gaps remain; full suite not rerun for this follow-up.

@@ -17,7 +17,7 @@ class TodoResource extends JsonResource
         $manage = app(ManageTodo::class);
 
         return [
-            'id' => $this->public_id, 'title' => $this->title, 'version' => $this->version,
+            'id' => $this->public_id, 'title' => $this->title, 'description' => $this->description, 'version' => $this->version,
             'completed' => $this->completed_at !== null, 'completed_at' => $this->completed_at?->toISOString(),
             'completed_by' => $this->completer ? ['id' => $this->completer->id, 'name' => $this->completer->name] : null,
             'assignee' => $this->assignee ? ['id' => $this->assignee->id, 'name' => $this->assignee->name] : null,

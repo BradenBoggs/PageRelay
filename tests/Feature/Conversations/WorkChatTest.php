@@ -18,7 +18,7 @@ class WorkChatTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_member_can_create_and_use_a_durable_chat_without_a_page(): void
+    public function test_administrator_can_create_and_use_a_durable_chat_without_a_page(): void
     {
         $owner = User::factory()->create();
         $member = User::query()->create([
@@ -30,7 +30,7 @@ class WorkChatTest extends TestCase
         OrganizationMembership::query()->create([
             'organization_id' => $owner->organization()->firstOrFail()->id,
             'user_id' => $member->id,
-            'role' => OrganizationRole::Member,
+            'role' => OrganizationRole::Administrator,
             'status' => OrganizationMembershipStatus::Active,
             'is_billable' => true,
             'joined_at' => now(),

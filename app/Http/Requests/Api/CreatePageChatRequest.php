@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreatePageChatRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('create', Conversation::class) ?? false;
     }
 
     /** @return array<string, mixed> */

@@ -12,9 +12,13 @@ A page context has zero or one current primary chat. An eligible shared chat has
 
 The documented baseline permits all active members to discover/use work Chats. That must not be mistaken for the target permission rule once private channels exist. Proposed target access follows the current channel audience everywhere, including context metadata and linked-page lookup. Existing public histories must not silently become private or disappear during adoption.
 
+## Approved work-Chat administration — October 13, 2026
+
+Only active Organization owners and administrators may create work Chats, directly or for a page, and edit their names. Members retain discovery, reading, messaging and their existing own-message editing rights. Name edits preserve chat identity, links and history; DMs and retired chats cannot be renamed through this operation. Recheck the server-owned membership/role in the mutation transaction. Web and panel hide management controls from members; direct denied requests must make no changes. This supersedes ordinary-member creation in the documented baseline, without approving future channels. See [plan 016](../plans/active/016-work-chat-controls.md) for evidence.
+
 ## Explicit creation
 
-Any member allowed to create channels may create a named shared Chat directly in SideWire without a page. Empty named chats are durable and discoverable according to audience, but do not generate message unread counts or Activity events simply by existing.
+For current work Chats, an active Organization owner or administrator may create a named shared Chat directly in SideWire without a page. Empty named chats are durable and discoverable according to audience, but do not generate message unread counts or Activity events simply by existing.
 
 For This Page with no eligible existing association, show **Create chat for this page** and, for eligible managers, **Link to existing chat**. Do not show a message composer that creates a chat implicitly on first send. Creation displays editable Page title, Page URL, and Chat name, plus a clearly disclosed audience. Prefill safe browser metadata when available; the user may correct it. Explain what will be stored.
 
@@ -68,7 +72,7 @@ A chat works with no pages; two pages from different apps can open exactly one h
 
 - Extension routes: `routes/api.php` under `/api/v1/extension/page-contexts`, `/api/v1/extension/page-chats`, and `/api/v1/extension/work-chats`.
 - Web routes: `GET/POST /chats`, `GET /chats/{conversation}`, `POST /chats/{conversation}/messages`, and `POST /chats/{conversation}/read`.
-- Domain services: `app/Domain/Conversations/CreateWorkChat.php`, `CreatePageChat.php`, `SendPageMessage.php`, `LinkPageContext.php`, and `UnlinkPageContext.php`.
+- Domain services: `app/Domain/Conversations/CreateWorkChat.php`, `CreatePageChat.php`, `RenameWorkChat.php`, `SendPageMessage.php`, `LinkPageContext.php`, and `UnlinkPageContext.php`.
 - Models/tables: `Conversation`/`conversations`, `Message`/`messages`, and current association on `page_contexts`; standalone-creation migration `database/migrations/2026_09_05_150000_add_creation_key_to_conversations.php`.
 - Read state: `ConversationRead`/`conversation_reads`, `app/Domain/Activity/MarkConversationRead.php`.
 - Authorization: `app/Policies/ConversationPolicy.php`, `PageContextPolicy.php`, and transactional membership checks.

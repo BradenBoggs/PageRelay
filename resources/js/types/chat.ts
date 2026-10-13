@@ -22,6 +22,7 @@ export type ChatSummary = {
 };
 
 export type ChatDiscovery = {
+    canCreateWorkChats: boolean;
     surface: 'activity' | 'chats';
     filters: { view: 'all' | 'unread'; query: string; app: string };
     apps: Array<{ id: string; label: string }>;

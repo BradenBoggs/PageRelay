@@ -68,6 +68,27 @@ class MessageTodoTest extends TestCase
             'completed' => $todo['completed'], 'version' => $todo['version']], ...$extra];
     }
 
+    public function test_descriptions_can_be_saved_cleared_and_preserved_by_completion_retries(): void
+    {
+        $owner = User::factory()->create();
+        $chat = $this->workChat($owner)->public_id;
+        $message = $this->message($owner, $chat);
+        $description = "Review quantities.\nConfirm the estimate with the client.";
+        $todo = $this->postJson('/collaboration/chats/'.$chat.'/messages/'.$message.'/todo', [
+            'title' => 'Review estimate', 'description' => $description,
+        ])->assertOk()->assertJsonPath('data.description', $description)->json('data');
+        $path = '/collaboration/todos/'.$todo['id'];
+        $completed = $this->patchJson($path, $this->updatePayload($todo, ['completed' => true]))
+            ->assertOk()->assertJsonPath('data.description', $description)->json('data');
+        $edit = $this->updatePayload($completed, ['description' => 'Revised instructions']);
+        $updated = $this->patchJson($path, $edit)->assertOk()->assertJsonPath('data.description', 'Revised instructions')->json('data');
+        $this->patchJson($path, $edit)->assertOk()->assertJsonPath('data.version', $updated['version']);
+        $this->patchJson($path, $this->updatePayload($completed, ['description' => 'Stale instructions']))->assertConflict();
+        $this->getJson($path)->assertOk()->assertJsonPath('data.description', 'Revised instructions');
+        $this->patchJson($path, $this->updatePayload($updated, ['description' => str_repeat('x', 10001)]))->assertUnprocessable()->assertJsonValidationErrors('description');
+        $this->patchJson($path, $this->updatePayload($updated, ['description' => '']))->assertOk()->assertJsonPath('data.description', null);
+    }
+
     public function test_conversion_assignment_completion_reopen_and_message_reference_share_one_record(): void
     {
         $owner = User::factory()->create();

@@ -87,6 +87,11 @@ const identity = JSON.parse(
             await dialog
                 .getByRole('combobox', { name: 'Assign to', exact: true })
                 .selectOption({ label: 'Todo Teammate' });
+            const description =
+                'Review the pricing.\nConfirm the revised estimate with the client.';
+            await dialog
+                .getByRole('textbox', { name: 'Description', exact: true })
+                .fill(description);
             const endpoint =
                 '**/collaboration/chats/*/messages/' + id + '/todo';
             await page.route(endpoint, (route) =>
@@ -153,6 +158,15 @@ const identity = JSON.parse(
             const card = page.locator(`article[data-todo-id="${linkedId}"]`);
             await card.waitFor();
             assert.equal(await card.getByRole('checkbox').isChecked(), true);
+            assert.equal(
+                await details
+                    .getByRole('textbox', { name: 'Description', exact: true })
+                    .inputValue(),
+                description,
+            );
+            await details
+                .getByRole('textbox', { name: 'Description', exact: true })
+                .fill(description + '\nSend a summary to the team.');
             const todoId = await card.getAttribute('data-todo-id');
             const selectedRow = page.locator(
                 `article[data-todo-id="${todoId}"]`,

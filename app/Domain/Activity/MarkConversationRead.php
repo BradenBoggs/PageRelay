@@ -24,12 +24,14 @@ class MarkConversationRead
         User $user,
         Conversation $conversation,
         string $messagePublicId,
+        bool $markEarlier = true,
     ): ConversationRead {
         return DB::transaction(function () use (
             $organization,
             $user,
             $conversation,
             $messagePublicId,
+            $markEarlier,
         ): ConversationRead {
             OrganizationMembership::query()
                 ->active()
@@ -53,6 +55,13 @@ class MarkConversationRead
                 ->where('conversation_id', $chat->id)
                 ->where('public_id', $messagePublicId)
                 ->firstOrFail();
+
+            if ($markEarlier) {
+                // Legacy explicit mark-through requests retain their snapshot semantics.
+                DB::table('message_reads')->insertOrIgnoreUsing(['message_id', 'user_id', 'read_at'],
+                    DB::table('messages')->where('conversation_id', $chat->id)->whereNull('thread_root_id')
+                        ->where('id', '<=', $message->id)->select('id')->selectRaw('? as user_id, ? as read_at', [$user->id, now()]));
+            }
 
             $read = ConversationRead::query()
                 ->where('organization_id', $organization->id)

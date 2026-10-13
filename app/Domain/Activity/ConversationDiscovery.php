@@ -57,13 +57,7 @@ class ConversationDiscovery
         }
 
         if ($view === 'unread') {
-            $query->whereHas('messages', function (Builder $query) use ($user): void {
-                $query->where('author_id', '!=', $user->id)
-                    ->whereRaw(
-                        'messages.id > COALESCE((SELECT current_read.last_read_message_id FROM conversation_reads AS current_read WHERE current_read.organization_id = conversations.organization_id AND current_read.conversation_id = conversations.id AND current_read.user_id = ?), 0)',
-                        [$user->id],
-                    );
-            });
+            $query->whereExists(app(UnreadMessages::class)->query($user)->selectRaw('1'));
         }
 
         if ($search !== null && $search !== '') {
@@ -149,14 +143,6 @@ class ConversationDiscovery
     /** @return Builder<Message> */
     private function unreadCount(User $user): Builder
     {
-        return Message::query()
-            ->from('messages as unread_messages')
-            ->selectRaw('count(*)')
-            ->whereColumn('unread_messages.conversation_id', 'conversations.id')
-            ->where('unread_messages.author_id', '!=', $user->id)
-            ->whereRaw(
-                'unread_messages.id > COALESCE((SELECT current_read.last_read_message_id FROM conversation_reads AS current_read WHERE current_read.organization_id = conversations.organization_id AND current_read.conversation_id = conversations.id AND current_read.user_id = ?), 0)',
-                [$user->id],
-            );
+        return app(UnreadMessages::class)->query($user)->selectRaw('count(*)');
     }
 }

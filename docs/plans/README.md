@@ -82,3 +82,9 @@ Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the re
 - [012 — Owned message editing and mobile actions](active/012-owned-message-editing.md): approved October 13; scoped editing/mobile web checks passed, broader runtime verification pending.
 
 - [013 — Message-linked todos and assignment](active/013-message-todos.md): approved October 13; scoped todo/assignment web and SQLite checks passed, wider runtime verification pending.
+
+- [014 — Eight-character password minimum](active/014-password-minimum.md): approved October 13; 18 focused policy/reset/settings tests passed, PHP 8.4 acceptance pending.
+
+- [015 — Work reference badges](active/015-message-reference-badges.md): approved October 13; generic bracket badges verified in web/parser checks, native side-panel acceptance pending.
+
+- [016 — Work Chat controls and incoming messages](active/016-work-chat-controls.md): approved October 13; implementation/checks in progress.

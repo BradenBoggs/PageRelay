@@ -38,6 +38,7 @@ export default function AppLayout({
     const discovery: ChatDiscovery | undefined =
         props.surface && props.filters && props.apps && props.chats
             ? {
+                  canCreateWorkChats: props.canCreateWorkChats ?? false,
                   surface: props.surface,
                   filters: props.filters,
                   apps: props.apps,
@@ -86,7 +87,11 @@ export default function AppLayout({
                         id="main-content"
                         tabIndex={-1}
                         className={
-                            discovery ? 'sw-main' : messaging ? 'sw-main sw-messaging-main' : 'sw-main sw-page-content'
+                            discovery
+                                ? 'sw-main'
+                                : messaging
+                                  ? 'sw-main sw-messaging-main'
+                                  : 'sw-main sw-page-content'
                         }
                     >
                         {children}

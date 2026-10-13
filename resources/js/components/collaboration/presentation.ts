@@ -62,3 +62,64 @@ export function mentionParts(body: string, people: Person[]): { text: string; me
     if (cursor < body.length) parts.push({ text: body.slice(cursor), mentioned: false });
     return parts.length ? parts : [{ text: body, mentioned: false }];
 }
+
+export type WorkReferencePart = {
+    text: string;
+    mentioned: boolean;
+    reference?: { label: string; description: string };
+};
+
+/** Formatting only: preserve original text and never infer a business record or recipient. */
+export function workReferenceParts(body: string, people: Person[]): WorkReferencePart[] {
+    return mentionParts(body, people).flatMap((part): WorkReferencePart[] => {
+        if (part.mentioned) return [part];
+        const parts: WorkReferencePart[] = [];
+        let cursor = 0;
+        let start = -1;
+        let depth = 0;
+        for (let index = 0; index < part.text.length; index += 1) {
+            if (part.text[index] === '[') {
+                if (depth === 0) start = index;
+                depth += 1;
+            } else if (part.text[index] === ']' && depth > 0) {
+                depth -= 1;
+                if (depth > 0) continue;
+                const end = index + 1;
+                const label = part.text.slice(start + 1, index).trim();
+                if (!label) continue;
+                if (start > cursor) parts.push({ text: part.text.slice(cursor, start), mentioned: false });
+                parts.push({ text: part.text.slice(start, end), mentioned: false, reference: { label, description: `Reference: ${label}` } });
+                cursor = end;
+            }
+        }
+        if (cursor < part.text.length) parts.push({ text: part.text.slice(cursor), mentioned: false });
+        return parts.length ? parts : [part];
+    });
+}
+
+export type MessagePart = WorkReferencePart & { href?: string };
+
+/** HTTP links are navigation only; never fetch previews or infer access from a URL. */
+export function messageParts(body: string, people: Person[]): MessagePart[] {
+    return workReferenceParts(body, people).flatMap((part): MessagePart[] => {
+        if (part.mentioned || part.reference) return [part];
+        const parts: MessagePart[] = [];
+        let cursor = 0;
+        for (const match of part.text.matchAll(/(?:https?:\/\/|www\.)[^\s<>"'`]+/giu)) {
+            const index = match.index;
+            if (index > 0 && /[\p{L}\p{N}_@/:]/u.test(part.text[index - 1])) continue;
+            let text = match[0].replace(/[.,!?;:]+$/u, '');
+            while (text.endsWith(')') && text.split(')').length > text.split('(').length) text = text.slice(0, -1);
+            while (text.endsWith('}') && text.split('}').length > text.split('{').length) text = text.slice(0, -1);
+            try {
+                const url = new URL(/^www\./iu.test(text) ? `https://${text}` : text);
+                if (!['https:', 'http:'].includes(url.protocol) || !url.hostname || url.username || url.password) continue;
+                if (index > cursor) parts.push({ text: part.text.slice(cursor, index), mentioned: false });
+                parts.push({ text, mentioned: false, href: url.href });
+                cursor = index + text.length;
+            } catch { /* Malformed URL-like text remains plain. */ }
+        }
+        if (cursor < part.text.length) parts.push({ text: part.text.slice(cursor), mentioned: false });
+        return parts.length ? parts : [part];
+    });
+}

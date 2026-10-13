@@ -67,3 +67,15 @@ No production data, notifications, email, deployment, merge or new package/exten
 ## Interfaces and Dependencies
 
 Reuse Laravel, existing signal event, CollaborationClient, Radix dialogs/dropdown and existing semantic tokens. No new packages or extension permissions.
+
+## Bounded design follow-up — concept 2
+
+October 13, 2026, baseline `b6b1a79` plus the retained task patch. User chose the second rendered concept. Messages now show only checkbox/title/link, with completed titles struck through. Removed assignee/edit controls from message rows and mobile menus. Todos now has compact selectable rows and an inline details editor, with assignment, completion, title and original-message link. A scoped read endpoint resolves linked tasks independently of filters/pagination; missing or unauthorized tasks clear details. Drafts stay intact through refreshes; untouched editors synchronize to the latest record. No schema or permission change.
+
+- `APP_KEY=<disposable key> vendor/bin/phpunit tests/Feature/Conversations/MessageTodoTest.php`: 4 passed, 74 assertions, including allowed/denied exact-task reads.
+- `php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress --debug`: passed, zero errors. Scoped Pint passed.
+- Shared `npm run types:check`, `npm run build`, scoped `vp fmt`/`vp lint`: passed. Node documentation/presentation tests: 27 passed. Documentation structure and diff whitespace checks passed.
+- `SIDEWIRE_BROWSER_EVIDENCE_DIR=docs/plans/artifacts/013-message-todos/concept-2 node tests/Browser/message-todos.cjs`: Chrome 1440px/390px passed with the earlier disposable SQLite fixtures. Verifies minimal task links, absent assignee text in chat, completed-task deep link despite Open filter, inline reassignment, completion/reopen and original-message navigation. Duplicate synthetic task titles initially made a test selector ambiguous; scenario now selects the exact linked public task ID.
+- Screenshots inspected: [mobile messages](../artifacts/013-message-todos/concept-2/message-todo-390.png), [desktop Todos](../artifacts/013-message-todos/concept-2/todos-1440.png).
+
+Earlier supported-runtime/native/Reverb/concurrency gaps and unrelated full-suite registration failure remain. No shared database migration or release.

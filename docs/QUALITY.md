@@ -46,6 +46,8 @@ Its subsequent visual follow-up rebuilt the actual workspace web/extension asset
 
 [Plan 013](plans/active/013-message-todos.md) records 12 focused PHP 8.5.1/SQLite tests (156 assertions), PHP analysis, web/extension types/builds, scoped lint/format and Chrome 1440px/390px conversion/assignment/completion/reference checks. Full suite: 180 passed, existing registration assertion failed, one PostgreSQL-only skip. Private task visibility/assignee eligibility, removed membership, retry/conflict behavior and live message references are covered. PHP 8.4/PostgreSQL concurrency, live Reverb and native side-panel interactions remain unverified; no deployment.
 
+The concept-2 follow-up in plan 013 records 4 focused task regressions/74 assertions, shared types/builds, PHP analysis and Chrome 1440px/390px minimal-message/deep-linked task-details acceptance. Wider runtime gaps remain unchanged.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

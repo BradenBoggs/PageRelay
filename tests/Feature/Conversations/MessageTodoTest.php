@@ -112,6 +112,7 @@ class MessageTodoTest extends TestCase
         $this->postJson($base, ['title' => 'Private action', 'assignee_id' => $outside->id])->assertUnprocessable();
         $todo = $this->convert($dm, $message, $member->id);
         $this->actingAs($admin)->getJson('/collaboration/todos?status=all')->assertJsonCount(0, 'data');
+        $this->getJson('/collaboration/todos/'.$todo['id'])->assertNotFound();
         $this->postJson($base, ['title' => 'Try to create'])->assertNotFound();
         $this->patchJson('/collaboration/todos/'.$todo['id'], $this->updatePayload($todo))->assertNotFound();
         $this->actingAs($outside)->getJson('/collaboration/todos?status=all')->assertJsonCount(0, 'data');
@@ -119,6 +120,7 @@ class MessageTodoTest extends TestCase
         $other = $this->workChat($owner)->public_id;
         $this->actingAs($member)->postJson('/collaboration/chats/'.$other.'/messages/'.$message.'/todo', ['title' => 'Wrong chat'])->assertNotFound();
         $this->getJson('/collaboration/todos')->assertJsonCount(1, 'data');
+        $this->getJson('/collaboration/todos/'.$todo['id'])->assertOk()->assertJsonPath('data.message.id', $message);
         $this->patchJson('/collaboration/todos/'.$todo['id'], $this->updatePayload($todo, ['assignee_id' => $admin->id]))->assertUnprocessable();
         $reply = $this->message($member, $dm, ['thread_root_id' => $message]);
         $threadTodo = $this->convert($dm, $reply);

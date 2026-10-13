@@ -113,30 +113,11 @@ const identity = JSON.parse(
                 .getByRole('button', { name: 'Create todo', exact: true })
                 .click();
             await dialog.waitFor({ state: 'hidden' });
-            await row.getByText('Todo Teammate', { exact: true }).waitFor();
-            if (width < 768) {
-                assert.equal(
-                    await row
-                        .getByRole('button', { name: 'Edit todo', exact: true })
-                        .isVisible(),
-                    false,
-                );
-                await row
-                    .getByRole('button', {
-                        name: 'Message actions',
-                        exact: true,
-                    })
-                    .click();
-                await page
-                    .getByRole('menuitem', { name: 'Edit todo', exact: true })
-                    .click();
-                await page
-                    .getByRole('dialog', { name: 'Edit todo', exact: true })
-                    .getByRole('button', { name: 'Cancel', exact: true })
-                    .click();
-                await page.getByRole('dialog').waitFor({ state: 'hidden' });
-            }
-
+            await row.getByRole('link', { name: title, exact: true }).waitFor();
+            assert.equal(
+                await row.getByText('Todo Teammate', { exact: true }).count(),
+                0,
+            );
             const check = row.getByRole('checkbox', {
                 name: 'Complete todo: ' + title,
                 exact: true,
@@ -156,40 +137,42 @@ const identity = JSON.parse(
                     path: `${process.env.SIDEWIRE_BROWSER_EVIDENCE_DIR}/message-todo-${width}.png`,
                 });
             }
-            await page.goto(origin + '/todos');
+            await row.getByRole('link', { name: title, exact: true }).click();
+            await page.waitForURL('**/todos?todo=*');
+            const details = page.getByRole('region', {
+                name: 'Todo details',
+                exact: true,
+            });
+            await details
+                .getByRole('heading', { name: title, exact: true })
+                .waitFor();
             await page
                 .getByRole('button', { name: 'Completed', exact: true })
                 .click();
-            const card = page
-                .locator('article[data-todo-id]')
-                .filter({
-                    has: page.getByRole('heading', {
-                        name: title,
-                        exact: true,
-                    }),
-                })
-                .filter({ hasText: text });
+            const linkedId = new URL(page.url()).searchParams.get('todo');
+            const card = page.locator(`article[data-todo-id="${linkedId}"]`);
             await card.waitFor();
             assert.equal(await card.getByRole('checkbox').isChecked(), true);
+            const todoId = await card.getAttribute('data-todo-id');
+            const selectedRow = page.locator(
+                `article[data-todo-id="${todoId}"]`,
+            );
             await card
-                .getByRole('button', { name: 'Edit todo', exact: true })
+                .getByRole('button', { name: title, exact: true })
                 .click();
-            const edit = page.getByRole('dialog', {
-                name: 'Edit todo',
-                exact: true,
-            });
-            await edit
+            await details
                 .getByRole('combobox', { name: 'Assign to', exact: true })
                 .selectOption({ label: 'Editing Author' });
-            await edit
+            await details
                 .getByRole('button', { name: 'Save todo', exact: true })
                 .click();
-            await edit.waitFor({ state: 'hidden' });
-            await card.getByText('Editing Author', { exact: true }).waitFor();
+            await selectedRow
+                .getByText('Editing Author', { exact: true })
+                .waitFor();
             await page
                 .getByRole('button', { name: 'Assigned to me', exact: true })
                 .click();
-            await card.waitFor();
+            await selectedRow.waitFor();
             if (process.env.SIDEWIRE_BROWSER_EVIDENCE_DIR)
                 await page.screenshot({
                     path: `${process.env.SIDEWIRE_BROWSER_EVIDENCE_DIR}/todos-${width}.png`,
@@ -200,20 +183,16 @@ const identity = JSON.parse(
                 ),
                 true,
             );
-            await card.getByRole('checkbox').click();
-            await card.waitFor({ state: 'hidden' });
+            await selectedRow.getByRole('checkbox').click();
+            await selectedRow.waitFor({ state: 'hidden' });
             await page
                 .getByRole('button', { name: 'Open', exact: true })
                 .click();
-            await card.waitFor();
-            await card.getByRole('link').click();
+            await selectedRow.waitFor();
+            await details.getByRole('link', { name: /Open message/ }).click();
             await page.waitForURL('**/messages?**');
             const referenced = page.locator(`article[data-message-id="${id}"]`);
             await referenced.waitFor();
-            await referenced
-                .getByText('Editing Author', { exact: true })
-                .last()
-                .waitFor();
             assert.equal(
                 await referenced.getByRole('checkbox').isChecked(),
                 false,

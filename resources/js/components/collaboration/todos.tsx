@@ -32,6 +32,7 @@ export function TodoDialog({
 }) {
     const { client } = useCollaboration();
     const [title, setTitle] = useState('');
+    const [dirty, setDirty] = useState(false);
     const [assignee, setAssignee] = useState('');
     const [people, setPeople] = useState<Person[]>([]);
     const [query, setQuery] = useState('');
@@ -43,7 +44,7 @@ export function TodoDialog({
     const pending = useRef(false);
     const wasOpen = useRef(false);
     useEffect(() => {
-        if (open && !wasOpen.current) {
+        if (open && (!wasOpen.current || (inline && !dirty))) {
             setTitle(
                 todo?.title ?? messageBody.replace(/\s+/g, ' ').slice(0, 200),
             );
@@ -53,7 +54,7 @@ export function TodoDialog({
             setQuery('');
         }
         wasOpen.current = open;
-    }, [open, todo, messageBody]);
+    }, [open, todo, messageBody, inline, dirty]);
     useEffect(() => {
         if (!open) return;
         const abort = new AbortController();
@@ -129,7 +130,10 @@ export function TodoDialog({
                     value={title}
                     maxLength={200}
                     disabled={busy}
-                    onChange={(event) => setTitle(event.target.value)}
+                    onChange={(event) => {
+                        setDirty(true);
+                        setTitle(event.target.value);
+                    }}
                 />
             </label>
             <label>
@@ -148,7 +152,10 @@ export function TodoDialog({
                 <select
                     value={assignee}
                     disabled={busy || loading}
-                    onChange={(event) => setAssignee(event.target.value)}
+                    onChange={(event) => {
+                        setDirty(true);
+                        setAssignee(event.target.value);
+                    }}
                 >
                     <option value="">Unassigned</option>
                     {assignee && !selected && (
@@ -209,12 +216,10 @@ export function TodoDialog({
 
 export function TodoStatus({
     todo,
-    onEdit,
     inMessage = false,
     onSelect,
 }: {
     todo: Todo;
-    onEdit?: () => void;
     onSelect?: () => void;
     inMessage?: boolean;
 }) {
@@ -383,7 +388,11 @@ function TodoDetails({ id }: { id: string }) {
     );
 }
 
-export function TodoList() {
+export function TodoList({
+    initialTodo = null,
+}: {
+    initialTodo?: string | null;
+}) {
     const { client, revision } = useCollaboration();
     const [todos, setTodos] = useState<Todo[]>([]);
     const [status, setStatus] = useState<'open' | 'completed' | 'all'>('open');
@@ -393,9 +402,7 @@ export function TodoList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [reload, setReload] = useState(0);
-    const [selectedId, setSelectedId] = useState<string | null>(() =>
-        new URLSearchParams(window.location.search).get('todo'),
-    );
+    const [selectedId, setSelectedId] = useState<string | null>(initialTodo);
     useEffect(() => {
         const abort = new AbortController();
         setLoading(true);

@@ -7,6 +7,7 @@ import {
     Hash,
     MessagesSquare,
 } from 'lucide-react';
+import { useCollaboration } from '@/components/collaboration/provider';
 import { chatDiscoveryUrl } from '@/lib/chat-navigation';
 import type { ChatDiscovery } from '@/types/chat';
 
@@ -44,6 +45,7 @@ export function AppNavigation({
                         >
                             <MessagesSquare aria-hidden="true" />
                             <span>Messages</span>
+                            <UnseenBadge kind="direct" />
                         </Link>
                         <Link
                             href="/chats"
@@ -59,6 +61,7 @@ export function AppNavigation({
                         >
                             <Hash aria-hidden="true" />
                             <span>Work chats</span>
+                            <UnseenBadge kind="work" />
                         </Link>
                         <Link
                             href="/messages?view=activity"
@@ -139,5 +142,20 @@ export function AppNavigation({
                 Alongside your work.
             </div>
         </nav>
+    );
+}
+
+function UnseenBadge({ kind }: { kind: 'direct' | 'work' }) {
+    const { unreadTotals } = useCollaboration();
+    const count = unreadTotals?.[kind] ?? 0;
+    if (count <= 0) return null;
+    return (
+        <span
+            className="sw-nav-unseen-badge"
+            aria-label={`${count} unseen messages`}
+            title={`${count} unseen messages`}
+        >
+            {count > 99 ? '99+' : count}
+        </span>
     );
 }

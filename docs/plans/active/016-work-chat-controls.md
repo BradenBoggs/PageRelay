@@ -23,6 +23,8 @@ Creation allowed any active member; no work-Chat rename endpoint existed. Shared
 
 ## Decision Log
 
+October 13 sidebar-count follow-up: Braden requests count badges on unseen messages in the main sidebar. Show separate authorized unseen-message totals on Messages (DMs) and Work chats, across all accessible conversations rather than only the current list page. Reuse exact visible-message reads and current recovery/realtime refresh; no attention-event substitution, read-on-listing or new poll. Preserve the existing work-only per-chat count map, add aggregate direct/work totals, and validate privacy and read updates.
+
 October 13: interpret chat editing as changing its name, preserving own-message editing. Organization owners inherit admin rights. Keep websocket payloads signal-only; sound decisions require fresh authorized HTTP reads. Do not replay initial history or edits/deletions as new sounds.
 
 ## Outcomes & Retrospective

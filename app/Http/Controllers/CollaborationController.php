@@ -178,11 +178,19 @@ class CollaborationController extends Controller
         $newest = (int) (clone $messages)->max('id');
         $incoming = isset($input['after']) && (clone $messages)->where('id', '>', $input['after'])->where('id', '<=', $newest)
             ->where('author_id', '!=', $request->user()->id)->whereNull('deleted_at')->exists();
-        $counts = $accessible->where('type', ConversationType::Page)->select('conversations.public_id')
+        $counts = $accessible->select('conversations.public_id', 'conversations.type')
             ->selectSub(app(UnreadMessages::class)->query($request->user())->selectRaw('count(*)'), 'unread_count')
-            ->get()->mapWithKeys(fn ($chat): array => [$chat->public_id => (int) $chat->unread_count]);
+            ->get();
 
-        return response()->json(['cursor' => $newest, 'incoming' => $incoming, 'unread_counts' => $counts])
+        return response()->json([
+            'cursor' => $newest, 'incoming' => $incoming,
+            'unread_counts' => $counts->where('type', ConversationType::Page)
+                ->mapWithKeys(fn ($chat): array => [$chat->public_id => (int) $chat->unread_count]),
+            'unread_totals' => [
+                'direct' => (int) $counts->where('type', ConversationType::Direct)->sum('unread_count'),
+                'work' => (int) $counts->where('type', ConversationType::Page)->sum('unread_count'),
+            ],
+        ])
             ->header('Cache-Control', 'no-store, private');
     }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Conversations;
 
 use App\Domain\Activity\MarkConversationRead;
+use App\Domain\Conversations\CreateDirectChat;
 use App\Domain\Conversations\CreatePageChat;
 use App\Domain\Conversations\CreateWorkChat;
 use App\Domain\Conversations\RenameWorkChat;
@@ -15,6 +16,7 @@ use App\Models\MessageNotification;
 use App\Models\OrganizationMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -166,6 +168,50 @@ class WorkChatControlsTest extends TestCase
         $this->getJson('/collaboration/updates?after='.$next)->assertJsonPath('incoming', false)->assertJsonPath('unread_counts.'.$chat->public_id, 0);
         $this->get('/chats?view=unread')->assertInertia(fn (Assert $page) => $page->has('chats.items', 0));
         $this->postJson('/collaboration/chats/'.$chat->public_id.'/read', ['messages' => [$foreign->public_id]])->assertNotFound();
+    }
+
+    public function test_sidebar_unseen_totals_cover_all_authorized_chats_and_exact_dm_reads(): void
+    {
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner, OrganizationRole::Member);
+        $other = $this->coworker($owner, OrganizationRole::Member);
+        $outside = User::factory()->create();
+        $first = null;
+        for ($index = 0; $index < 31; $index++) {
+            $work = $this->chat($owner);
+            $message = $this->message($work, $owner);
+            $first ??= $message;
+        }
+        $this->message($work, $member);
+        $this->message($work, $owner)->forceFill(['deleted_at' => now()])->save();
+        $retired = $this->chat($owner);
+        $this->message($retired, $owner);
+        $retired->forceFill(['retired_at' => now()])->save();
+        $this->message($this->chat($outside), $outside);
+        $organization = $owner->organization()->firstOrFail();
+        $direct = app(CreateDirectChat::class)->handle($organization, $owner, $member->id);
+        $root = $this->message($direct, $owner);
+        $this->message($direct, $owner, $root);
+        $this->message($direct, $member);
+        $this->message($direct, $owner)->forceFill(['deleted_at' => now()])->save();
+        $private = app(CreateDirectChat::class)->handle($organization, $owner, $other->id);
+        $this->message($private, $owner);
+
+        $this->actingAs($member)->getJson('/collaboration/updates')->assertOk()
+            ->assertJsonPath('unread_totals', ['direct' => 2, 'work' => 31])->assertJsonCount(31, 'unread_counts');
+        $this->getJson('/collaboration/notifications')->assertJsonPath('unread_count', 0);
+        $this->postJson('/collaboration/chats/'.$direct->public_id.'/read', ['messages' => [$root->public_id]])->assertOk();
+        $this->getJson('/collaboration/updates')->assertJsonPath('unread_totals', ['direct' => 1, 'work' => 31]);
+        $this->postJson('/collaboration/chats/'.$first->conversation->public_id.'/read', ['messages' => [$first->public_id]])->assertOk();
+        $this->getJson('/collaboration/updates')->assertJsonPath('unread_totals', ['direct' => 1, 'work' => 30]);
+        $token = $member->createToken('sidebar test', [ApiTokenAbility::ExtensionAccess->value]);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token->plainTextToken)->getJson('/api/v1/extension/collaboration/updates')->assertOk()
+            ->assertJsonPath('unread_totals', ['direct' => 1, 'work' => 30]);
+        DB::table('conversation_participants')->where('conversation_id', $direct->id)->where('user_id', $member->id)->delete();
+        $this->getJson('/api/v1/extension/collaboration/updates')->assertJsonPath('unread_totals', ['direct' => 0, 'work' => 30]);
+        OrganizationMembership::query()->where('user_id', $member->id)->update(['status' => OrganizationMembershipStatus::Removed]);
+        $this->getJson('/api/v1/extension/collaboration/updates')->assertForbidden();
     }
 
     public function test_read_migration_preserves_existing_root_positions_and_seen_replies(): void

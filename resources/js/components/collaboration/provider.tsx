@@ -16,6 +16,7 @@ type WorkspaceState = {
     attention: AttentionPage | null;
     status: string;
     unreadCounts: Record<string, number>;
+    unreadTotals: { direct: number; work: number } | null;
 };
 const Context = createContext<WorkspaceState | null>(null);
 export function useCollaboration(): WorkspaceState {
@@ -44,12 +45,15 @@ export function CollaborationProvider({
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>(
         {},
     );
+    const [unreadTotals, setUnreadTotals] =
+        useState<WorkspaceState['unreadTotals']>(null);
     const refresh = () => setRevision((value) => value + 1);
     useEffect(() => {
         if (expired) return;
         client.onAuthLost = () => {
             setAttention(null);
             setUnreadCounts({});
+            setUnreadTotals(null);
             setExpired(true);
         };
         let active = true;
@@ -65,9 +69,11 @@ export function CollaborationProvider({
                     cursor: number;
                     incoming: boolean;
                     unread_counts: Record<string, number>;
+                    unread_totals: { direct: number; work: number };
                 }>(`/updates${cursor === null ? '' : `?after=${cursor}`}`);
                 if (!active) return;
                 setUnreadCounts(updates.unread_counts);
+                setUnreadTotals(updates.unread_totals);
                 if (cursor !== null && updates.incoming) sound.play();
                 cursor = Math.max(cursor ?? 0, updates.cursor);
                 const result =
@@ -170,6 +176,7 @@ export function CollaborationProvider({
                 attention,
                 status,
                 unreadCounts,
+                unreadTotals,
             }}
         >
             {children}

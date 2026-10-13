@@ -188,6 +188,7 @@
     letter-spacing: 0.9px;
 }
 .sw-nav-link {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 9px;
@@ -846,3 +847,6 @@
     .sw-shell .sw-sidebar { display: none; }
     .sw-shell .sw-account-name { display: none; }
 }
+
+.sw-nav-unseen-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 18px; padding: 0 5px; margin-left: auto; border-radius: 6px; color: var(--sw-surface); background: var(--sw-accent); font-size: 10px; font-weight: 650; line-height: 1; white-space: nowrap; }
+.sw-shell .sw-sidebar .sw-nav-unseen-badge { position: absolute; top: 4px; right: 3px; margin-left: 0; font-size: 9px; min-width: 17px; height: 16px; padding: 0 4px; }

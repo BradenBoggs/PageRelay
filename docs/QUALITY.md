@@ -60,6 +60,10 @@ Task-description follow-up in plan 013 records 5 focused regressions/91 assertio
 
 Plan 015 also records 33 parser/documentation tests and Chrome 1440px/390px clickable-URL checks, including navigation to mocked external destinations, safe new-tab attributes and preserved source text. Shared types/builds passed; native side-panel acceptance remains pending.
 
+## October 13 image-link thumbnails
+
+[Plan 017](plans/active/017-message-image-thumbnails.md) records 25 focused backend tests/168 assertions, PHP analysis, shared types/builds and Chrome 1440px/390px mocked-thumbnail success/fallback/hide/deletion acceptance. Public-DNS pinning and restricted fetch options, access rechecks, redirects/private addresses and image/size limits are covered with fake transport responses. Full suite: 208 passed, existing registration failure, one PostgreSQL skip. Public cURL/TLS smoke fetch passed against httpbin’s test PNG (8090 bytes). PHP 8.4 and native side panel remain unverified; no release or persistent image storage.
+
 ## Updating evidence
 
 Replace a status only with a linked actual result tied to its revision, environment, date, and scope. Keep omissions visible. Never aggregate earlier checks across different code versions into a claim that today's complete app was tested. A newer CI result may resolve a gap only after its job/steps and applicable revision are inspected.

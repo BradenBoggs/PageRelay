@@ -83,8 +83,10 @@ function ImageThumbnail({
                     },
                 );
                 if (!response.ok) {
-                    if ([401, 403, 419].includes(response.status))
+                    if ([401, 403, 419].includes(response.status)) {
+                        client.drafts.clear();
                         client.onAuthLost();
+                    }
                     throw new Error('Image unavailable');
                 }
                 const blob = await response.blob();

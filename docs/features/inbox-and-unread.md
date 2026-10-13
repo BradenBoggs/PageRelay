@@ -46,6 +46,8 @@ A person can find a discussion, catch up on relevant changes, mark a place to re
 
 Work-Chat lists in the web app and panel show the number of unseen messages from other people, including replies. Own messages and deleted messages do not count. Exact visible-message acknowledgements persist in `message_reads`; reading a newer root or the main chat does not acknowledge hidden older messages or replies. Listing chats does not mark them read. Counts are authorized against current membership/default Workspace and refresh through existing realtime/recovery signals. Multiple source links still yield one chat/count.
 
+Approved October 13 sidebar refinement: the main web navigation shows separate unseen-message totals for Messages (authorized DMs) and Work chats (authorized work Chats), including unseen replies. Totals cover all accessible non-retired conversations, exclude own/deleted/seen messages, and use exact visible-message read records rather than attention-event counts. Zero or not-yet-loaded totals have no badge. Large badges show 99+ while their accessible label and tooltip retain the exact count. Directory previews do not acknowledge messages; counts update through the existing collaboration refresh.
+
 The additive migration preserves existing main-chat read positions and acknowledged notification replies; exact historical reads that were never recorded cannot be reconstructed. Legacy explicit mark-through requests keep their snapshot semantics. Shared web/panel visible-message requests record only submitted, validated message IDs. See [plan 016](../plans/active/016-work-chat-controls.md) for evidence and limitations.
 
 ## Implementation map — documented baseline only
@@ -57,6 +59,7 @@ The additive migration preserves existing main-chat read positions and acknowled
 - Extension: `GET /api/v1/extension/discovery`, `POST /api/v1/extension/page-chats/{conversation}/read`.
 - API: `app/Http/Controllers/Api/V1/ConversationDiscoveryController.php`, `PageConversationReadController.php`, `app/Http/Resources/ConversationActivityResource.php`.
 - UI: `resources/js/pages/activity/index.tsx`, `resources/js/pages/chats/`, `apps/extension/src/sidepanel/main.tsx`, `src/page-chat/api.ts`.
+- Sidebar counts: `CollaborationController::updates`, shared collaboration `provider.tsx`, and `application-shell/app-navigation.tsx`; `WorkChatControlsTest` covers authorized aggregate totals and exact-read behavior.
 - Existing tests: `tests/Feature/Activity/`, `tests/Feature/Conversations/ChatIndexTest.php`.
 
 These entry points do not establish implementation of the expanded read/notification semantics. Reference coverage: [Slack catch-up and preferences catalog](https://slack.com/help/categories/200111606-Using-Slack).

@@ -1,17 +1,21 @@
 # 005 — GPS communication pilot
 
 Lifecycle: verification-pending
-Approval: Braden requested implementation on October 8, 2026: a usable GPS pilot prioritizing browser desktop notifications, mentions, direct messages and threads. This authorizes the bounded communication slice, not every draft feature, production deployment or invitations/messages to real employees. The subsequent request for a massive UI/UX overhaul and a more polished app authorizes refinement of these existing web/extension flows within this same initiative.
+Approval: Braden requested implementation on October 8, 2026: a usable GPS pilot prioritizing browser desktop notifications, mentions, direct messages and threads. This authorizes the bounded communication slice, not every draft feature, production deployment or invitations/messages to real employees. The subsequent request for a massive UI/UX overhaul and a more polished app authorizes refinement of these existing web/extension flows within this same initiative. October 13's explicit request to improve push notifications authorizes contextual desktop previews and exact-message click acceptance as recorded below.
 Verification: historical pilot evidence below remains tied to its named revisions. The October 8 UI follow-up is a review-branch implementation candidate based on 1e6ba769f4d5e6674e4103b61312746f0e9d9014. Pure presentation-helper tests, documentation checks, syntax review and a separate synthetic HTML-preview review are not a compiled-app test. Later scoped checks are recorded below, including October 13 notification-panel types/builds and authenticated web acceptance. Broader pilot/native extension acceptance remains pending; do not carry old CI passes forward to unrelated UI revisions.
 Release: not released. No production origin, server, team setup or public distribution was provisioned.
 
 ## Purpose / Big Picture
 
-A coworker can use the web app or Chrome extension to send a private one-to-one message, mention an eligible coworker and reply in a one-level thread. Related messages remain discoverable in Activity and produce opt-in generic desktop alerts. Existing page-linked Chats retain their history and source/link safeguards.
+A coworker can use the web app or Chrome extension to send a private one-to-one message, mention an eligible coworker and reply in a one-level thread. Related messages remain discoverable in Activity and produce opt-in contextual desktop alerts under the October 13 refinement. Existing page-linked Chats retain their history and source/link safeguards.
 
 The owners are [Direct messages](../../features/direct-messages.md), [Threads](../../features/threads.md), [Notifications](../../features/mentions-and-notifications.md) and [Browser extension](../../features/browser-extension.md). Group DMs, private-channel administration, uploads, reactions, AI, calls, email/SMS, notification schedules and production provisioning are excluded.
 
 ## Progress
+
+- [x] Inspect October 13 request to improve desktop message/mention context and exact-message click behavior against main `f25e87bd75e78682651a1a4d820ef61b765000cc`; record scoped authorization.
+- [x] Implement bounded contextual desktop previews and accurate settings disclosure; retain current opt-in, claim/read and access boundaries.
+- [x] Verify contextual claims, both delivery clients and exact older-message/thread navigation; record actual evidence and native OS limitations below.
 
 - [x] Complete the October 13 bell history/settings-gear continuation and verify scoped history isolation plus compiled web desktop/mobile flows; native extension/OS checks remain separate.
 
@@ -36,6 +40,10 @@ The null broadcast driver returns without executing channel authorization callba
 The assistant environment lacked an executable local Sail/application setup. Dependency, database and browser checks ran in isolated hosted CI. Local tools inspected downloaded tracked source, logs and synthetic screenshots; this is not a local Sail run.
 
 ## Decision Log
+
+- October 13 wording clarification: Braden requests titles like “Braden mentioned you in WorkChatName”, “Direct Message from Braden” and “Blake replied to your message”, with message contents. Use those templates with the stored sender display name and existing separate preview body; a DM mention retains its mention reason and explicitly names the Direct Message destination. This is a copy refinement of the same approved notification slice.
+
+- October 13 contextual desktop refinement: Braden asks to improve push notifications with message/mention context and clicking through to the message. This authorizes sender/reason/work-Chat name and a short message excerpt in the existing opted-in web/extension desktop channel, superseding generic-only text. Reuse the server claim payload and existing exact-message routes; replace web URLs with `[link]`, normalize whitespace/control characters, and bound output. No new channel, notification source, permission, migration or deployment. Native OS/device acceptance remains open.
 
 - October 13 mobile navigation refinement: Braden requests a sticky bottom version of the mobile navbar. Reuse the main four destinations and existing unseen badges in a fixed mobile bottom bar below 768px. Reserve its height and device safe area so lists, page content and composers remain above it; preserve desktop rail, secondary drawer access, exact links, drafts and reading semantics. This bounded shell UI change authorizes no backend, permission or extension change.
 
@@ -185,6 +193,23 @@ October 13, 2026 evidence: Node 24.14.1, host PHP 8.5.1, installed headless Chro
 - `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. Documentation structure, foundation boundaries and `git diff --check`: passed. Backend tests were not rerun for this presentation-only follow-up.
 
 Visually inspected [390px bottom navigation](../artifacts/005-mobile-bottom-navigation/mobile-nav-390.png) and [320px short-height composer](../artifacts/005-mobile-bottom-navigation/mobile-composer-320.png). Browser viewport resizing does not certify a physical mobile keyboard or native safe-area device. No deployment or native extension interaction was performed; broader pilot acceptance remains open.
+
+### October 13 bounded follow-up: contextual desktop alerts and exact-message clicks
+
+At main `f25e87bd75e78682651a1a4d820ef61b765000cc` plus this uncommitted scoped patch, desktop claims now include bounded sender/reason/work-Chat titles and single-line message excerpts. URLs become `[link]` and hidden control characters are removed. Settings disclose desktop preview content. Both existing delivery clients consume this same server payload. Existing click handlers already carry chat/thread/message IDs; actual browser acceptance confirms they load and highlight older messages without changing those handlers. Opt-in, recipient/access checks, claims, delivery acknowledgement and read semantics remain in force. No schema, dependency, permission, deployment or real account changes.
+
+October 13, 2026 environment: Node 24.14.1, host PHP 8.5.1 and Sail PHP 8.4.23. Backend databases are in-memory SQLite. Authenticated headless installed Chrome uses a dedicated server on `127.0.0.1:18019`, guarded disposable SQLite and private storage under `/private/tmp/sidewire-desktop-browser/`; Notification is instrumented, and worker Chrome APIs are test doubles.
+
+- `php artisan test --compact --filter=PilotCollaborationTest`: 25 passed, 216 assertions on host PHP. The same command passed in Sail via `docker exec -e APP_ENV=testing -e APP_CONFIG_CACHE=/tmp/sidewire-desktop-test-config.php -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e DB_URL= pagerelay-laravel.test-1 php artisan test --compact --filter=PilotCollaborationTest`. Covers contextual DM/mention/thread payloads, long names/Unicode excerpts, URL/control removal, exact paths, recipient/revoked-access isolation and existing opt-in/lease/history checks. Initial new fixtures used the wrong thread request field and retained a web guard for bearer requests; corrected to the actual `thread_root_id` contract and existing guard reset pattern without changing application authorization.
+- PHP analysis passed on host with `php -d memory_limit=512M vendor/bin/phpstan analyse --debug --no-progress` and in Sail with `vendor/bin/phpstan analyse --no-progress` under the same isolated environment. Host parallel analysis initially hit sandbox socket restrictions; serial debug mode then needed the stated memory limit. `composer validate --strict` and scoped `vendor/bin/pint --test` for controller, collaboration tests and guarded browser seed passed.
+- `npm run types:check`, `npm run build`, focused `vp check` for modified TSX and new JS harnesses, and `vp check --no-fmt tests/Browser/pilot.cjs`: passed. Existing compact pilot formatting retained. Built extension manifest permissions remain unchanged.
+- `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs scripts/desktop-notifications.test.mjs`: 34 passed. The worker regression runs the actual worker source with API doubles, verifies contextual Chrome notification options, exact thread/message click URL and no read acknowledgement on delivery/click. It is not native extension acceptance.
+- After guarded migrations and `php tests/Browser/seed-desktop-notifications.php`, `node tests/Browser/desktop-notifications.cjs` passed at 1440px/390px. Six separate synthetic recipients exercise mentions, DMs and participated-thread replies, each with 65 newer messages. Assertions cover actual claim previews, retained unread attention after delivery, invoking the real web notification click callback, exact chat/thread/message route, visible highlighted target, bounded layout, settings disclosure and zero page errors. Initial seed attempts referenced an incorrect service/class signature; corrected to `CreateDirectChat::handle` with recipient ID.
+- Documentation structure, foundation boundaries and `git diff --check`: passed. Full backend suite, full-tree formatting, PostgreSQL races, live Reverb, native side panel and visible OS toasts were not rerun or certified by this scoped slice.
+
+Visually inspected [desktop mention destination](../artifacts/005-contextual-desktop-notifications/desktop-click-mention-1440.png) and [mobile reply destination](../artifacts/005-contextual-desktop-notifications/desktop-click-thread-390.png). No production deployment; plan 005 retains its broader native/device/concurrency acceptance gates.
+
+October 13 wording clarification verification at the same base revision plus the refined working patch: Sail PHP 8.4 `php artisan test --compact --filter=PilotCollaborationTest` passed 26 tests/224 assertions, including an explicit selected-DM mention title/preview/exact-link regression. Scoped Pint and host PHP analysis with the command above passed. Re-seeded only the guarded disposable browser database and reran `node tests/Browser/desktop-notifications.cjs`: all six desktop/mobile mention/DM/reply cases passed with the requested title templates and existing exact-message clicks. Documentation structure and diff whitespace checks passed. No frontend source/contract changed in this copy-only follow-up, so builds/types were not repeated; prior evidence retains its own revision scope. Native display and release remain pending.
 
 ## Interfaces and Dependencies
 

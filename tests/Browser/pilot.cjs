@@ -119,8 +119,8 @@ const { chromium } = browserRequire('playwright');
             'Overlapping DM/mention must create one desktop API call',
         );
         assert(
-            !notices[0].body.includes('1001'),
-            'Desktop preview must not contain quote text',
+            notices[0].body.includes('Review quote 1001'),
+            'Desktop preview includes message context',
         );
         await owner.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Activity', exact: true }).click();
         await owner

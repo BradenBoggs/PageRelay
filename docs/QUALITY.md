@@ -91,3 +91,7 @@ The subsequent bounded sidebar follow-up in plan 005 passed types, web/extension
 ## Fixed mobile bottom navigation
 
 [Plan 005](plans/active/005-gps-communication-pilot.md) records the shared four-destination bottom bar below 768px, with current states, unseen badges and reserved composer/content space. Shared types/builds, scoped lint/format and actual Chrome checks passed at 320/390/767px and 500/900px heights; 768/1440px checks retain the desktop rail. Navigation, drafts, scrolling and secondary drawer access passed. Physical mobile keyboard/native safe-area-device acceptance was not performed; no backend behavior or deployment change.
+
+October 13 contextual desktop refinement: [plan 005](plans/active/005-gps-communication-pilot.md) records 25 collaboration tests/216 assertions on PHP 8.4 Sail and PHP 8.5.1 SQLite, passing analysis/types/builds, a worker API-double regression, and actual Chrome notification-click navigation at 1440px/390px for older mentions, DMs and thread replies. Sender/reason/preview bounds and authorization are covered; desktop Notification is instrumented. Native OS display, native extension lifecycle and broader pilot gates remain pending.
+
+The subsequent October 13 wording clarification passed 26 collaboration tests/224 assertions in Sail PHP 8.4 and repeated the six desktop/mobile browser cases with the requested title templates; details remain in plan 005. Native display/release status is unchanged.

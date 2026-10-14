@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Conversations\ConversationAccess;
+use App\Enums\ConversationType;
 use App\Models\MessageNotification;
 use App\Models\Organization;
 use Illuminate\Database\Eloquent\Builder;
@@ -69,7 +70,8 @@ class MessageNotificationController extends Controller
     public function claim(Request $request, string $notification): JsonResponse
     {
         return DB::transaction(function () use ($request, $notification): JsonResponse {
-            $item = $this->visible($request)->where('public_id', $notification)->lockForUpdate()->firstOrFail();
+            $item = $this->visible($request)->with(['message.author', 'message.threadRoot', 'conversation'])
+                ->where('public_id', $notification)->lockForUpdate()->firstOrFail();
             $preference = $this->preference($request)->first();
             if (! $preference?->enabled_at || $item->read_at || $item->delivered_at
                 || $item->created_at->lt($preference->enabled_at) || $item->created_at->lt(now()->subDay())
@@ -81,7 +83,8 @@ class MessageNotificationController extends Controller
 
             return response()->json(['data' => [
                 'id' => $item->public_id, 'claim' => $claim,
-                'title' => 'SideWire', 'body' => 'You have a new '.$this->reason($item->reason).'. Open SideWire to view it.',
+                'title' => $this->desktopTitle($item),
+                'body' => $this->desktopText($item->message->body, 180) ?: 'Open SideWire to view this message.',
                 'path' => '/messages?'.http_build_query([
                     'chat' => $item->conversation->public_id,
                     'thread' => $item->message->threadRoot?->public_id,
@@ -135,10 +138,26 @@ class MessageNotificationController extends Controller
         ];
     }
 
-    private function reason(string $reason): string
+    private function desktopTitle(MessageNotification $item): string
     {
-        return match ($reason) {
-            'mention' => 'mention', 'thread' => 'thread reply', default => 'direct message'
+        $author = $this->desktopText($item->message->author->name, 40);
+        $destination = $item->conversation->type === ConversationType::Page
+            ? $this->desktopText($item->conversation->title, 45) : 'a Direct Message';
+        $title = match ($item->reason) {
+            'mention' => $author.' mentioned you in '.$destination,
+            'thread' => $author.' replied to your message',
+            default => 'Direct Message from '.$author,
         };
+
+        return $this->desktopText($title, 120);
+    }
+
+    private function desktopText(string $text, int $limit): string
+    {
+        // The OS may retain previews; omit URLs (including signed links) and hidden controls.
+        $text = preg_replace('~(?:https?://|www\.)[^\s<>]+~iu', '[link]', $text) ?? '';
+        $text = preg_replace('/[\p{Cc}\p{Cf}]/u', ' ', $text) ?? '';
+
+        return Str::limit(Str::squish($text), $limit - 1, '…');
     }
 }

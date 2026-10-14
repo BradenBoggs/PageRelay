@@ -42,7 +42,7 @@ The actual installed extension ID must be included alongside the app hostname in
 
 With local extension alert opt-in and server preference enabled, Chrome checks notification records approximately once a minute even when the panel is closed. Closing Chrome, suspension, sleep and operating-system notification settings may delay or suppress alerts. This is not guaranteed instant closed-browser push. No background page or tab lookup is performed for alert delivery.
 
-Generic previews, durable attention, claims across clients, pause/test controls and exact-message click navigation belong to [Notifications](mentions-and-notifications.md). Merely displaying or dismissing an alert does not mark its message read.
+Contextual previews, durable attention, claims across clients, pause/test controls and exact-message click navigation belong to [Notifications](mentions-and-notifications.md). Merely displaying or dismissing an alert does not mark its message read.
 
 ## Authentication and recovery
 

@@ -390,7 +390,8 @@ export function NotificationControls({
                         ? 'With extension alerts enabled, Chrome checks about once a minute, even with the panel closed. Chrome must be running.'
                         : 'Keep a SideWire tab open for web alerts. To receive alerts with the tab and panel closed, enable them in the Chrome extension.'}{' '}
                     Sleep and system notification settings can delay alerts.
-                    Desktop previews never include message text.
+                    Desktop alerts show the sender, chat name and a short
+                    message preview. Click an alert to open the message.
                 </p>
                 {message && (
                     <p className="sw-settings-feedback" role="status">

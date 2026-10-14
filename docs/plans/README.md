@@ -18,7 +18,7 @@ The September 27 migration classified the four legacy plans against revision `2c
 - [001 — Page chats and linking](active/001-page-chats-and-linking.md): verification pending; milestone 5 runtime and manual Chrome acceptance remain open.
 - [002 — Durable work Chats](active/002-durable-work-chats.md): verification pending; manual Chrome and PostgreSQL race acceptance remain open.
 - [003 — Application shell](active/003-application-shell.md): verification pending; authenticated-browser, accessibility and failure acceptance remain open.
-- [005 — GPS communication pilot](active/005-gps-communication-pilot.md): verification pending following Braden's implementation request. October 13 bell history/settings-gear web and focused backend checks passed; native panel/OS and broader pilot acceptance remain open. Historical pilot candidate is in draft PR 3; see its revision-specific evidence before use.
+- [005 — GPS communication pilot](active/005-gps-communication-pilot.md): verification pending following Braden's implementation request. October 13 bell history/settings-gear and contextual desktop previews/exact-message clicks passed scoped web/backend/worker checks; native panel/OS and broader pilot acceptance remain open. Historical pilot candidate is in draft PR 3; see its revision-specific evidence before use.
 
 - [006 — Conversation-read migration recovery](completed/006-conversation-read-migration-recovery.md): scoped recovery verified October 9 on SQLite/MySQL; not deployed.
 

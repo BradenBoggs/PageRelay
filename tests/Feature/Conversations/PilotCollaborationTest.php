@@ -294,25 +294,116 @@ class PilotCollaborationTest extends TestCase
         $this->actingAs($member)->getJson('/collaboration/notifications')->assertOk()->assertJsonPath('unread_count', 1)->assertJsonPath('desktop_candidates', []);
     }
 
-    public function test_desktop_claim_deduplicates_open_clients_and_uses_private_preview(): void
+    public function test_desktop_claim_deduplicates_open_clients_and_includes_message_context(): void
     {
         $owner = User::factory()->create();
         $member = $this->coworker($owner);
         $id = $this->direct($owner, $member);
         $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
         $this->travel(1)->seconds();
-        $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload(['body' => 'Secret quote 482: customer balance $125,000']))->assertCreated();
+        $message = $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload(['body' => 'Please review quote 482.']))->assertCreated()->json('data.id');
         $notice = MessageNotification::query()->sole();
         $claim = $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->json('data');
         $this->assertNotNull($claim);
-        $this->assertSame('SideWire', $claim['title']);
-        $this->assertStringNotContainsString('482', $claim['body']);
-        $this->assertStringNotContainsString($owner->name, $claim['body']);
+        $this->assertSame('Direct Message from '.$owner->name, $claim['title']);
+        $this->assertSame('Please review quote 482.', $claim['body']);
+        $this->assertSame('/messages?'.http_build_query(['chat' => $id, 'message' => $message]), $claim['path']);
         $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->assertJsonPath('data', null);
         $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/delivered', ['claim' => (string) Str::uuid()])->assertConflict();
         $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/delivered', ['claim' => $claim['claim']])->assertOk();
         $this->assertNotNull($notice->fresh()->delivered_at);
         $this->assertNull($notice->fresh()->read_at);
+    }
+
+    public function test_desktop_mentions_and_thread_replies_have_bounded_context_and_exact_links(): void
+    {
+        $owner = User::factory()->create(['name' => 'Review Owner']);
+        $member = $this->coworker($owner);
+        $chat = $this->workChat($owner);
+        $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
+        $this->travel(1)->seconds();
+        $root = $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload([
+            'body' => "Please\n\tcheck https://example.test/quote?token=private-secret before approval.", 'mentions' => [$member->id],
+        ]))->assertCreated()->json('data.id');
+        $notice = MessageNotification::query()->sole();
+        $claim = $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->assertSame('Review Owner mentioned you in Quote review', $claim['title']);
+        $this->assertSame('Please check [link] before approval.', $claim['body']);
+        $this->assertSame('/messages?'.http_build_query(['chat' => $chat->public_id, 'message' => $root]), $claim['path']);
+
+        // Participate so a later reply produces thread attention independently of a mention.
+        $this->actingAs($member)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload(['thread_root_id' => $root]))->assertCreated();
+        $reply = $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload([
+            'thread_root_id' => $root, 'body' => str_repeat('Ready ✅ ', 80),
+        ]))->assertCreated()->json('data.id');
+        $notice = MessageNotification::query()->where('user_id', $member->id)->latest('id')->firstOrFail();
+        $token = $member->createToken('Extension', [ApiTokenAbility::ExtensionAccess->value], now()->addHour());
+        $this->app['auth']->forgetGuards();
+        $claim = $this->withToken($token->plainTextToken)->postJson('/api/v1/extension/collaboration/notifications/'.$notice->public_id.'/claim', [])
+            ->assertOk()->json('data');
+        $this->assertSame('Review Owner replied to your message', $claim['title']);
+        $this->assertLessThanOrEqual(180, mb_strlen($claim['body']));
+        $this->assertStringStartsWith('Ready ✅', $claim['body']);
+        $this->assertStringEndsWith('…', $claim['body']);
+        $this->assertSame('/messages?'.http_build_query(['chat' => $chat->public_id, 'thread' => $root, 'message' => $reply]), $claim['path']);
+        $this->assertNull($notice->fresh()->read_at);
+    }
+
+    public function test_selected_dm_mentions_keep_the_mention_reason_in_desktop_titles(): void
+    {
+        $owner = User::factory()->create(['name' => 'Braden']);
+        $member = $this->coworker($owner);
+        $chat = $this->direct($owner, $member);
+        $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
+        $this->travel(1)->seconds();
+        $message = $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat.'/messages', $this->payload([
+            'body' => 'Please check the pickup time.', 'mentions' => [$member->id],
+        ]))->assertCreated()->json('data.id');
+        $notice = MessageNotification::query()->sole();
+        $this->assertSame('mention', $notice->reason);
+        $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()
+            ->assertJsonPath('data.title', 'Braden mentioned you in a Direct Message')
+            ->assertJsonPath('data.body', 'Please check the pickup time.')
+            ->assertJsonPath('data.path', '/messages?'.http_build_query(['chat' => $chat, 'message' => $message]));
+    }
+
+    public function test_contextual_desktop_claims_recheck_recipient_and_private_chat_access(): void
+    {
+        $owner = User::factory()->create();
+        $member = $this->coworker($owner);
+        $admin = $this->coworker($owner, OrganizationRole::Administrator);
+        $id = $this->direct($owner, $member);
+        $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
+        $this->travel(1)->seconds();
+        $this->actingAs($owner)->postJson('/collaboration/chats/'.$id.'/messages', $this->payload())->assertCreated();
+        $notice = MessageNotification::query()->sole();
+        $this->actingAs($admin)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertNotFound();
+        DB::table('conversation_participants')->where('user_id', $member->id)->delete();
+        $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertNotFound();
+        $token = $member->createToken('Extension', [ApiTokenAbility::ExtensionAccess->value], now()->addHour());
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token->plainTextToken)->postJson('/api/v1/extension/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertNotFound();
+        $this->assertNull($notice->fresh()->desktop_claim);
+    }
+
+    public function test_desktop_context_bounds_long_names_and_removes_hidden_controls(): void
+    {
+        $owner = User::factory()->create(['name' => str_repeat('Sender ', 30)]);
+        $member = $this->coworker($owner);
+        $chat = $this->workChat($owner);
+        $chat->update(['title' => str_repeat('Dispatch ', 25)]);
+        $this->actingAs($member)->putJson('/collaboration/notifications/settings', ['enabled' => true])->assertOk();
+        $this->travel(1)->seconds();
+        $this->actingAs($owner)->postJson('/collaboration/chats/'.$chat->public_id.'/messages', $this->payload([
+            'body' => "Please\u{202E}check\twww.example.test/quote?token=secret\nnow.", 'mentions' => [$member->id],
+        ]))->assertCreated();
+        $notice = MessageNotification::query()->sole();
+        $claim = $this->actingAs($member)->postJson('/collaboration/notifications/'.$notice->public_id.'/claim', [])->assertOk()->json('data');
+        $this->assertLessThanOrEqual(120, mb_strlen($claim['title']));
+        $this->assertStringContainsString('mentioned you in', $claim['title']);
+        $this->assertStringContainsString('…', $claim['title']);
+        $this->assertSame('Please check [link] now.', $claim['body']);
     }
 
     public function test_failed_desktop_delivery_can_retry_after_lease_and_pause_stops_claims(): void

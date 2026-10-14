@@ -18,7 +18,7 @@ Open Messages, DMs & mentions in the web navigation, or Messages & DMs in the pa
 
 In a message or reply, type @ and select a suggested coworker. Only selected people shown in the recipient chips are notified; plain @name text alone does not notify. Choose Reply in thread on a root message. Its author and previous reply authors receive new thread activity. Reading a main Chat does not clear unseen reply attention.
 
-Open Notifications, click Enable on this browser, accept browser permission and use Send test notification. Pause desktop alerts stops desktop delivery while preserving Activity. The server preference is per user/organization; browser permission and extension opt-in remain local. Desktop text is deliberately generic.
+Open Notifications, use its settings gear, click Enable on this browser, accept browser permission and use Send test notification. Pause desktop alerts stops desktop delivery while preserving Activity. The server preference is per user/organization; browser permission and extension opt-in remain local. Desktop alerts include the sender, reason, work-Chat name and a short preview under the [notification specification](../features/mentions-and-notifications.md). Click a real alert to check that its exact message is highlighted and its thread opens when applicable.
 
 Web-only alerts need an open SideWire tab. With the extension opted in, Chrome checks for notifications about once a minute even if the panel is closed. Sleeping/closed browsers and system Do Not Disturb can delay or suppress alerts. This is not guaranteed instant push. Desktop delivery acknowledgement is not proof the recipient read a message.
 

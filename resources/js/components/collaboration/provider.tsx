@@ -93,7 +93,6 @@ export function CollaborationProvider({
                         }>(`/notifications/${id}/claim`, {});
                         if (!claimed.data || !active) continue;
                         const notice = claimed.data;
-                        // Generic previews never expose customer names, page URLs or message text.
                         const toast = new Notification(notice.title, {
                             body: notice.body,
                             tag: `sidewire-${notice.id}`,

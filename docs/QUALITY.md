@@ -83,3 +83,11 @@ The documentation checker protects navigation and lifecycle shape. It cannot est
 [Plan 005](plans/active/005-gps-communication-pilot.md) records real read/unread notification history in the shared bell dropdown, older pages and a settings gear for desktop controls. Focused host/Sail PHP tests passed (22 tests, 183 assertions each), along with shared types/builds, scoped lint/format and authenticated Chrome checks at 1440px/390px for pagination, no-read behavior, exact thread links, keyboard focus, desktop settings and loading/error/empty states. Notification API calls are instrumented; native side-panel/OS toast delivery, live Reverb and the broader pilot are not certified by this scoped pass. No deployment.
 
 The subsequent bounded sidebar follow-up in plan 005 passed types, web/extension builds, focused lint and authenticated 1440px/390px Chrome navigation checks. Messages lists only DMs; Work chats retains its work-only server query. Activity, DM opening and exact work-thread links remain usable. Backend behavior was unchanged and its suite was not rerun for this UI correction; no deployment.
+
+## Main-sidebar unseen-message badges
+
+[Plan 016](plans/active/016-work-chat-controls.md) records authorized aggregate DM/work-message totals and shared desktop/mobile navigation badges. Host and Sail focused tests passed (7 tests, 104 assertions each), alongside PHP analysis, shared types/builds, focused format/lint and Chrome 1440px/390px count/read/reply/incoming/access-loss checks. Directory previews do not clear counts; badges hide at zero and expose exact totals when visually capped at 99+. Live Reverb/native-panel/PostgreSQL acceptance remains separate; no deployment was performed by this task.
+
+## Fixed mobile bottom navigation
+
+[Plan 005](plans/active/005-gps-communication-pilot.md) records the shared four-destination bottom bar below 768px, with current states, unseen badges and reserved composer/content space. Shared types/builds, scoped lint/format and actual Chrome checks passed at 320/390/767px and 500/900px heights; 768/1440px checks retain the desktop rail. Navigation, drafts, scrolling and secondary drawer access passed. Physical mobile keyboard/native safe-area-device acceptance was not performed; no backend behavior or deployment change.

@@ -32,7 +32,7 @@ Shared files/pins/canvas/list surfaces appear as contextual resources after thei
 
 Retain viewport-height framing (`100dvh` with fallback). The candidate uses a 60px header, an 82px labeled messaging rail (76px on tablet), a 300px conversation directory (270px in narrower compositions), and a 340px thread pane only when the conversation stage is at least 760px. The October 9 sidebar correction keeps the same large-icon rail on non-messaging routes, including Activity. Existing linked-work shortcuts remain available on discovery pages. `resources/css/sidewire-tokens.css` owns shared semantic `--sw-*` dimensions, colors and surfaces; `application-shell.css` and the messaging stylesheet own their respective compositions.
 
-At wide widths use rail, directory, conversation and, only when it fits, a contextual thread. At 768–1099px the primary rail remains compact on all web pages. Below 768px the primary navigation uses the Sheet, and messaging shows either the directory or selected conversation with a clear back action and safe-area composer spacing. Thread/resource panes replace or collapse another region when needed. Navigation, results, history, and ordinary page content scroll independently with defined minimum-size/overflow contracts.
+At wide widths use rail, directory, conversation and, only when it fits, a contextual thread. At 768–1099px the primary rail remains compact on all web pages. Approved October 13 mobile refinement: below 768px, a fixed bottom bar provides Messages, Work chats, Activity and Todos with the same active states and unseen-message badges as the rail. Its height and device safe area are reserved in the viewport frame so content and composers remain above it. The header drawer retains access to linked-work shortcuts. At these widths, and messaging shows either the directory or selected conversation with a clear back action and safe-area composer spacing. Thread/resource panes replace or collapse another region when needed. Navigation, results, history, and ordinary page content scroll independently with defined minimum-size/overflow contracts.
 
 The target supports all retained history with stable older-message pagination and jump-to-message context. The GPS pilot provides older-message pagination; the historical latest-100 limit is not the candidate UI contract. Preserve scroll while loading older messages; follow new arrivals only when already near the end.
 
@@ -54,6 +54,7 @@ An organization can create channels, send DMs, find retained history, manage att
 
 - Frame: `resources/js/layouts/app-layout.tsx`, selected by `resources/js/app.tsx`.
 - Landing/legacy redirects: `routes/web.php`, `config/fortify.php`; navigation/landing browser checks: `tests/Browser/no-overview.cjs`.
+- Mobile bottom navigation: shared `AppNavigation` bottom variant in `app-layout.tsx`, with viewport reservation in `application-shell.css`.
 - Global regions/cache: `resources/js/components/application-shell/`.
 - Chat composition: `resources/js/components/chats/`.
 - Pages: `resources/js/pages/chats/`, `resources/js/pages/activity/index.tsx`.

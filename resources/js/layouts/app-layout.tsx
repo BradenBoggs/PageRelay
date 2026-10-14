@@ -61,6 +61,7 @@ export default function AppLayout({
                 data-discovery={Boolean(discovery)}
                 data-messaging={messaging}
                 data-selected={selected}
+                data-mobile-navigation={Boolean(props.organization)}
             >
                 <a
                     className="sw-skip"
@@ -97,6 +98,15 @@ export default function AppLayout({
                         {children}
                     </main>
                 </div>
+                {props.organization && (
+                    <AppNavigation
+                        discovery={discovery}
+                        hasOrganization
+                        currentUrl={url}
+                        variant="bottom"
+                        onNavigate={() => setNavigationOpen(false)}
+                    />
+                )}
                 <Sheet open={navigationOpen} onOpenChange={setNavigationOpen}>
                     <SheetContent
                         side="left"

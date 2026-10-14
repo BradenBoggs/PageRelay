@@ -16,20 +16,26 @@ export function AppNavigation({
     hasOrganization,
     currentUrl = '',
     onNavigate,
+    variant = 'sidebar',
 }: {
     discovery?: ChatDiscovery;
     hasOrganization: boolean;
     currentUrl?: string;
     onNavigate?: () => void;
+    variant?: 'sidebar' | 'bottom';
 }) {
+    const bottom = variant === 'bottom';
     const path = currentUrl.split('?')[0];
     const view = new URLSearchParams(currentUrl.split('?')[1] ?? '').get(
         'view',
     );
     return (
-        <nav className="sw-navigation" aria-label="Main navigation">
+        <nav
+            className={`sw-navigation${bottom ? ' sw-mobile-navigation' : ''}`}
+            aria-label={bottom ? 'Mobile navigation' : 'Main navigation'}
+        >
             <div className="sw-nav-section">
-                <p className="sw-eyebrow">Your team</p>
+                {!bottom && <p className="sw-eyebrow">Your team</p>}
                 {hasOrganization && (
                     <>
                         <Link
@@ -53,7 +59,7 @@ export function AppNavigation({
                             className="sw-nav-link"
                             aria-current={
                                 discovery?.surface === 'chats' &&
-                                !discovery.filters.app
+                                (bottom || !discovery.filters.app)
                                     ? 'page'
                                     : undefined
                             }
@@ -92,7 +98,7 @@ export function AppNavigation({
                     </>
                 )}
             </div>
-            {hasOrganization && (
+            {hasOrganization && !bottom && (
                 <div className="sw-nav-section sw-apps-section">
                     <p className="sw-eyebrow">Linked work</p>
                     <Link
@@ -136,11 +142,13 @@ export function AppNavigation({
                     )}
                 </div>
             )}
-            <div className="sw-nav-note">
-                Your conversations.
-                <br />
-                Alongside your work.
-            </div>
+            {!bottom && (
+                <div className="sw-nav-note">
+                    Your conversations.
+                    <br />
+                    Alongside your work.
+                </div>
+            )}
         </nav>
     );
 }
@@ -152,6 +160,7 @@ function UnseenBadge({ kind }: { kind: 'direct' | 'work' }) {
     return (
         <span
             className="sw-nav-unseen-badge"
+            role="img"
             aria-label={`${count} unseen messages`}
             title={`${count} unseen messages`}
         >

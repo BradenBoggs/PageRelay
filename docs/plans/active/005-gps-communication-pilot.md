@@ -37,6 +37,8 @@ The assistant environment lacked an executable local Sail/application setup. Dep
 
 ## Decision Log
 
+- October 13 mobile navigation refinement: Braden requests a sticky bottom version of the mobile navbar. Reuse the main four destinations and existing unseen badges in a fixed mobile bottom bar below 768px. Reserve its height and device safe area so lists, page content and composers remain above it; preserve desktop rail, secondary drawer access, exact links, drafts and reading semantics. This bounded shell UI change authorizes no backend, permission or extension change.
+
 - October 13 web sidebar refinement: Braden requests Messages to list only direct messages and Work chats to list only work Chats. Restrict the web Messages directory/default landing and remove its conversation-kind switches; reuse the existing direct API filter and existing work-only discovery. Preserve Activity, authorized exact chat/thread/message links, and the separate combined extension directory. This is a bounded UI correction with focused browser/build/type checks; no backend or permission change.
 
 - October 13 notification-panel continuation: Braden again requests actual notifications on bell click with settings/desktop controls behind a panel gear. At `6d56c866c96a6585f3874d6eca001bae1076a5e0` plus existing unrelated local changes, the authorized history endpoint/type already exist but the bell still opens preferences. Complete the shared React dropdown, pagination, refresh/error states and focus return using locked Radix primitives; verify actual web desktop/mobile flows and existing history authorization without changing delivery rules.
@@ -171,6 +173,18 @@ October 13, 2026 scoped evidence: Node 24.14.1, PHP 8.5.1 isolated SQLite browse
 - `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. Documentation structure and `git diff --check`: passed. No backend suite was rerun for unchanged backend behavior; the preceding notification history tests retain their own evidence.
 
 Visually inspected [Messages mobile](../artifacts/005-sidebar-separation/messages-390.png) and [Work chats mobile](../artifacts/005-sidebar-separation/work-chats-390.png). Desktop artifacts: [Messages](../artifacts/005-sidebar-separation/messages-1440.png), [Work chats](../artifacts/005-sidebar-separation/work-chats-1440.png). No deployment or native extension interaction performed; broader plan 005 acceptance remains open.
+
+### October 13 bounded follow-up: fixed mobile bottom navigation
+
+Braden requests a sticky bottom mobile navbar. At revision `492113e3c4e9b0b2dd0a63af4d13bb3912b0c5e4` plus the preserved unseen-badge evidence/accessibility changes, added a bottom variant to the existing `AppNavigation` and mounted it in the authenticated shell. Below 768px it shows Messages, Work chats, Activity and Todos with existing active states and count badges. A 64px bar plus device safe-area inset is reserved in the viewport frame; content/composers finish above it. The composer no longer adds the bottom screen safe-area padding a second time. The header drawer retains linked-work shortcuts, and the desktop rail is unchanged. No backend, extension, dependency or reading behavior change.
+
+October 13, 2026 evidence: Node 24.14.1, host PHP 8.5.1, installed headless Chrome, actual workspace assets and the guarded disposable SQLite server/database/storage under `/private/tmp/sidewire-sidebar-count-browser/`.
+
+- `npm run types:check`, `npm run build`, focused `vp check --fix` followed by `vp check` on the layout/navigation TSX: passed. Existing compact shell CSS formatting retained.
+- `node /private/tmp/sidewire-sidebar-count-browser/mobile-nav-check.cjs`: passed at 320px, 390px and 767px, plus desktop boundary checks at 768px/1440px. Verifies the fixed bottom edge, four working destinations and current states, reused count badges, non-overlapping content/composer bounds, internal scrolling, 900px/500px viewport heights, draft retention after navigation, secondary drawer access, no horizontal overflow or page errors, and no bottom bar at desktop widths. A separate settled 320px/500px visual inspection confirmed one shell/header, no document scroll, the bar at y=436–500 and the composer ending at y=436. Short-height headless resize screenshots showed a rendering artifact despite correct DOM geometry; the retained short-height image comes from the separate settled 320px/500px inspection.
+- `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. Documentation structure, foundation boundaries and `git diff --check`: passed. Backend tests were not rerun for this presentation-only follow-up.
+
+Visually inspected [390px bottom navigation](../artifacts/005-mobile-bottom-navigation/mobile-nav-390.png) and [320px short-height composer](../artifacts/005-mobile-bottom-navigation/mobile-composer-320.png). Browser viewport resizing does not certify a physical mobile keyboard or native safe-area device. No deployment or native extension interaction was performed; broader pilot acceptance remains open.
 
 ## Interfaces and Dependencies
 

@@ -43,6 +43,8 @@ The assistant environment lacked an executable local Sail/application setup. Dep
 
 - October 13 wording clarification: Braden requests titles like “Braden mentioned you in WorkChatName”, “Direct Message from Braden” and “Blake replied to your message”, with message contents. Use those templates with the stored sender display name and existing separate preview body; a DM mention retains its mention reason and explicitly names the Direct Message destination. This is a copy refinement of the same approved notification slice.
 
+- October 28 mobile-browser display fix: Braden reports the Test notification fails with "Illegal constructor. Use ServiceWorkerRegistration.showNotification() instead" (Android Chrome behavior); the same constructor in the delivery loop throws after each claim, so real alerts never display there. Braden chose to make alerts work rather than only fail cleanly. Keep `new Notification` where allowed; on its TypeError, register the root-scoped notification-only `public/notifications-sw.js` and display through `showNotification`, with the click focusing/navigating to the exact path. No fetch handling, caching, push subscription, closed-browser delivery, new permission, server or preference change.
+
 - October 13 contextual desktop refinement: Braden asks to improve push notifications with message/mention context and clicking through to the message. This authorizes sender/reason/work-Chat name and a short message excerpt in the existing opted-in web/extension desktop channel, superseding generic-only text. Reuse the server claim payload and existing exact-message routes; replace web URLs with `[link]`, normalize whitespace/control characters, and bound output. No new channel, notification source, permission, migration or deployment. Native OS/device acceptance remains open.
 
 - October 13 mobile navigation refinement: Braden requests a sticky bottom version of the mobile navbar. Reuse the main four destinations and existing unseen badges in a fixed mobile bottom bar below 768px. Reserve its height and device safe area so lists, page content and composers remain above it; preserve desktop rail, secondary drawer access, exact links, drafts and reading semantics. This bounded shell UI change authorizes no backend, permission or extension change.
@@ -193,6 +195,15 @@ October 13, 2026 evidence: Node 24.14.1, host PHP 8.5.1, installed headless Chro
 - `node --test scripts/check-docs.test.mjs scripts/collaboration-ui.test.mjs`: 33 passed. Documentation structure, foundation boundaries and `git diff --check`: passed. Backend tests were not rerun for this presentation-only follow-up.
 
 Visually inspected [390px bottom navigation](../artifacts/005-mobile-bottom-navigation/mobile-nav-390.png) and [320px short-height composer](../artifacts/005-mobile-bottom-navigation/mobile-composer-320.png). Browser viewport resizing does not certify a physical mobile keyboard or native safe-area device. No deployment or native extension interaction was performed; broader pilot acceptance remains open.
+
+### October 28 bounded follow-up: service-worker notification fallback
+
+Base `bc386c3`. Node 25.9.0, macOS. `resources/js/components/collaboration/desktop-notification.ts` is shared by the Test button and delivery loop.
+
+- `npm run types:check:web`, `npm run build:web` and `node --test scripts/*.test.mjs` (34 passed): passed. `npx vp lint` on changed sources: no findings. `npm run check` still reports the same 15 pre-existing formatting files; changed files were formatted.
+- Real Chromium 1148 (Playwright 1.49.1 in a scratch directory, static server, notification permission granted): with the native constructor, the helper displays without registering a worker; with the constructor replaced by one throwing the Android TypeError, the helper registers `notifications-sw.js` and the registration lists the notification with its title, body and exact path, no page errors.
+
+Not run: a real Android device, the service-worker click handler, authenticated `tests/Browser/desktop-notifications.cjs`, Sail. No shared data, deployment or merge.
 
 ### October 13 bounded follow-up: contextual desktop alerts and exact-message clicks
 

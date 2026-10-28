@@ -6,6 +6,7 @@ import {
     type ReactNode,
 } from 'react';
 import { CollaborationClient, type AttentionPage, type Notice } from './client';
+import { showDesktopNotification } from './desktop-notification';
 import { incomingSound } from './incoming-sound';
 import './workspace.css';
 
@@ -93,15 +94,12 @@ export function CollaborationProvider({
                         }>(`/notifications/${id}/claim`, {});
                         if (!claimed.data || !active) continue;
                         const notice = claimed.data;
-                        const toast = new Notification(notice.title, {
+                        await showDesktopNotification({
+                            title: notice.title,
                             body: notice.body,
                             tag: `sidewire-${notice.id}`,
+                            path: notice.path,
                         });
-                        toast.onclick = () => {
-                            window.focus();
-                            window.location.assign(notice.path);
-                            toast.close();
-                        };
                         await client.mutate(`/notifications/${id}/delivered`, {
                             claim: notice.claim,
                         });

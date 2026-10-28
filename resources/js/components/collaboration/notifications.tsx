@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { NotificationHistoryPage } from './client';
+import { showDesktopNotification } from './desktop-notification';
 import { dayLabel, timeLabel } from './presentation';
 import { useCollaboration } from './provider';
 import { CollaborationDialog, IconButton, PersonAvatar } from './ui';
@@ -133,7 +134,8 @@ export function NotificationControls({
                 'Notification' in window &&
                 Notification.permission === 'granted'
             )
-                new Notification('SideWire test', {
+                await showDesktopNotification({
+                    title: 'SideWire test',
                     body: 'Desktop notifications are enabled on this browser.',
                 });
             else throw new Error('Enable browser notifications first.');

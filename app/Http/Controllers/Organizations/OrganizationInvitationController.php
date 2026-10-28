@@ -91,7 +91,7 @@ class OrganizationInvitationController extends Controller
             abort(404);
         }
 
-        if (OrganizationMembership::where('user_id', $user->id)->exists()) {
+        if ($user->organizationMembership()->exists()) {
             abort(409, __('This account already belongs to an organization.'));
         }
 
@@ -103,13 +103,28 @@ class OrganizationInvitationController extends Controller
 
             abort_unless($invitation->isPending(), 409);
 
-            OrganizationMembership::create([
+            $membership = OrganizationMembership::query()
+                ->where('user_id', $user->id)
+                ->lockForUpdate()
+                ->first();
+
+            abort_if($membership?->status === OrganizationMembershipStatus::Active, 409);
+
+            // One membership row per user: a removed member rejoins by reusing it, without
+            // reviving team memberships from the earlier stint.
+            if ($membership) {
+                $user->teamMemberships()
+                    ->where('organization_id', $membership->organization_id)
+                    ->delete();
+            }
+
+            OrganizationMembership::updateOrCreate(['user_id' => $user->id], [
                 'organization_id' => $invitation->organization_id,
-                'user_id' => $user->id,
                 'role' => $invitation->role,
                 'status' => OrganizationMembershipStatus::Active,
                 'is_billable' => true,
                 'joined_at' => now(),
+                'removed_at' => null,
             ]);
 
             $invitation->update(['accepted_at' => now()]);

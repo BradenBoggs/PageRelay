@@ -2,8 +2,12 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Domain\Teams\AddMemberToTeam;
+use App\Enums\OrganizationMembershipStatus;
 use App\Enums\OrganizationRole;
 use App\Models\OrganizationInvitation;
+use App\Models\OrganizationMembership;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -72,6 +76,54 @@ class ProfileUpdateTest extends TestCase
         $this->get(route('home'))->assertRedirect(route('messages.index'));
     }
 
+    public function test_a_removed_member_can_accept_an_invitation_from_another_organization(): void
+    {
+        $formerOwner = User::factory()->create();
+        $owner = User::factory()->create();
+        $user = $this->removedMember($formerOwner);
+        $invitation = $this->invitation($owner, $user->email);
+        $this->actingAs($user)->get(route('profile.edit'))
+            ->assertInertia(fn (Assert $page) => $page->has('pendingInvitations', 1));
+
+        $this->actingAs($user)->post(route('invitations.accept', $invitation))->assertRedirect(route('home'));
+
+        $membership = OrganizationMembership::where('user_id', $user->id)->sole();
+        $this->assertSame($invitation->organization_id, $membership->organization_id);
+        $this->assertSame(OrganizationMembershipStatus::Active, $membership->status);
+        $this->assertSame(OrganizationRole::Member, $membership->role);
+        $this->assertTrue($membership->is_billable);
+        $this->assertNull($membership->removed_at);
+        $this->assertNotNull($invitation->fresh()->accepted_at);
+        $this->get(route('home'))->assertRedirect(route('messages.index'));
+    }
+
+    public function test_a_removed_member_can_rejoin_the_same_organization_without_old_team_memberships(): void
+    {
+        $owner = User::factory()->create();
+        $user = $this->removedMember($owner, withTeam: true);
+        $invitation = $this->invitation($owner, $user->email);
+
+        $this->actingAs($user)->post(route('invitations.accept', $invitation))->assertRedirect(route('home'));
+
+        $membership = OrganizationMembership::where('user_id', $user->id)->sole();
+        $this->assertSame($owner->organization()->sole()->id, $membership->organization_id);
+        $this->assertSame(OrganizationMembershipStatus::Active, $membership->status);
+        $this->assertSame(0, $user->teamMemberships()->count());
+    }
+
+    public function test_an_active_member_cannot_accept_another_invitation(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create(['email' => 'member@example.com']);
+        $invitation = $this->invitation($owner, $member->email);
+        $organizationId = $member->organization()->sole()->id;
+
+        $this->actingAs($member)->post(route('invitations.accept', $invitation))->assertStatus(409);
+
+        $this->assertSame($organizationId, $member->fresh()->organization()->sole()->id);
+        $this->assertNull($invitation->fresh()->accepted_at);
+    }
+
     public function test_declining_a_profile_invitation_keeps_the_user_on_the_profile_landing(): void
     {
         $owner = User::factory()->create();
@@ -87,6 +139,26 @@ class ProfileUpdateTest extends TestCase
         $user = new User(['name' => 'Invitee', 'email' => 'invitee@example.com', 'password' => 'password']);
         $user->email_verified_at = now();
         $user->save();
+
+        return $user;
+    }
+
+    private function removedMember(User $owner, bool $withTeam = false): User
+    {
+        $user = $this->unaffiliatedUser();
+        $organization = $owner->organization()->sole();
+        $membership = OrganizationMembership::create([
+            'organization_id' => $organization->id, 'user_id' => $user->id,
+            'role' => OrganizationRole::Administrator, 'status' => OrganizationMembershipStatus::Active,
+            'is_billable' => true, 'joined_at' => now()->subMonth(),
+        ]);
+        if ($withTeam) {
+            app(AddMemberToTeam::class)->handle(Team::factory()->create(['organization_id' => $organization->id]), $user);
+        }
+        $membership->update([
+            'status' => OrganizationMembershipStatus::Removed,
+            'is_billable' => false, 'removed_at' => now()->subWeek(),
+        ]);
 
         return $user;
     }

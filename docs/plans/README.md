@@ -90,3 +90,5 @@ Park unrelated findings in [the debt tracker](tech-debt-tracker.md). Keep the re
 - [016 — Work Chat controls and incoming messages](active/016-work-chat-controls.md): approved October 13; scoped web/SQLite checks passed; native-panel/PostgreSQL acceptance pending.
 
 - [017 — Image-link thumbnails](active/017-message-image-thumbnails.md): approved October 13; scoped image-proxy/UI checks passed, public cURL/TLS smoke check passed; supported-runtime/native acceptance pending.
+
+- [018 — Removed-member reinvitation](active/018-removed-member-reinvitation.md): approved October 28; removed accounts can accept invitations; SQLite suites passed, PostgreSQL/browser acceptance pending.
